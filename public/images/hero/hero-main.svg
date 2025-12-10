@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="hero-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141414"/>
+      <stop offset="50%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#0f0f0f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#1f1f1f"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </radialGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#hero-bg)"/>
+  <ellipse cx="960" cy="400" rx="600" ry="400" fill="url(#glow)" opacity="0.5"/>
+  <text x="50%" y="45%" text-anchor="middle" dominant-baseline="middle" fill="#2a2a2a" font-size="24" font-family="system-ui" letter-spacing="0.3em">HERO IMAGE</text>
+  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" fill="#222" font-size="14" font-family="system-ui" letter-spacing="0.1em">Replace with your photograph</text>
+</svg>
+
+

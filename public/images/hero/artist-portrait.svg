@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
+  <defs>
+    <linearGradient id="portrait-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181818"/>
+      <stop offset="100%" stop-color="#0c0c0c"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#portrait-bg)"/>
+  <circle cx="300" cy="300" r="100" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+  <circle cx="300" cy="300" r="80" fill="none" stroke="#222" stroke-width="1"/>
+  <text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" fill="#2a2a2a" font-size="14" font-family="system-ui" letter-spacing="0.2em">ARTIST PORTRAIT</text>
+</svg>
+
+

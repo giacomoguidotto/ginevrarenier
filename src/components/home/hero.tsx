@@ -1,0 +1,117 @@
+"use client";
+
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowDown } from "lucide-react";
+import Link from "next/link";
+import { useRef } from "react";
+
+export function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  return (
+    <section
+      className="relative h-screen w-full overflow-hidden"
+      ref={containerRef}
+    >
+      {/* Background Image with Parallax */}
+      <motion.div className="absolute inset-0 z-0" style={{ y, scale }}>
+        <div
+          className="h-full w-full bg-center bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: "url('/images/hero/hero-main.svg')",
+          }}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+      </motion.div>
+
+      {/* Content */}
+      <motion.div
+        className="relative z-10 flex h-full flex-col items-center justify-center px-6"
+        style={{ opacity }}
+      >
+        <div className="max-w-5xl text-center">
+          {/* Tagline */}
+          <motion.p
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 text-cream/80 text-sm uppercase tracking-[0.3em]"
+            initial={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Visual Storyteller
+          </motion.p>
+
+          {/* Main Heading with Text Reveal */}
+          <div className="overflow-hidden">
+            <motion.h1
+              animate={{ y: 0 }}
+              className="mb-8 font-light leading-[0.9]"
+              initial={{ y: "100%" }}
+              transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <span className="block text-cream">Capturing</span>
+              <span className="block text-cream/60">Ethereal Moments</span>
+            </motion.h1>
+          </div>
+
+          {/* Subheading */}
+          <motion.p
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto mb-12 max-w-xl text-lg text-muted-foreground"
+            initial={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+          >
+            Through my lens, I explore the delicate interplay of light and
+            shadow, creating images that resonate with the soul.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.8, delay: 1 }}
+          >
+            <Link
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-cream bg-cream px-8 py-4 font-medium text-background text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-cream"
+              href="/vision"
+            >
+              <span className="relative z-10">Enter the Vision</span>
+            </Link>
+            <Link
+              className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-8 py-4 font-medium text-cream text-sm uppercase tracking-widest transition-all hover:border-cream hover:bg-cream/10"
+              href="/connect"
+            >
+              <span>Get in Touch</span>
+            </Link>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        className="-translate-x-1/2 absolute bottom-12 left-1/2 z-10"
+        initial={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.8, delay: 1.2 }}
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          className="flex flex-col items-center gap-2 text-muted-foreground"
+          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+        >
+          <span className="text-xs uppercase tracking-widest">Scroll</span>
+          <ArrowDown className="h-4 w-4" />
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
