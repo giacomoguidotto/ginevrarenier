@@ -1,6 +1,12 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
@@ -75,13 +81,7 @@ function MagneticLink({
 export function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const scrollY = useMotionValue(0);
-
-  // Track scroll position
-  if (typeof window !== "undefined") {
-    scrollY.set(window.scrollY);
-  }
-
+  const { scrollY } = useScroll();
   const navBackground = useTransform(scrollY, [0, 100], [0, 1]);
 
   return (

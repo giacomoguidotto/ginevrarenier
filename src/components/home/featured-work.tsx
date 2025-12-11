@@ -60,20 +60,22 @@ function ProjectCard({
         ease: [0.16, 1, 0.3, 1],
       }}
       viewport={{ once: true }}
+      whileHover={{ scale: 1.02 }}
       whileInView={{ opacity: 1, x: 0 }}
+      whileTap={{ scale: 0.98 }}
     >
       <Link className="block h-full w-full" href={`/vision/${project.slug}`}>
         {/* Image */}
         <motion.div className="relative h-full w-full" style={{ scale }}>
           <Image
             alt={project.title}
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-cover"
             fill
             sizes="(max-width: 768px) 80vw, 40vw"
             src={project.image}
           />
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
         </motion.div>
 
         {/* Content */}

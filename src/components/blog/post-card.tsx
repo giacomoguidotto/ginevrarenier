@@ -21,7 +21,7 @@ export function PostCard({ post, index }: PostCardProps) {
         href={`/reflections/${post.slug}`}
       >
         {/* Image */}
-        <div className="relative aspect-[16/9] overflow-hidden">
+        <div className="relative aspect-video overflow-hidden">
           <Image
             alt={post.title}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -29,7 +29,7 @@ export function PostCard({ post, index }: PostCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             src={post.coverImage}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" />
         </div>
 
         {/* Content */}

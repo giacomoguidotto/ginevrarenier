@@ -47,7 +47,7 @@ export function CursorFollower({
     <>
       {/* Main cursor dot */}
       <motion.div
-        className="pointer-events-none fixed top-0 left-0 z-[100] mix-blend-difference"
+        className="pointer-events-none fixed top-0 left-0 z-100 mix-blend-difference"
         style={{
           x: cursorXSpring,
           y: cursorYSpring,
@@ -81,7 +81,7 @@ export function CursorFollower({
 
       {/* Outer ring */}
       <motion.div
-        className="pointer-events-none fixed top-0 left-0 z-[99]"
+        className="pointer-events-none fixed top-0 left-0 z-99"
         style={{
           x: cursorXSpring,
           y: cursorYSpring,

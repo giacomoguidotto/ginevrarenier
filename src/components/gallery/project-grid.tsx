@@ -26,7 +26,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         href={`/vision/${project.slug}`}
       >
         {/* Image Container */}
-        <div className="relative aspect-[4/5] overflow-hidden">
+        <div className="relative aspect-4/5 overflow-hidden">
           <Image
             alt={project.title}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -35,7 +35,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             src={project.coverImage}
           />
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
           {/* Hover Content */}
           <div className="absolute right-0 bottom-0 left-0 translate-y-4 p-6 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">

@@ -80,7 +80,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
           {/* Cover Image */}
           <motion.figure
             animate={{ opacity: 1, y: 0 }}
-            className="relative mb-16 aspect-[16/9] overflow-hidden rounded-lg"
+            className="relative mb-16 aspect-video overflow-hidden rounded-lg"
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >

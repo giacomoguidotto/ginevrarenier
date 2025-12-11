@@ -30,7 +30,7 @@ export function Hero() {
           }}
         />
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+        <div className="absolute inset-0 bg-linear-to-b from-background/60 via-background/40 to-background" />
       </motion.div>
 
       {/* Content */}
@@ -54,8 +54,8 @@ export function Hero() {
             <motion.h1
               animate={{ y: 0 }}
               className="mb-8 font-light leading-[0.9]"
-              initial={{ y: "100%" }}
-              transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ y: "150%" }}
+              transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
               <span className="block text-cream">Capturing</span>
               <span className="block text-cream/60">Ethereal Moments</span>
