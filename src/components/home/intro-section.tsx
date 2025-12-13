@@ -3,8 +3,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
+import { Link } from "@/i18n/routing";
 
 export function IntroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -14,6 +15,8 @@ export function IntroSection() {
   });
 
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
+
+  const t = useTranslations("home.intro");
 
   return (
     <section className="relative bg-background py-32" ref={sectionRef}>
@@ -28,31 +31,23 @@ export function IntroSection() {
             whileInView={{ opacity: 1, x: 0 }}
           >
             <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
-              The Artist
+              {t("label")}
             </p>
             <h2 className="mb-8 text-cream">
-              Where Light
+              {t("title")}
               <br />
-              Meets Soul
+              {t("titleBreak")}
             </h2>
             <div className="space-y-6 text-lg text-muted-foreground">
-              <p>
-                For over a decade, I've been chasing light across continents,
-                seeking those fleeting moments where reality transcends into
-                something magical.
-              </p>
-              <p>
-                My work is an exploration of the human experience—the quiet
-                intensity of a gaze, the dance of shadows on ancient walls, the
-                poetry hidden in everyday scenes.
-              </p>
+              <p>{t("paragraph1")}</p>
+              <p>{t("paragraph2")}</p>
             </div>
             <div className="mt-10">
               <Link
                 className="group inline-flex items-center gap-2 text-cream text-sm uppercase tracking-widest transition-colors hover:text-cream/70"
                 href="/essence"
               >
-                <span>Discover My Story</span>
+                <span>{t("cta")}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

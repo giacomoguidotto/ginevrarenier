@@ -2,20 +2,24 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
 import { PageTransition } from "@/components/layout/page-transition";
+import { Link } from "@/i18n/routing";
 import { getProject, getProjectImages } from "@/lib/projects";
 
-export default function ProjectPage() {
+export function ProjectPageClient() {
   const params = useParams();
   const slug = params.project as string;
   const project = getProject(slug);
   const images = getProjectImages(slug);
+
+  const t = useTranslations("common");
+  const tp = useTranslations("projects");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -38,6 +42,14 @@ export default function ProjectPage() {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const projectKey = slug as
+    | "portraits"
+    | "landscapes"
+    | "urban"
+    | "abstract"
+    | "moments"
+    | "noir";
+
   return (
     <PageTransition>
       <CursorFollower isHoveringImage={isHoveringImage} />
@@ -55,7 +67,7 @@ export default function ProjectPage() {
               href="/vision"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Vision</span>
+              <span>{t("backTo", { page: "Vision" })}</span>
             </Link>
           </motion.div>
 
@@ -67,7 +79,7 @@ export default function ProjectPage() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {project.category}
+              {tp(`${projectKey}.category`)}
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
@@ -75,7 +87,7 @@ export default function ProjectPage() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {project.title}
+              {tp(`${projectKey}.title`)}
             </motion.h1>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
@@ -83,7 +95,7 @@ export default function ProjectPage() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {project.description}
+              {tp(`${projectKey}.description`)}
             </motion.p>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
@@ -91,7 +103,7 @@ export default function ProjectPage() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              {project.imageCount} photographs
+              {t("photographs", { count: project.imageCount })}
             </motion.p>
           </div>
 

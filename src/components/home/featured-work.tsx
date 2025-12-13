@@ -3,41 +3,22 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
+import { Link } from "@/i18n/routing";
 
-const featuredProjects = [
-  {
-    slug: "portraits",
-    title: "Portraits",
-    subtitle: "Human Connection",
-    image: "/images/projects/portraits/cover.svg",
-  },
-  {
-    slug: "landscapes",
-    title: "Landscapes",
-    subtitle: "Nature's Poetry",
-    image: "/images/projects/landscapes/cover.svg",
-  },
-  {
-    slug: "urban",
-    title: "Urban",
-    subtitle: "City Whispers",
-    image: "/images/projects/urban/cover.svg",
-  },
-  {
-    slug: "abstract",
-    title: "Abstract",
-    subtitle: "Beyond Form",
-    image: "/images/projects/abstract/cover.svg",
-  },
-];
+const featuredProjectKeys = [
+  "portraits",
+  "landscapes",
+  "urban",
+  "abstract",
+] as const;
 
 function ProjectCard({
-  project,
+  projectKey,
   index,
 }: {
-  project: (typeof featuredProjects)[0];
+  projectKey: (typeof featuredProjectKeys)[number];
   index: number;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -48,6 +29,9 @@ function ProjectCard({
 
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
+
+  const t = useTranslations("common");
+  const tp = useTranslations("projects");
 
   return (
     <motion.div
@@ -64,15 +48,15 @@ function ProjectCard({
       whileInView={{ opacity: 1, x: 0 }}
       whileTap={{ scale: 0.98 }}
     >
-      <Link className="block h-full w-full" href={`/vision/${project.slug}`}>
+      <Link className="block h-full w-full" href={`/vision/${projectKey}`}>
         {/* Image */}
         <motion.div className="relative h-full w-full" style={{ scale }}>
           <Image
-            alt={project.title}
+            alt={tp(`${projectKey}.title`)}
             className="object-cover"
             fill
             sizes="(max-width: 768px) 80vw, 40vw"
-            src={project.image}
+            src={`/images/projects/${projectKey}/cover.svg`}
           />
           {/* Overlay */}
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
@@ -84,13 +68,13 @@ function ProjectCard({
           style={{ y }}
         >
           <p className="mb-2 text-cream/60 text-sm uppercase tracking-widest">
-            {project.subtitle}
+            {tp(`${projectKey}.subtitle`)}
           </p>
           <h3 className="mb-4 font-light text-4xl text-cream md:text-5xl">
-            {project.title}
+            {tp(`${projectKey}.title`)}
           </h3>
           <div className="flex items-center gap-2 text-cream/80 text-sm uppercase tracking-widest transition-colors group-hover:text-cream">
-            <span>View Project</span>
+            <span>{t("viewProject")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
         </motion.div>
@@ -101,6 +85,9 @@ function ProjectCard({
 
 export function FeaturedWork() {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const t = useTranslations("common");
+  const tf = useTranslations("home.featured");
 
   return (
     <section className="relative bg-charcoal py-32">
@@ -113,15 +100,15 @@ export function FeaturedWork() {
           whileInView={{ opacity: 1, y: 0 }}
         >
           <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
-            Featured Projects
+            {tf("label")}
           </p>
           <div className="flex items-end justify-between">
-            <h2 className="text-cream">Selected Works</h2>
+            <h2 className="text-cream">{tf("title")}</h2>
             <Link
               className="hidden items-center gap-2 text-cream/60 text-sm uppercase tracking-widest transition-colors hover:text-cream md:flex"
               href="/vision"
             >
-              <span>View All</span>
+              <span>{t("viewAll")}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -140,8 +127,8 @@ export function FeaturedWork() {
         {/* Spacer for centering first item */}
         <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
 
-        {featuredProjects.map((project, index) => (
-          <ProjectCard index={index} key={project.slug} project={project} />
+        {featuredProjectKeys.map((projectKey, index) => (
+          <ProjectCard index={index} key={projectKey} projectKey={projectKey} />
         ))}
 
         {/* Spacer for centering last item */}
@@ -154,7 +141,7 @@ export function FeaturedWork() {
           className="inline-flex items-center gap-2 text-cream/60 text-sm uppercase tracking-widest transition-colors hover:text-cream"
           href="/vision"
         >
-          <span>View All Projects</span>
+          <span>{t("viewAllProjects")}</span>
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

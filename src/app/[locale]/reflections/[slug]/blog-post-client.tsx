@@ -3,9 +3,10 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ScrollProgress } from "@/components/blog/scroll-progress";
 import { PageTransition } from "@/components/layout/page-transition";
+import { Link } from "@/i18n/routing";
 import { formatDate } from "@/lib/format";
 import type { BlogPost } from "@/lib/types";
 
@@ -14,6 +15,9 @@ type BlogPostClientProps = {
 };
 
 export function BlogPostClient({ post }: BlogPostClientProps) {
+  const t = useTranslations("common");
+  const tr = useTranslations("reflections");
+
   const paragraphs = post.content.split("\n\n").filter((p) => p.trim());
 
   return (
@@ -33,7 +37,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
               href="/reflections"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to Reflections</span>
+              <span>{t("backTo", { page: tr("title") })}</span>
             </Link>
           </motion.div>
 
@@ -163,7 +167,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
               href="/reflections"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>More Reflections</span>
+              <span>{t("backTo", { page: tr("title") })}</span>
             </Link>
           </motion.footer>
         </div>

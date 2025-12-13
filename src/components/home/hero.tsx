@@ -2,8 +2,9 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
+import { Link } from "@/i18n/routing";
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -15,6 +16,8 @@ export function Hero() {
   const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const t = useTranslations("home.hero");
 
   return (
     <section
@@ -46,7 +49,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Visual Storyteller
+            {t("tagline")}
           </motion.p>
 
           {/* Main Heading with Text Reveal */}
@@ -57,8 +60,8 @@ export function Hero() {
               initial={{ y: "150%" }}
               transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="block text-cream">Capturing</span>
-              <span className="block text-cream/60">Ethereal Moments</span>
+              <span className="block text-cream">{t("title")}</span>
+              <span className="block text-cream/60">{t("titleAccent")}</span>
             </motion.h1>
           </div>
 
@@ -69,8 +72,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            Through my lens, I explore the delicate interplay of light and
-            shadow, creating images that resonate with the soul.
+            {t("description")}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -84,13 +86,13 @@ export function Hero() {
               className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-cream bg-cream px-8 py-4 font-medium text-background text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-cream"
               href="/vision"
             >
-              <span className="relative z-10">Enter the Vision</span>
+              <span className="relative z-10">{t("cta")}</span>
             </Link>
             <Link
               className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-8 py-4 font-medium text-cream text-sm uppercase tracking-widest transition-all hover:border-cream hover:bg-cream/10"
               href="/connect"
             >
-              <span>Get in Touch</span>
+              <span>{t("ctaSecondary")}</span>
             </Link>
           </motion.div>
         </div>
@@ -108,7 +110,6 @@ export function Hero() {
           className="flex flex-col items-center gap-2 text-muted-foreground"
           transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
         >
-          <span className="text-xs uppercase tracking-widest">Scroll</span>
           <ArrowDown className="h-4 w-4" />
         </motion.div>
       </motion.div>

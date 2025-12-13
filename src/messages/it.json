@@ -1,0 +1,222 @@
+{
+  "common": {
+    "nav": {
+      "home": "Home",
+      "vision": "Visione",
+      "reflections": "Riflessioni",
+      "essence": "Essenza",
+      "connect": "Contatti"
+    },
+    "footer": {
+      "tagline": "Catturare momenti che trascendono il tempo. Fotografia che racconta storie attraverso luce e ombra.",
+      "explore": "Esplora",
+      "connect": "Contatti",
+      "copyright": "© {year} Ginevra Renier. Tutti i diritti riservati.",
+      "crafted": "Creato con passione e luce"
+    },
+    "viewProject": "Scopri il Progetto",
+    "viewAll": "Vedi Tutti",
+    "viewAllProjects": "Vedi Tutti i Progetti",
+    "backTo": "Torna a {page}",
+    "photographs": "{count} fotografie"
+  },
+  "home": {
+    "hero": {
+      "tagline": "Narratrice Visiva",
+      "title": "Catturare",
+      "titleAccent": "Momenti Eterei",
+      "description": "Attraverso il mio obiettivo, esploro il delicato gioco di luce e ombra, creando immagini che risuonano con l'anima.",
+      "cta": "Entra nella Visione",
+      "ctaSecondary": "Contattami"
+    },
+    "intro": {
+      "label": "L'Artista",
+      "title": "Dove la Luce",
+      "titleBreak": "Incontra l'Anima",
+      "paragraph1": "Da oltre un decennio, inseguo la luce attraverso i continenti, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.",
+      "paragraph2": "Il mio lavoro è un'esplorazione dell'esperienza umana—la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
+      "cta": "Scopri la Mia Storia"
+    },
+    "featured": {
+      "label": "Progetti in Evidenza",
+      "title": "Opere Selezionate"
+    },
+    "testimonial": {
+      "quote": "Ginevra ha una straordinaria capacità di catturare non solo immagini, ma emozioni. Le sue fotografie sono finestre su momenti che altrimenti andrebbero persi nel tempo.",
+      "author": "Elena Marchetti",
+      "role": "Art Director, Vogue Italia"
+    }
+  },
+  "vision": {
+    "label": "Portfolio",
+    "title": "Visione",
+    "description": "Una collezione curata di opere che spaziano da ritratti, paesaggi, esplorazioni urbane ed espressioni astratte. Ogni progetto è un capitolo di una narrazione visiva in continua evoluzione."
+  },
+  "essence": {
+    "hero": {
+      "label": "L'Artista",
+      "title": "Essenza",
+      "paragraph1": "Nata a Venezia, cresciuta tra il gioco dell'acqua e della luce, ho scoperto presto che il mondo parla per immagini. La fotografia è diventata il mio linguaggio—un modo per catturare i momenti fugaci che definiscono la nostra esistenza.",
+      "paragraph2": "Il mio lavoro è guidato da una filosofia semplice: ogni fotografia dovrebbe evocare un'emozione, raccontare una storia e rivelare qualcosa di invisibile allo sguardo distratto. Cerco lo straordinario nascosto nell'ordinario.",
+      "paragraph3": "Che si tratti di catturare la quieta dignità dello sguardo di uno sconosciuto o l'ampio respiro di una catena montuosa, mi avvicino a ogni soggetto con riverenza e curiosità."
+    },
+    "achievements": {
+      "years": {
+        "title": "15+ Anni",
+        "description": "Dedicati all'arte della narrazione visiva"
+      },
+      "recognition": {
+        "title": "Riconoscimento Internazionale",
+        "description": "Pubblicata su Vogue, National Geographic e altro"
+      },
+      "countries": {
+        "title": "40+ Paesi",
+        "description": "Raccontando storie attraverso i continenti"
+      }
+    },
+    "philosophy": {
+      "label": "Filosofia",
+      "quote": "La fotografia non riguarda la cattura della realtà—riguarda la rivelazione della verità che la realtà spesso nasconde. Ogni immagine è un dialogo tra luce e ombra, presenza e assenza, il visto e il sentito."
+    },
+    "timeline": {
+      "label": "Percorso",
+      "title": "Un Cammino nella Luce",
+      "2008": {
+        "title": "Prima Fotocamera",
+        "description": "Ho ricevuto la mia prima reflex digitale come regalo, accendendo una passione che dura tutta la vita."
+      },
+      "2012": {
+        "title": "Debutto Professionale",
+        "description": "Prima mostra a Venezia, segnando l'inizio del mio percorso professionale."
+      },
+      "2016": {
+        "title": "Su Vogue",
+        "description": "Lavoro editoriale riconosciuto da Vogue Italia, aprendo le porte alla fotografia di moda."
+      },
+      "2019": {
+        "title": "National Geographic",
+        "description": "Progetto documentario sulle comunità costiere del Mediterraneo pubblicato in tutto il mondo."
+      },
+      "2023": {
+        "title": "Mostra Personale",
+        "description": "Grande retrospettiva \"Luce & Tempo\" alla Biennale di Venezia."
+      }
+    },
+    "cta": {
+      "title": "Creiamo Insieme",
+      "description": "Che tu abbia una visione in mente o voglia esplorare le possibilità, mi piacerebbe sentirti.",
+      "button": "Contattami"
+    }
+  },
+  "connect": {
+    "header": {
+      "label": "Parliamo",
+      "title": "Contatti",
+      "description": "Che tu stia immaginando una collaborazione, cercando una commissione, o semplicemente voglia salutare—mi piacerebbe sentirti."
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Il tuo nome",
+      "email": "Email",
+      "emailPlaceholder": "la-tua@email.com",
+      "inquiryType": "Tipo di Richiesta",
+      "inquiryPlaceholder": "Seleziona un'opzione",
+      "message": "Messaggio",
+      "messagePlaceholder": "Raccontami del tuo progetto o della tua richiesta...",
+      "submit": "Invia Messaggio",
+      "sending": "Invio in corso..."
+    },
+    "inquiryTypes": {
+      "collaboration": "Collaborazione",
+      "commission": "Commissione",
+      "exhibition": "Mostra",
+      "press": "Stampa",
+      "other": "Altro"
+    },
+    "success": {
+      "title": "Messaggio Inviato",
+      "description": "Grazie per avermi contattata. Ti risponderò il prima possibile.",
+      "sendAnother": "Invia un Altro Messaggio"
+    },
+    "info": {
+      "directContact": "Contatto Diretto",
+      "email": "Email",
+      "basedIn": "Con base a",
+      "location": "Venezia, Italia",
+      "followAlong": "Seguimi",
+      "availability": {
+        "title": "Disponibilità",
+        "description": "Attualmente accetto progetti selezionati per il 2025. Per richieste urgenti, per favore menzionalo nel messaggio.",
+        "status": "Aperta a nuovi progetti"
+      }
+    }
+  },
+  "reflections": {
+    "label": "Diario",
+    "title": "Riflessioni",
+    "description": "Pensieri su luce, ombra e la natura effimera dei momenti. Saggi sulla creatività, l'arte della fotografia e le storie dietro le immagini.",
+    "empty": "Nuove riflessioni in arrivo...",
+    "readMore": "Leggi di Più",
+    "minRead": "{minutes} min di lettura"
+  },
+  "projects": {
+    "portraits": {
+      "title": "Ritratti",
+      "subtitle": "Connessione Umana",
+      "description": "Un viaggio nell'anima umana. Ogni ritratto racconta una storia unica di emozione, forza e vulnerabilità.",
+      "category": "Persone"
+    },
+    "landscapes": {
+      "title": "Paesaggi",
+      "subtitle": "Poesia della Natura",
+      "description": "La grandiosità della natura catturata in momenti di luce perfetta. Dalle mattine nebbiose ai tramonti dorati.",
+      "category": "Natura"
+    },
+    "urban": {
+      "title": "Urbano",
+      "subtitle": "Sussurri di Città",
+      "description": "La poesia delle città. Architettura, strade e il battito della vita urbana attraverso uno sguardo contemplativo.",
+      "category": "Architettura"
+    },
+    "abstract": {
+      "title": "Astratto",
+      "subtitle": "Oltre la Forma",
+      "description": "Oltre la rappresentazione. Esplorando forma, colore e texture in modi che sfidano la percezione.",
+      "category": "Sperimentale"
+    },
+    "moments": {
+      "title": "Momenti Fugaci",
+      "subtitle": "Respiro di Vita",
+      "description": "La bellezza effimera della vita. Scatti spontanei di gioia, contemplazione e connessione umana.",
+      "category": "Documentario"
+    },
+    "noir": {
+      "title": "Noir",
+      "subtitle": "Ombra & Luce",
+      "description": "Uno studio sui contrasti. Fotografia in bianco e nero che abbraccia ombra e luce.",
+      "category": "Bianco & Nero"
+    }
+  },
+  "metadata": {
+    "home": {
+      "title": "Ginevra Renier | Fotografia",
+      "description": "Catturare momenti che trascendono il tempo. Portfolio fotografico di Ginevra Renier - ritratti, paesaggi e narrazione visiva."
+    },
+    "vision": {
+      "title": "Visione",
+      "description": "Esplora il portfolio fotografico di Ginevra Renier. Una collezione curata di ritratti, paesaggi, scene urbane e opere astratte."
+    },
+    "essence": {
+      "title": "Essenza",
+      "description": "La storia dietro l'obiettivo. Scopri il percorso, la filosofia e l'approccio alla fotografia di Ginevra Renier."
+    },
+    "connect": {
+      "title": "Contatti",
+      "description": "Contatta Ginevra Renier per collaborazioni, commissioni, mostre o richieste."
+    },
+    "reflections": {
+      "title": "Riflessioni",
+      "description": "Pensieri sulla fotografia, la creatività e l'arte di vedere. Una raccolta di saggi e storie di Ginevra Renier."
+    }
+  }
+}

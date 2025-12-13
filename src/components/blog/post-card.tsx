@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Clock } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { fadeUp } from "@/lib/animations";
 import { formatDate } from "@/lib/format";
 import type { BlogPostMeta } from "@/lib/types";
@@ -14,6 +15,8 @@ type PostCardProps = {
 };
 
 export function PostCard({ post, index }: PostCardProps) {
+  const t = useTranslations("reflections");
+
   return (
     <motion.article className="group" custom={index} variants={fadeUp}>
       <Link
@@ -53,7 +56,7 @@ export function PostCard({ post, index }: PostCardProps) {
 
           {/* Read More */}
           <div className="flex items-center gap-2 pt-2 text-cream/60 text-sm uppercase tracking-widest transition-colors group-hover:text-cream">
-            <span>Read More</span>
+            <span>{t("readMore")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
         </div>

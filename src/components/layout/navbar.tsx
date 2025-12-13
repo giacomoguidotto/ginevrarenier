@@ -7,24 +7,24 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
+import { Link, usePathname } from "@/i18n/routing";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/vision", label: "Vision" },
-  { href: "/reflections", label: "Reflections" },
-  { href: "/essence", label: "Essence" },
-  { href: "/connect", label: "Connect" },
-];
+const navLinkKeys = [
+  { href: "/", key: "home" },
+  { href: "/vision", key: "vision" },
+  { href: "/reflections", key: "reflections" },
+  { href: "/essence", key: "essence" },
+  { href: "/connect", key: "connect" },
+] as const;
 
 function MagneticLink({
   href,
   label,
   isActive,
 }: {
-  href: string;
+  href: "/" | "/vision" | "/reflections" | "/essence" | "/connect";
   label: string;
   isActive: boolean;
 }) {
@@ -84,6 +84,8 @@ export function Navbar() {
   const { scrollY } = useScroll();
   const navBackground = useTransform(scrollY, [0, 100], [0, 1]);
 
+  const t = useTranslations("common.nav");
+
   return (
     <>
       <motion.header
@@ -110,12 +112,12 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-2 md:flex">
-            {navLinks.map((link) => (
+            {navLinkKeys.map((link) => (
               <MagneticLink
                 href={link.href}
                 isActive={pathname === link.href}
                 key={link.href}
-                label={link.label}
+                label={t(link.key)}
               />
             ))}
           </div>
@@ -164,7 +166,7 @@ export function Navbar() {
         transition={{ duration: 0.3 }}
       >
         <nav className="flex h-full flex-col items-center justify-center gap-8">
-          {navLinks.map((link, index) => (
+          {navLinkKeys.map((link, index) => (
             <motion.div
               animate={{
                 opacity: isMenuOpen ? 1 : 0,
@@ -183,7 +185,7 @@ export function Navbar() {
                 href={link.href}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {link.label}
+                {t(link.key)}
               </Link>
             </motion.div>
           ))}

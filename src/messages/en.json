@@ -1,0 +1,222 @@
+{
+  "common": {
+    "nav": {
+      "home": "Home",
+      "vision": "Vision",
+      "reflections": "Reflections",
+      "essence": "Essence",
+      "connect": "Connect"
+    },
+    "footer": {
+      "tagline": "Capturing moments that transcend time. Photography that tells stories through light and shadow.",
+      "explore": "Explore",
+      "connect": "Connect",
+      "copyright": "© {year} Ginevra Renier. All rights reserved.",
+      "crafted": "Crafted with passion and light"
+    },
+    "viewProject": "View Project",
+    "viewAll": "View All",
+    "viewAllProjects": "View All Projects",
+    "backTo": "Back to {page}",
+    "photographs": "{count} photographs"
+  },
+  "home": {
+    "hero": {
+      "tagline": "Visual Storyteller",
+      "title": "Capturing",
+      "titleAccent": "Ethereal Moments",
+      "description": "Through my lens, I explore the delicate interplay of light and shadow, creating images that resonate with the soul.",
+      "cta": "Enter the Vision",
+      "ctaSecondary": "Get in Touch"
+    },
+    "intro": {
+      "label": "The Artist",
+      "title": "Where Light",
+      "titleBreak": "Meets Soul",
+      "paragraph1": "For over a decade, I've been chasing light across continents, seeking those fleeting moments where reality transcends into something magical.",
+      "paragraph2": "My work is an exploration of the human experience—the quiet intensity of a gaze, the dance of shadows on ancient walls, the poetry hidden in everyday scenes.",
+      "cta": "Discover My Story"
+    },
+    "featured": {
+      "label": "Featured Projects",
+      "title": "Selected Works"
+    },
+    "testimonial": {
+      "quote": "Ginevra has an extraordinary ability to capture not just images, but emotions. Her photographs are windows into moments that would otherwise be lost to time.",
+      "author": "Elena Marchetti",
+      "role": "Art Director, Vogue Italia"
+    }
+  },
+  "vision": {
+    "label": "Portfolio",
+    "title": "Vision",
+    "description": "A curated collection of works spanning portraits, landscapes, urban explorations, and abstract expressions. Each project is a chapter in an ongoing visual narrative."
+  },
+  "essence": {
+    "hero": {
+      "label": "The Artist",
+      "title": "Essence",
+      "paragraph1": "Born in Venice, raised amidst the interplay of water and light, I discovered early that the world speaks in images. Photography became my language—a way to capture the fleeting moments that define our existence.",
+      "paragraph2": "My work is guided by a simple philosophy: every photograph should evoke an emotion, tell a story, and reveal something invisible to the casual glance. I seek the extraordinary hidden within the ordinary.",
+      "paragraph3": "Whether capturing the quiet dignity of a stranger's gaze or the dramatic sweep of a mountain range, I approach each subject with reverence and curiosity."
+    },
+    "achievements": {
+      "years": {
+        "title": "15+ Years",
+        "description": "Dedicated to the craft of visual storytelling"
+      },
+      "recognition": {
+        "title": "International Recognition",
+        "description": "Featured in Vogue, National Geographic, and more"
+      },
+      "countries": {
+        "title": "40+ Countries",
+        "description": "Capturing stories across continents"
+      }
+    },
+    "philosophy": {
+      "label": "Philosophy",
+      "quote": "Photography is not about capturing reality—it's about revealing the truth that reality often conceals. Every image is a dialogue between light and shadow, presence and absence, the seen and the felt."
+    },
+    "timeline": {
+      "label": "Journey",
+      "title": "A Path in Light",
+      "2008": {
+        "title": "First Camera",
+        "description": "Received my first DSLR camera as a gift, sparking a lifelong passion."
+      },
+      "2012": {
+        "title": "Professional Debut",
+        "description": "First exhibition in Venice, marking the beginning of my professional journey."
+      },
+      "2016": {
+        "title": "Vogue Feature",
+        "description": "Editorial work recognized by Vogue Italia, opening doors to fashion photography."
+      },
+      "2019": {
+        "title": "National Geographic",
+        "description": "Documentary project on Mediterranean coastal communities published worldwide."
+      },
+      "2023": {
+        "title": "Solo Exhibition",
+        "description": "Major retrospective \"Light & Time\" at the Venice Biennale."
+      }
+    },
+    "cta": {
+      "title": "Let's Create Together",
+      "description": "Whether you have a vision in mind or want to explore possibilities, I'd love to hear from you.",
+      "button": "Get in Touch"
+    }
+  },
+  "connect": {
+    "header": {
+      "label": "Let's Talk",
+      "title": "Connect",
+      "description": "Whether you're envisioning a collaboration, seeking a commission, or simply want to say hello—I'd love to hear from you."
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "inquiryType": "Inquiry Type",
+      "inquiryPlaceholder": "Select an option",
+      "message": "Message",
+      "messagePlaceholder": "Tell me about your project or inquiry...",
+      "submit": "Send Message",
+      "sending": "Sending..."
+    },
+    "inquiryTypes": {
+      "collaboration": "Collaboration",
+      "commission": "Commission",
+      "exhibition": "Exhibition",
+      "press": "Press",
+      "other": "Other"
+    },
+    "success": {
+      "title": "Message Sent",
+      "description": "Thank you for reaching out. I'll get back to you as soon as possible.",
+      "sendAnother": "Send Another Message"
+    },
+    "info": {
+      "directContact": "Direct Contact",
+      "email": "Email",
+      "basedIn": "Based in",
+      "location": "Venice, Italy",
+      "followAlong": "Follow Along",
+      "availability": {
+        "title": "Availability",
+        "description": "Currently accepting select projects for 2025. For urgent inquiries, please mention in your message.",
+        "status": "Open to new projects"
+      }
+    }
+  },
+  "reflections": {
+    "label": "Journal",
+    "title": "Reflections",
+    "description": "Musings on light, shadow, and the ephemeral nature of moments. Essays on creativity, the craft of photography, and the stories behind the images.",
+    "empty": "New reflections coming soon...",
+    "readMore": "Read More",
+    "minRead": "{minutes} min read"
+  },
+  "projects": {
+    "portraits": {
+      "title": "Portraits",
+      "subtitle": "Human Connection",
+      "description": "A journey into the human soul. Each portrait tells a unique story of emotion, strength, and vulnerability.",
+      "category": "People"
+    },
+    "landscapes": {
+      "title": "Landscapes",
+      "subtitle": "Nature's Poetry",
+      "description": "Nature's grandeur captured in moments of perfect light. From misty mornings to golden sunsets.",
+      "category": "Nature"
+    },
+    "urban": {
+      "title": "Urban",
+      "subtitle": "City Whispers",
+      "description": "The poetry of cities. Architecture, streets, and the pulse of urban life through a contemplative lens.",
+      "category": "Architecture"
+    },
+    "abstract": {
+      "title": "Abstract",
+      "subtitle": "Beyond Form",
+      "description": "Beyond representation. Exploring form, color, and texture in ways that challenge perception.",
+      "category": "Experimental"
+    },
+    "moments": {
+      "title": "Fleeting Moments",
+      "subtitle": "Life's Breath",
+      "description": "Life's ephemeral beauty. Candid captures of joy, contemplation, and human connection.",
+      "category": "Documentary"
+    },
+    "noir": {
+      "title": "Noir",
+      "subtitle": "Shadow & Light",
+      "description": "A study in contrasts. Black and white photography that embraces shadow and light.",
+      "category": "Black & White"
+    }
+  },
+  "metadata": {
+    "home": {
+      "title": "Ginevra Renier | Photography",
+      "description": "Capturing moments that transcend time. Photography portfolio of Ginevra Renier - portraits, landscapes, and visual storytelling."
+    },
+    "vision": {
+      "title": "Vision",
+      "description": "Explore the photography portfolio of Ginevra Renier. A curated collection of portraits, landscapes, urban scenes, and abstract works."
+    },
+    "essence": {
+      "title": "Essence",
+      "description": "The story behind the lens. Learn about Ginevra Renier's journey, philosophy, and approach to photography."
+    },
+    "connect": {
+      "title": "Connect",
+      "description": "Get in touch with Ginevra Renier for collaborations, commissions, exhibitions, or inquiries."
+    },
+    "reflections": {
+      "title": "Reflections",
+      "description": "Thoughts on photography, creativity, and the art of seeing. A collection of essays and stories by Ginevra Renier."
+    }
+  }
+}

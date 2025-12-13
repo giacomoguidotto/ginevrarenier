@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
 export type Project = {
@@ -19,6 +20,17 @@ type ProjectGridProps = {
 };
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
+  const t = useTranslations("common");
+  const tp = useTranslations("projects");
+
+  const projectKey = project.slug as
+    | "portraits"
+    | "landscapes"
+    | "urban"
+    | "abstract"
+    | "moments"
+    | "noir";
+
   return (
     <motion.div className="group relative" custom={index} variants={fadeUp}>
       <Link
@@ -28,7 +40,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         {/* Image Container */}
         <div className="relative aspect-4/5 overflow-hidden">
           <Image
-            alt={project.title}
+            alt={tp(`${projectKey}.title`)}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -40,11 +52,13 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           {/* Hover Content */}
           <div className="absolute right-0 bottom-0 left-0 translate-y-4 p-6 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
             <p className="mb-2 text-cream/60 text-xs uppercase tracking-widest">
-              {project.category}
+              {tp(`${projectKey}.category`)}
             </p>
-            <h3 className="font-light text-2xl text-cream">{project.title}</h3>
+            <h3 className="font-light text-2xl text-cream">
+              {tp(`${projectKey}.title`)}
+            </h3>
             <p className="mt-2 text-cream/70 text-sm">
-              {project.imageCount} photographs
+              {t("photographs", { count: project.imageCount })}
             </p>
           </div>
         </div>
@@ -52,9 +66,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         {/* Static Content (visible by default) */}
         <div className="mt-4 transition-opacity duration-500 group-hover:opacity-0">
           <p className="mb-1 text-muted-foreground text-xs uppercase tracking-widest">
-            {project.category}
+            {tp(`${projectKey}.category`)}
           </p>
-          <h3 className="font-light text-cream text-xl">{project.title}</h3>
+          <h3 className="font-light text-cream text-xl">
+            {tp(`${projectKey}.title`)}
+          </h3>
         </div>
       </Link>
     </motion.div>

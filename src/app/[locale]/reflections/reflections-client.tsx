@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { PostCard } from "@/components/blog/post-card";
 import { PageTransition } from "@/components/layout/page-transition";
 import { staggerContainer } from "@/lib/animations";
@@ -11,6 +12,8 @@ type ReflectionsClientProps = {
 };
 
 export function ReflectionsClient({ posts }: ReflectionsClientProps) {
+  const t = useTranslations("reflections");
+
   return (
     <PageTransition>
       <div className="min-h-screen pt-32 pb-20">
@@ -23,7 +26,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5 }}
             >
-              Journal
+              {t("label")}
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
@@ -31,7 +34,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              Reflections
+              {t("title")}
             </motion.h1>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
@@ -39,9 +42,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Musings on light, shadow, and the ephemeral nature of moments.
-              Essays on creativity, the craft of photography, and the stories
-              behind the images.
+              {t("description")}
             </motion.p>
           </div>
 
@@ -64,9 +65,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
               initial={{ opacity: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <p className="text-lg text-muted-foreground">
-                New reflections coming soon...
-              </p>
+              <p className="text-lg text-muted-foreground">{t("empty")}</p>
             </motion.div>
           )}
         </div>

@@ -2,8 +2,11 @@
 
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function Testimonial() {
+  const t = useTranslations("home.testimonial");
+
   return (
     <section className="relative overflow-hidden bg-background py-32">
       {/* Background Pattern */}
@@ -29,17 +32,13 @@ export function Testimonial() {
 
           <blockquote className="mb-8">
             <p className="font-light text-2xl text-cream/90 leading-relaxed md:text-3xl lg:text-4xl">
-              "Ginevra has an extraordinary ability to capture not just images,
-              but emotions. Her photographs are windows into moments that would
-              otherwise be lost to time."
+              "{t("quote")}"
             </p>
           </blockquote>
 
           <div className="flex flex-col items-center gap-2">
-            <p className="font-medium text-cream">Elena Marchetti</p>
-            <p className="text-muted-foreground text-sm">
-              Art Director, Vogue Italia
-            </p>
+            <p className="font-medium text-cream">{t("author")}</p>
+            <p className="text-muted-foreground text-sm">{t("role")}</p>
           </div>
         </motion.div>
       </div>

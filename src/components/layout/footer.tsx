@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Instagram, Mail, Twitter } from "lucide-react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
+import { LanguageSwitcher } from "./language-switcher";
 
 const socialLinks = [
   {
@@ -22,15 +24,16 @@ const socialLinks = [
   },
 ];
 
-const footerLinks = [
-  { href: "/vision", label: "Vision" },
-  { href: "/reflections", label: "Reflections" },
-  { href: "/essence", label: "Essence" },
-  { href: "/connect", label: "Connect" },
-];
+const footerLinkKeys = [
+  { href: "/vision", key: "vision" },
+  { href: "/reflections", key: "reflections" },
+  { href: "/essence", key: "essence" },
+  { href: "/connect", key: "connect" },
+] as const;
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const t = useTranslations("common");
 
   return (
     <footer className="border-border border-t bg-charcoal">
@@ -44,24 +47,23 @@ export function Footer() {
               </span>
             </Link>
             <p className="max-w-xs text-muted-foreground text-sm">
-              Capturing moments that transcend time. Photography that tells
-              stories through light and shadow.
+              {t("footer.tagline")}
             </p>
           </div>
 
           {/* Navigation */}
           <div className="space-y-4">
             <h3 className="font-medium text-muted-foreground text-sm uppercase tracking-widest">
-              Explore
+              {t("footer.explore")}
             </h3>
             <nav className="flex flex-col gap-3">
-              {footerLinks.map((link) => (
+              {footerLinkKeys.map((link) => (
                 <Link
                   className="text-foreground/80 text-sm transition-colors hover:text-cream"
                   href={link.href}
                   key={link.href}
                 >
-                  {link.label}
+                  {t(`nav.${link.key}`)}
                 </Link>
               ))}
             </nav>
@@ -70,7 +72,7 @@ export function Footer() {
           {/* Social */}
           <div className="space-y-4">
             <h3 className="font-medium text-muted-foreground text-sm uppercase tracking-widest">
-              Connect
+              {t("footer.connect")}
             </h3>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
@@ -94,11 +96,14 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-border border-t pt-8 md:flex-row">
           <p className="text-muted-foreground text-xs">
-            © {currentYear} Ginevra Renier. All rights reserved.
+            {t("footer.copyright", { year: currentYear })}
           </p>
-          <p className="text-muted-foreground text-xs">
-            Crafted with passion and light
-          </p>
+          <div className="flex items-center gap-6">
+            <LanguageSwitcher />
+            <p className="text-muted-foreground text-xs">
+              {t("footer.crafted")}
+            </p>
+          </div>
         </div>
       </div>
     </footer>

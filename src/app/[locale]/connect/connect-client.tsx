@@ -2,25 +2,26 @@
 
 import { motion } from "framer-motion";
 import { Check, Instagram, Mail, MapPin, Send, Twitter } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { PageTransition } from "@/components/layout/page-transition";
 
-const contactInfo = [
+const contactInfoData = [
   {
     icon: Mail,
-    label: "Email",
+    labelKey: "email",
     value: "hello@ginevrarenier.com",
     href: "mailto:hello@ginevrarenier.com",
   },
   {
     icon: MapPin,
-    label: "Based in",
-    value: "Venice, Italy",
+    labelKey: "basedIn",
+    valueKey: "location",
     href: null,
   },
 ];
 
-const socialLinks = [
+const socialLinksData = [
   {
     icon: Instagram,
     label: "Instagram",
@@ -35,13 +36,13 @@ const socialLinks = [
   },
 ];
 
-const inquiryTypes = [
-  { value: "collaboration", label: "Collaboration" },
-  { value: "commission", label: "Commission" },
-  { value: "exhibition", label: "Exhibition" },
-  { value: "press", label: "Press" },
-  { value: "other", label: "Other" },
-];
+const inquiryTypeKeys = [
+  "collaboration",
+  "commission",
+  "exhibition",
+  "press",
+  "other",
+] as const;
 
 export function ConnectClient() {
   const [formState, setFormState] = useState({
@@ -52,6 +53,8 @@ export function ConnectClient() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const t = useTranslations("connect");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -77,7 +80,7 @@ export function ConnectClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5 }}
             >
-              Let's Talk
+              {t("header.label")}
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
@@ -85,7 +88,7 @@ export function ConnectClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              Connect
+              {t("header.title")}
             </motion.h1>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
@@ -93,8 +96,7 @@ export function ConnectClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Whether you're envisioning a collaboration, seeking a commission,
-              or simply want to say hello—I'd love to hear from you.
+              {t("header.description")}
             </motion.p>
           </div>
 
@@ -115,18 +117,17 @@ export function ConnectClient() {
                     <Check className="h-8 w-8 text-cream" />
                   </div>
                   <h3 className="mb-4 font-light text-2xl text-cream">
-                    Message Sent
+                    {t("success.title")}
                   </h3>
                   <p className="mb-8 text-muted-foreground">
-                    Thank you for reaching out. I'll get back to you as soon as
-                    possible.
+                    {t("success.description")}
                   </p>
                   <button
                     className="text-cream/60 text-sm uppercase tracking-widest transition-colors hover:text-cream"
                     onClick={() => setIsSubmitted(false)}
                     type="button"
                   >
-                    Send Another Message
+                    {t("success.sendAnother")}
                   </button>
                 </motion.div>
               ) : (
@@ -137,7 +138,7 @@ export function ConnectClient() {
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
                       htmlFor="name"
                     >
-                      Name
+                      {t("form.name")}
                     </label>
                     <input
                       className="w-full rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
@@ -145,7 +146,7 @@ export function ConnectClient() {
                       onChange={(e) =>
                         setFormState({ ...formState, name: e.target.value })
                       }
-                      placeholder="Your name"
+                      placeholder={t("form.namePlaceholder")}
                       required
                       type="text"
                       value={formState.name}
@@ -158,7 +159,7 @@ export function ConnectClient() {
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
                       htmlFor="email"
                     >
-                      Email
+                      {t("form.email")}
                     </label>
                     <input
                       className="w-full rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
@@ -166,7 +167,7 @@ export function ConnectClient() {
                       onChange={(e) =>
                         setFormState({ ...formState, email: e.target.value })
                       }
-                      placeholder="your@email.com"
+                      placeholder={t("form.emailPlaceholder")}
                       required
                       type="email"
                       value={formState.email}
@@ -179,7 +180,7 @@ export function ConnectClient() {
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
                       htmlFor="inquiryType"
                     >
-                      Inquiry Type
+                      {t("form.inquiryType")}
                     </label>
                     <select
                       className="w-full rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
@@ -194,11 +195,11 @@ export function ConnectClient() {
                       value={formState.inquiryType}
                     >
                       <option disabled value="">
-                        Select an option
+                        {t("form.inquiryPlaceholder")}
                       </option>
-                      {inquiryTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
+                      {inquiryTypeKeys.map((key) => (
+                        <option key={key} value={key}>
+                          {t(`inquiryTypes.${key}`)}
                         </option>
                       ))}
                     </select>
@@ -210,7 +211,7 @@ export function ConnectClient() {
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
                       htmlFor="message"
                     >
-                      Message
+                      {t("form.message")}
                     </label>
                     <textarea
                       className="w-full resize-none rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
@@ -218,7 +219,7 @@ export function ConnectClient() {
                       onChange={(e) =>
                         setFormState({ ...formState, message: e.target.value })
                       }
-                      placeholder="Tell me about your project or inquiry..."
+                      placeholder={t("form.messagePlaceholder")}
                       required
                       rows={6}
                       value={formState.message}
@@ -244,11 +245,11 @@ export function ConnectClient() {
                             ease: "linear",
                           }}
                         />
-                        Sending...
+                        {t("form.sending")}
                       </span>
                     ) : (
                       <>
-                        <span>Send Message</span>
+                        <span>{t("form.submit")}</span>
                         <Send className="h-4 w-4" />
                       </>
                     )}
@@ -267,15 +268,15 @@ export function ConnectClient() {
               {/* Direct Contact */}
               <div>
                 <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
-                  Direct Contact
+                  {t("info.directContact")}
                 </h3>
                 <div className="space-y-4">
-                  {contactInfo.map((item) => (
-                    <div className="flex items-start gap-4" key={item.label}>
+                  {contactInfoData.map((item) => (
+                    <div className="flex items-start gap-4" key={item.labelKey}>
                       <item.icon className="mt-1 h-5 w-5 text-cream/60" />
                       <div>
                         <p className="text-muted-foreground text-sm">
-                          {item.label}
+                          {t(`info.${item.labelKey}`)}
                         </p>
                         {item.href ? (
                           <a
@@ -285,7 +286,11 @@ export function ConnectClient() {
                             {item.value}
                           </a>
                         ) : (
-                          <p className="text-cream text-lg">{item.value}</p>
+                          <p className="text-cream text-lg">
+                            {item.valueKey
+                              ? t(`info.${item.valueKey}`)
+                              : item.value}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -296,10 +301,10 @@ export function ConnectClient() {
               {/* Social */}
               <div>
                 <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
-                  Follow Along
+                  {t("info.followAlong")}
                 </h3>
                 <div className="space-y-4">
-                  {socialLinks.map((item) => (
+                  {socialLinksData.map((item) => (
                     <a
                       className="flex items-start gap-4 transition-colors"
                       href={item.href}
@@ -324,16 +329,15 @@ export function ConnectClient() {
               {/* Availability */}
               <div className="rounded-lg border border-border bg-charcoal p-6">
                 <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
-                  Availability
+                  {t("info.availability.title")}
                 </h3>
                 <p className="text-muted-foreground">
-                  Currently accepting select projects for 2025. For urgent
-                  inquiries, please mention in your message.
+                  {t("info.availability.description")}
                 </p>
                 <div className="mt-4 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
                   <span className="text-green-400 text-sm">
-                    Open to new projects
+                    {t("info.availability.status")}
                   </span>
                 </div>
               </div>
