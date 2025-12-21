@@ -67,7 +67,7 @@ export function IntroSection() {
                 className="object-cover"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                src="/images/hero/artist-portrait.svg"
+                src="/images/hero/artist-portrait.jpg"
               />
             </motion.div>
           </motion.div>

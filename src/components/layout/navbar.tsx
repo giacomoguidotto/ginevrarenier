@@ -133,7 +133,7 @@ export function Navbar() {
               <motion.span
                 animate={{
                   rotate: isMenuOpen ? 45 : 0,
-                  y: isMenuOpen ? 4 : 0,
+                  y: isMenuOpen ? 7 : 0,
                 }}
                 className="block h-px w-6 bg-foreground"
               />
@@ -146,7 +146,7 @@ export function Navbar() {
               <motion.span
                 animate={{
                   rotate: isMenuOpen ? -45 : 0,
-                  y: isMenuOpen ? -4 : 0,
+                  y: isMenuOpen ? -7 : 0,
                 }}
                 className="block h-px w-6 bg-foreground"
               />

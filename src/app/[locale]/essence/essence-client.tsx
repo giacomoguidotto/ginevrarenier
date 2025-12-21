@@ -11,7 +11,7 @@ import { Link } from "@/i18n/routing";
 const achievementIcons = [Camera, Award, Globe];
 const achievementKeys = ["years", "recognition", "countries"] as const;
 
-const timelineYears = ["2008", "2012", "2016", "2019", "2023"] as const;
+const timelineYears = ["2022", "2024", "2025"] as const;
 
 export function EssenceClient() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -29,7 +29,7 @@ export function EssenceClient() {
     <PageTransition>
       {/* Hero Section */}
       <section
-        className="relative min-h-screen overflow-hidden pt-32"
+        className="relative min-h-screen overflow-hidden pt-32 pb-20 lg:pb-0"
         ref={heroRef}
       >
         <div className="mx-auto max-w-7xl px-6">
@@ -48,7 +48,7 @@ export function EssenceClient() {
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                src="/images/hero/artist-portrait.svg"
+                src="/images/hero/artist-portrait.jpg"
               />
             </motion.div>
 

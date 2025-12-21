@@ -33,7 +33,7 @@
       "label": "The Artist",
       "title": "Where Light",
       "titleBreak": "Meets Soul",
-      "paragraph1": "For over a decade, I've been chasing light across continents, seeking those fleeting moments where reality transcends into something magical.",
+      "paragraph1": "From the moment I first held a camera, I've been chasing light across every corner I discover, seeking those fleeting moments where reality transcends into something magical.",
       "paragraph2": "My work is an exploration of the human experience—the quiet intensity of a gaze, the dance of shadows on ancient walls, the poetry hidden in everyday scenes.",
       "cta": "Discover My Story"
     },
@@ -42,9 +42,9 @@
       "title": "Selected Works"
     },
     "testimonial": {
-      "quote": "Ginevra has an extraordinary ability to capture not just images, but emotions. Her photographs are windows into moments that would otherwise be lost to time.",
-      "author": "Elena Marchetti",
-      "role": "Art Director, Vogue Italia"
+      "quote": "Ginevra has an extraordinary ability to capture not just images, but emotions. Her photographs express the true movement of life in the smallest details.",
+      "author": "Miranda Priestly",
+      "role": "Art Director, Vogue USA"
     }
   },
   "vision": {
@@ -56,50 +56,42 @@
     "hero": {
       "label": "The Artist",
       "title": "Essence",
-      "paragraph1": "Born in Venice, raised amidst the interplay of water and light, I discovered early that the world speaks in images. Photography became my language—a way to capture the fleeting moments that define our existence.",
+      "paragraph1": "Raised in Venice, amidst the interplay of water and light, I discovered early that the world speaks in images. Photography became my language, a way to capture the fleeting moments that define our existence.",
       "paragraph2": "My work is guided by a simple philosophy: every photograph should evoke an emotion, tell a story, and reveal something invisible to the casual glance. I seek the extraordinary hidden within the ordinary.",
       "paragraph3": "Whether capturing the quiet dignity of a stranger's gaze or the dramatic sweep of a mountain range, I approach each subject with reverence and curiosity."
     },
     "achievements": {
       "years": {
-        "title": "15+ Years",
-        "description": "Dedicated to the craft of visual storytelling"
+        "title": "Started at 19",
+        "description": "A passion born early, cultivated with dedication"
       },
       "recognition": {
-        "title": "International Recognition",
-        "description": "Featured in Vogue, National Geographic, and more"
+        "title": "Academy of Fine Arts",
+        "description": "Trained at one of the most prestigious schools"
       },
       "countries": {
-        "title": "40+ Countries",
-        "description": "Capturing stories across continents"
+        "title": "Solo Explorer",
+        "description": "Traveling the world in search of unique stories"
       }
     },
     "philosophy": {
       "label": "Philosophy",
-      "quote": "Photography is not about capturing reality—it's about revealing the truth that reality often conceals. Every image is a dialogue between light and shadow, presence and absence, the seen and the felt."
+      "quote": "..."
     },
     "timeline": {
       "label": "Journey",
-      "title": "A Path in Light",
-      "2008": {
+      "title": "A Path Immersed in Light",
+      "2022": {
         "title": "First Camera",
-        "description": "Received my first DSLR camera as a gift, sparking a lifelong passion."
+        "description": "I inherited my first DSLR camera from my grandmother, passing down a passion that will last a lifetime."
       },
-      "2012": {
-        "title": "Professional Debut",
-        "description": "First exhibition in Venice, marking the beginning of my professional journey."
+      "2024": {
+        "title": "Beyond Borders",
+        "description": "Immersed in landscapes never seen before, I began capturing horizons that spoke a new language. Each shot a discovery, each light a revelation."
       },
-      "2016": {
-        "title": "Vogue Feature",
-        "description": "Editorial work recognized by Vogue Italia, opening doors to fashion photography."
-      },
-      "2019": {
-        "title": "National Geographic",
-        "description": "Documentary project on Mediterranean coastal communities published worldwide."
-      },
-      "2023": {
-        "title": "Solo Exhibition",
-        "description": "Major retrospective \"Light & Time\" at the Venice Biennale."
+      "2025": {
+        "title": "At CPF Bauer",
+        "description": "After Venice, I chose to push further. Milan welcomed me with a leap into the unknown, toward the vision I was seeking."
       }
     },
     "cta": {
@@ -160,6 +152,12 @@
     "minRead": "{minutes} min read"
   },
   "projects": {
+    "oslo": {
+      "title": "Oslo",
+      "subtitle": "City of Light",
+      "description": "A journey through the city of Oslo. From the bustling streets to the serene parks, each photograph captures a moment of life in the city.",
+      "category": "Urban"
+    },
     "portraits": {
       "title": "Portraits",
       "subtitle": "Human Connection",

@@ -8,6 +8,7 @@ import { useRef } from "react";
 import { Link } from "@/i18n/routing";
 
 const featuredProjectKeys = [
+  "oslo",
   "portraits",
   "landscapes",
   "urban",
@@ -33,6 +34,9 @@ function ProjectCard({
   const t = useTranslations("common");
   const tp = useTranslations("projects");
 
+  // TODO: using SVG placeholders for development. Replace with .jpg for production.
+  const imageExtension = projectKey === "oslo" ? "jpg" : "svg";
+
   return (
     <motion.div
       className="group relative h-[70vh] min-w-[80vw] snap-center overflow-hidden rounded-lg md:min-w-[40vw]"
@@ -56,7 +60,7 @@ function ProjectCard({
             className="object-cover"
             fill
             sizes="(max-width: 768px) 80vw, 40vw"
-            src={`/images/projects/${projectKey}/cover.svg`}
+            src={`/images/projects/${projectKey}/cover.${imageExtension}`}
           />
           {/* Overlay */}
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />

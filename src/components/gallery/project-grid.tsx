@@ -8,11 +8,7 @@ import { fadeUp, staggerContainer } from "@/lib/animations";
 
 export type Project = {
   slug: string;
-  title: string;
-  description: string;
-  coverImage: string;
-  category: string;
-  imageCount: number;
+  count: number;
 };
 
 type ProjectGridProps = {
@@ -23,13 +19,8 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   const t = useTranslations("common");
   const tp = useTranslations("projects");
 
-  const projectKey = project.slug as
-    | "portraits"
-    | "landscapes"
-    | "urban"
-    | "abstract"
-    | "moments"
-    | "noir";
+  // TODO: using SVG placeholders for development. Replace with .jpg for production.
+  const imageExtension = project.slug === "oslo" ? "jpg" : "svg";
 
   return (
     <motion.div className="group relative" custom={index} variants={fadeUp}>
@@ -40,11 +31,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         {/* Image Container */}
         <div className="relative aspect-4/5 overflow-hidden">
           <Image
-            alt={tp(`${projectKey}.title`)}
+            alt={tp(`${project.slug}.title`)}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            src={project.coverImage}
+            src={`/images/projects/${project.slug}/cover.${imageExtension}`}
           />
           {/* Overlay */}
           <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -52,13 +43,13 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           {/* Hover Content */}
           <div className="absolute right-0 bottom-0 left-0 translate-y-4 p-6 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
             <p className="mb-2 text-cream/60 text-xs uppercase tracking-widest">
-              {tp(`${projectKey}.category`)}
+              {tp(`${project.slug}.category`)}
             </p>
             <h3 className="font-light text-2xl text-cream">
-              {tp(`${projectKey}.title`)}
+              {tp(`${project.slug}.title`)}
             </h3>
             <p className="mt-2 text-cream/70 text-sm">
-              {t("photographs", { count: project.imageCount })}
+              {t("photographs", { count: project.count })}
             </p>
           </div>
         </div>
@@ -66,10 +57,10 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         {/* Static Content (visible by default) */}
         <div className="mt-4 transition-opacity duration-500 group-hover:opacity-0">
           <p className="mb-1 text-muted-foreground text-xs uppercase tracking-widest">
-            {tp(`${projectKey}.category`)}
+            {tp(`${project.slug}.category`)}
           </p>
           <h3 className="font-light text-cream text-xl">
-            {tp(`${projectKey}.title`)}
+            {tp(`${project.slug}.title`)}
           </h3>
         </div>
       </Link>

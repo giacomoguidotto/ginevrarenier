@@ -23,7 +23,7 @@
   "home": {
     "hero": {
       "tagline": "Narratrice Visiva",
-      "title": "Catturare",
+      "title": "Catturando",
       "titleAccent": "Momenti Eterei",
       "description": "Attraverso il mio obiettivo, esploro il delicato gioco di luce e ombra, creando immagini che risuonano con l'anima.",
       "cta": "Entra nella Visione",
@@ -33,7 +33,7 @@
       "label": "L'Artista",
       "title": "Dove la Luce",
       "titleBreak": "Incontra l'Anima",
-      "paragraph1": "Da oltre un decennio, inseguo la luce attraverso i continenti, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.",
+      "paragraph1": "Dal momento in cui ho impugnato per la prima volta una fotocamera, inseguo la luce in ogni angolo che scopro, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.",
       "paragraph2": "Il mio lavoro è un'esplorazione dell'esperienza umana—la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
       "cta": "Scopri la Mia Storia"
     },
@@ -42,9 +42,9 @@
       "title": "Opere Selezionate"
     },
     "testimonial": {
-      "quote": "Ginevra ha una straordinaria capacità di catturare non solo immagini, ma emozioni. Le sue fotografie sono finestre su momenti che altrimenti andrebbero persi nel tempo.",
-      "author": "Elena Marchetti",
-      "role": "Art Director, Vogue Italia"
+      "quote": "Ginevra ha una straordinaria capacità di catturare non solo immagini, ma emozioni. Le sue fotografie esprimono il vero moto della vita nei più piccoli dettagli.",
+      "author": " Miranda Priestly",
+      "role": "Art Director, Vogue USA"
     }
   },
   "vision": {
@@ -56,50 +56,42 @@
     "hero": {
       "label": "L'Artista",
       "title": "Essenza",
-      "paragraph1": "Nata a Venezia, cresciuta tra il gioco dell'acqua e della luce, ho scoperto presto che il mondo parla per immagini. La fotografia è diventata il mio linguaggio—un modo per catturare i momenti fugaci che definiscono la nostra esistenza.",
+      "paragraph1": "Cresciuta a Venezia, tra l'intreccio di acqua e luce, ho scoperto presto che il mondo parla per immagini. La fotografia è diventata il mio linguaggio, un modo per catturare i momenti fugaci che definiscono la nostra esistenza.",
       "paragraph2": "Il mio lavoro è guidato da una filosofia semplice: ogni fotografia dovrebbe evocare un'emozione, raccontare una storia e rivelare qualcosa di invisibile allo sguardo distratto. Cerco lo straordinario nascosto nell'ordinario.",
       "paragraph3": "Che si tratti di catturare la quieta dignità dello sguardo di uno sconosciuto o l'ampio respiro di una catena montuosa, mi avvicino a ogni soggetto con riverenza e curiosità."
     },
     "achievements": {
       "years": {
-        "title": "15+ Anni",
-        "description": "Dedicati all'arte della narrazione visiva"
+        "title": "Iniziata a 19 Anni",
+        "description": "Una passione nata presto, coltivata con dedizione"
       },
       "recognition": {
-        "title": "Riconoscimento Internazionale",
-        "description": "Pubblicata su Vogue, National Geographic e altro"
+        "title": "Accademia di Belle Arti",
+        "description": "Formata da una delle scuole più prestigiose"
       },
       "countries": {
-        "title": "40+ Paesi",
-        "description": "Raccontando storie attraverso i continenti"
+        "title": "Esploratrice Solitaria",
+        "description": "Viaggiando il mondo alla ricerca di storie uniche"
       }
     },
     "philosophy": {
       "label": "Filosofia",
-      "quote": "La fotografia non riguarda la cattura della realtà—riguarda la rivelazione della verità che la realtà spesso nasconde. Ogni immagine è un dialogo tra luce e ombra, presenza e assenza, il visto e il sentito."
+      "quote": "..."
     },
     "timeline": {
       "label": "Percorso",
-      "title": "Un Cammino nella Luce",
-      "2008": {
+      "title": "Un Cammino Immersa nella Luce",
+      "2022": {
         "title": "Prima Fotocamera",
-        "description": "Ho ricevuto la mia prima reflex digitale come regalo, accendendo una passione che dura tutta la vita."
+        "description": "Ho ereditato la mia prima reflex digitale da mia nonna, tramandandomi una passione che durerà per tutta la mia vita."
       },
-      "2012": {
-        "title": "Debutto Professionale",
-        "description": "Prima mostra a Venezia, segnando l'inizio del mio percorso professionale."
+      "2024": {
+        "title": "Oltre i Confini",
+        "description": "Immerso in paesaggi mai visti prima, ho iniziato a catturare orizzonti che parlavano una lingua nuova. Ogni scatto una scoperta, ogni luce una rivelazione."
       },
-      "2016": {
-        "title": "Su Vogue",
-        "description": "Lavoro editoriale riconosciuto da Vogue Italia, aprendo le porte alla fotografia di moda."
-      },
-      "2019": {
-        "title": "National Geographic",
-        "description": "Progetto documentario sulle comunità costiere del Mediterraneo pubblicato in tutto il mondo."
-      },
-      "2023": {
-        "title": "Mostra Personale",
-        "description": "Grande retrospettiva \"Luce & Tempo\" alla Biennale di Venezia."
+      "2025": {
+        "title": "Alla CPF Bauer",
+        "description": "Dopo Venezia, ho scelto di spingermi oltre. Milano mi ha accolta con un salto nel vuoto, verso la visione che stavo cercando."
       }
     },
     "cta": {
@@ -160,6 +152,12 @@
     "minRead": "{minutes} min di lettura"
   },
   "projects": {
+    "oslo": {
+      "title": "Oslo",
+      "subtitle": "Città di Luce",
+      "description": "Un viaggio attraverso la città di Oslo. Dalle strade affollate alle parchi tranquilli, ogni fotografia cattura un momento di vita nella città.",
+      "category": "Urban"
+    },
     "portraits": {
       "title": "Ritratti",
       "subtitle": "Connessione Umana",

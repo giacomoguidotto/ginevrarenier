@@ -13,8 +13,7 @@ import { Link } from "@/i18n/routing";
 import { getProject, getProjectImages } from "@/lib/projects";
 
 export function ProjectPageClient() {
-  const params = useParams();
-  const slug = params.project as string;
+  const { project: slug } = useParams<{ project: string }>();
   const project = getProject(slug);
   const images = getProjectImages(slug);
 
@@ -103,7 +102,7 @@ export function ProjectPageClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              {t("photographs", { count: project.imageCount })}
+              {t("photographs", { count: project.count })}
             </motion.p>
           </div>
 
