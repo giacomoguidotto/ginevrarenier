@@ -59,7 +59,7 @@ export function EssenceClient() {
             >
               <motion.p
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+                className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
@@ -67,7 +67,7 @@ export function EssenceClient() {
               </motion.p>
               <motion.h1
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8 text-cream"
+                className="mb-8 text-foreground"
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
@@ -121,7 +121,7 @@ export function EssenceClient() {
       <section className="py-24">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <motion.p
-            className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+            className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
             initial={{ opacity: 0, y: 20 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -129,7 +129,7 @@ export function EssenceClient() {
             {t("philosophy.label")}
           </motion.p>
           <motion.blockquote
-            className="font-light text-3xl text-cream leading-relaxed md:text-4xl"
+            className="font-light text-3xl text-foreground leading-relaxed md:text-4xl"
             initial={{ opacity: 0, y: 20 }}
             transition={{ delay: 0.1 }}
             viewport={{ once: true }}
@@ -200,7 +200,7 @@ export function EssenceClient() {
       <section className="py-24">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <motion.h2
-            className="mb-6 text-cream"
+            className="mb-6 text-foreground"
             initial={{ opacity: 0, y: 20 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -223,7 +223,7 @@ export function EssenceClient() {
             whileInView={{ opacity: 1, y: 0 }}
           >
             <Link
-              className="group inline-flex items-center gap-2 rounded-full border border-cream bg-cream px-8 py-4 font-medium text-background text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-cream"
+              className="group inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
               href="/connect"
             >
               <span>{t("cta.button")}</span>

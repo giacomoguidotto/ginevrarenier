@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Instagram, Mail, Twitter } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import { ExperienceToggle } from "./experience-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 
 const socialLinks = [
@@ -36,7 +37,7 @@ export function Footer() {
   const t = useTranslations("common");
 
   return (
-    <footer className="border-border border-t bg-charcoal">
+    <footer className="border-cream/10 border-t bg-charcoal text-cream">
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
@@ -46,20 +47,20 @@ export function Footer() {
                 Ginevra Renier
               </span>
             </Link>
-            <p className="max-w-xs text-muted-foreground text-sm">
+            <p className="max-w-xs text-cream/60 text-sm">
               {t("footer.tagline")}
             </p>
           </div>
 
           {/* Navigation */}
           <div className="space-y-4">
-            <h3 className="font-medium text-muted-foreground text-sm uppercase tracking-widest">
+            <h3 className="font-medium text-cream/50 text-sm uppercase tracking-widest">
               {t("footer.explore")}
             </h3>
             <nav className="flex flex-col gap-3">
               {footerLinkKeys.map((link) => (
                 <Link
-                  className="text-foreground/80 text-sm transition-colors hover:text-cream"
+                  className="text-cream/80 text-sm transition-colors hover:text-cream"
                   href={link.href}
                   key={link.href}
                 >
@@ -71,14 +72,14 @@ export function Footer() {
 
           {/* Social */}
           <div className="space-y-4">
-            <h3 className="font-medium text-muted-foreground text-sm uppercase tracking-widest">
+            <h3 className="font-medium text-cream/50 text-sm uppercase tracking-widest">
               {t("footer.connect")}
             </h3>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
                 <motion.a
                   aria-label={social.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border transition-colors hover:border-cream hover:text-cream"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"
                   href={social.href}
                   key={social.href}
                   rel="noopener noreferrer"
@@ -94,15 +95,14 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-border border-t pt-8 md:flex-row">
-          <p className="text-muted-foreground text-xs">
+        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-cream/10 border-t pt-8 md:flex-row">
+          <p className="text-cream/50 text-xs">
             {t("footer.copyright", { year: currentYear })}
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
+            <ExperienceToggle />
+            <span className="text-cream/20">|</span>
             <LanguageSwitcher />
-            <p className="text-muted-foreground text-xs">
-              {t("footer.crafted")}
-            </p>
           </div>
         </div>
       </div>

@@ -76,7 +76,7 @@ export function ConnectClient() {
           <div className="mb-16 max-w-3xl">
             <motion.p
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5 }}
             >
@@ -84,7 +84,7 @@ export function ConnectClient() {
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-cream"
+              className="mb-6 text-foreground"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
@@ -110,20 +110,20 @@ export function ConnectClient() {
               {isSubmitted ? (
                 <motion.div
                   animate={{ opacity: 1, scale: 1 }}
-                  className="flex h-full flex-col items-center justify-center rounded-lg border border-border bg-charcoal p-12 text-center"
+                  className="flex h-full flex-col items-center justify-center rounded-lg border border-border bg-card p-12 text-center"
                   initial={{ opacity: 0, scale: 0.95 }}
                 >
-                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-cream/10">
-                    <Check className="h-8 w-8 text-cream" />
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                    <Check className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="mb-4 font-light text-2xl text-cream">
+                  <h3 className="mb-4 font-light text-2xl text-foreground">
                     {t("success.title")}
                   </h3>
                   <p className="mb-8 text-muted-foreground">
                     {t("success.description")}
                   </p>
                   <button
-                    className="text-cream/60 text-sm uppercase tracking-widest transition-colors hover:text-cream"
+                    className="text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground"
                     onClick={() => setIsSubmitted(false)}
                     type="button"
                   >
@@ -141,7 +141,7 @@ export function ConnectClient() {
                       {t("form.name")}
                     </label>
                     <input
-                      className="w-full rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
+                      className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                       id="name"
                       onChange={(e) =>
                         setFormState({ ...formState, name: e.target.value })
@@ -162,7 +162,7 @@ export function ConnectClient() {
                       {t("form.email")}
                     </label>
                     <input
-                      className="w-full rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
+                      className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                       id="email"
                       onChange={(e) =>
                         setFormState({ ...formState, email: e.target.value })
@@ -183,7 +183,7 @@ export function ConnectClient() {
                       {t("form.inquiryType")}
                     </label>
                     <select
-                      className="w-full rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
+                      className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-primary"
                       id="inquiryType"
                       onChange={(e) =>
                         setFormState({
@@ -214,7 +214,7 @@ export function ConnectClient() {
                       {t("form.message")}
                     </label>
                     <textarea
-                      className="w-full resize-none rounded-lg border border-border bg-charcoal px-4 py-3 text-cream outline-none transition-colors focus:border-cream"
+                      className="w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                       id="message"
                       onChange={(e) =>
                         setFormState({ ...formState, message: e.target.value })
@@ -228,7 +228,7 @@ export function ConnectClient() {
 
                   {/* Submit Button */}
                   <motion.button
-                    className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-cream bg-cream px-8 py-4 font-medium text-background text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-cream disabled:cursor-not-allowed disabled:opacity-50"
+                    className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={isSubmitting}
                     type="submit"
                     whileHover={{ scale: 1.02 }}
@@ -273,20 +273,20 @@ export function ConnectClient() {
                 <div className="space-y-4">
                   {contactInfoData.map((item) => (
                     <div className="flex items-start gap-4" key={item.labelKey}>
-                      <item.icon className="mt-1 h-5 w-5 text-cream/60" />
+                      <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
                       <div>
                         <p className="text-muted-foreground text-sm">
                           {t(`info.${item.labelKey}`)}
                         </p>
                         {item.href ? (
                           <a
-                            className="text-cream text-lg transition-colors hover:text-cream/80"
+                            className="text-foreground text-lg transition-colors hover:text-foreground/80"
                             href={item.href}
                           >
                             {item.value}
                           </a>
                         ) : (
-                          <p className="text-cream text-lg">
+                          <p className="text-foreground text-lg">
                             {item.valueKey
                               ? t(`info.${item.valueKey}`)
                               : item.value}
@@ -312,12 +312,12 @@ export function ConnectClient() {
                       rel="noopener noreferrer"
                       target="_blank"
                     >
-                      <item.icon className="mt-1 h-5 w-5 text-cream/60" />
+                      <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
                       <div>
                         <p className="text-muted-foreground text-sm">
                           {item.label}
                         </p>
-                        <p className="text-cream text-lg transition-colors hover:text-cream/80">
+                        <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
                           {item.value}
                         </p>
                       </div>
@@ -327,16 +327,16 @@ export function ConnectClient() {
               </div>
 
               {/* Availability */}
-              <div className="rounded-lg border border-border bg-charcoal p-6">
+              <div className="rounded-lg border border-border bg-card p-6">
                 <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
                   {t("info.availability.title")}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-foreground">
                   {t("info.availability.description")}
                 </p>
                 <div className="mt-4 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="text-green-400 text-sm">
+                  <span className="text-green-600 text-sm dark:text-green-400">
                     {t("info.availability.status")}
                   </span>
                 </div>

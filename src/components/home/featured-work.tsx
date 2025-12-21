@@ -62,8 +62,8 @@ function ProjectCard({
             sizes="(max-width: 768px) 80vw, 40vw"
             src={`/images/projects/${projectKey}/cover.${imageExtension}`}
           />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-background via-background/20 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
+          {/* Overlay - always dark for consistent text contrast */}
+          <div className="absolute inset-0 bg-linear-to-t from-charcoal via-charcoal/40 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
         </motion.div>
 
         {/* Content */}

@@ -14,6 +14,12 @@
       "copyright": "© {year} Ginevra Renier. All rights reserved.",
       "crafted": "Crafted with passion and light"
     },
+    "theme": {
+      "dark": "dark",
+      "light": "light",
+      "switchToDark": "Switch to dark experience",
+      "switchToLight": "Switch to light experience"
+    },
     "viewProject": "View Project",
     "viewAll": "View All",
     "viewAllProjects": "View All Projects",

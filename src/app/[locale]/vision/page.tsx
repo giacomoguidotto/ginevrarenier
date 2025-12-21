@@ -30,10 +30,10 @@ export default async function VisionPage({ params }: Props) {
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
           <div className="mb-16 max-w-3xl">
-            <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
+            <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
               {t("label")}
             </p>
-            <h1 className="mb-6 text-cream">{t("title")}</h1>
+            <h1 className="mb-6 text-foreground">{t("title")}</h1>
             <p className="text-lg text-muted-foreground">{t("description")}</p>
           </div>
 

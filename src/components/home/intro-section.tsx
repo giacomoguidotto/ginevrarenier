@@ -30,10 +30,10 @@ export function IntroSection() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}
           >
-            <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
+            <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
               {t("label")}
             </p>
-            <h2 className="mb-8 text-cream">
+            <h2 className="mb-8 text-foreground">
               {t("title")}
               <br />
               {t("titleBreak")}
@@ -44,7 +44,7 @@ export function IntroSection() {
             </div>
             <div className="mt-10">
               <Link
-                className="group inline-flex items-center gap-2 text-cream text-sm uppercase tracking-widest transition-colors hover:text-cream/70"
+                className="group inline-flex items-center gap-2 text-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground/70"
                 href="/essence"
               >
                 <span>{t("cta")}</span>

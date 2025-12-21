@@ -37,8 +37,8 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             src={`/images/projects/${project.slug}/cover.${imageExtension}`}
           />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          {/* Overlay - always dark for consistent text contrast */}
+          <div className="absolute inset-0 bg-linear-to-t from-charcoal/90 via-charcoal/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
           {/* Hover Content */}
           <div className="absolute right-0 bottom-0 left-0 translate-y-4 p-6 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
@@ -59,7 +59,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           <p className="mb-1 text-muted-foreground text-xs uppercase tracking-widest">
             {tp(`${project.slug}.category`)}
           </p>
-          <h3 className="font-light text-cream text-xl">
+          <h3 className="font-light text-foreground text-xl">
             {tp(`${project.slug}.title`)}
           </h3>
         </div>

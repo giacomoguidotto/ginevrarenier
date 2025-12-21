@@ -28,16 +28,16 @@ export function Testimonial() {
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
         >
-          <Quote className="mx-auto mb-8 h-12 w-12 text-cream/20" />
+          <Quote className="mx-auto mb-8 h-12 w-12 text-foreground/20" />
 
           <blockquote className="mb-8">
-            <p className="font-light text-2xl text-cream/90 leading-relaxed md:text-3xl lg:text-4xl">
+            <p className="font-light text-2xl text-foreground/90 leading-relaxed md:text-3xl lg:text-4xl">
               "{t("quote")}"
             </p>
           </blockquote>
 
           <div className="flex flex-col items-center gap-2">
-            <p className="font-medium text-cream">{t("author")}</p>
+            <p className="font-medium text-foreground">{t("author")}</p>
             <p className="text-muted-foreground text-sm">{t("role")}</p>
           </div>
         </motion.div>

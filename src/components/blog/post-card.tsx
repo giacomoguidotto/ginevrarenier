@@ -47,7 +47,7 @@ export function PostCard({ post, index }: PostCardProps) {
           </div>
 
           {/* Title */}
-          <h2 className="font-light text-2xl text-cream transition-colors group-hover:text-cream/80">
+          <h2 className="font-light text-2xl text-foreground transition-colors group-hover:text-foreground/80">
             {post.title}
           </h2>
 
@@ -55,7 +55,7 @@ export function PostCard({ post, index }: PostCardProps) {
           <p className="line-clamp-2 text-muted-foreground">{post.excerpt}</p>
 
           {/* Read More */}
-          <div className="flex items-center gap-2 pt-2 text-cream/60 text-sm uppercase tracking-widest transition-colors group-hover:text-cream">
+          <div className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
             <span>{t("readMore")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>

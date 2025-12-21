@@ -33,7 +33,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
             transition={{ duration: 0.5 }}
           >
             <Link
-              className="mb-12 inline-flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-cream"
+              className="mb-12 inline-flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground"
               href="/reflections"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -63,7 +63,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
             {/* Title */}
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8 font-light text-4xl text-cream leading-tight md:text-5xl lg:text-6xl"
+              className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
@@ -113,7 +113,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
               if (trimmed.startsWith("## ")) {
                 return (
                   <h2
-                    className="mt-12 mb-6 font-light text-3xl text-cream"
+                    className="mt-12 mb-6 font-light text-3xl text-foreground"
                     key={`h2-${contentKey}`}
                   >
                     {trimmed.replace("## ", "")}
@@ -123,7 +123,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
               if (trimmed.startsWith("### ")) {
                 return (
                   <h3
-                    className="mt-8 mb-4 font-light text-2xl text-cream"
+                    className="mt-8 mb-4 font-light text-2xl text-foreground"
                     key={`h3-${contentKey}`}
                   >
                     {trimmed.replace("### ", "")}
@@ -135,7 +135,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
               if (trimmed.startsWith("> ")) {
                 return (
                   <blockquote
-                    className="my-8 border-cream/30 border-l-2 pl-6 text-cream/80 italic"
+                    className="my-8 border-foreground/30 border-l-2 pl-6 text-foreground/80 italic"
                     key={`quote-${contentKey}`}
                   >
                     {trimmed.replace(/^> /gm, "")}
@@ -163,7 +163,7 @@ export function BlogPostClient({ post }: BlogPostClientProps) {
             transition={{ duration: 0.5, delay: 0.6 }}
           >
             <Link
-              className="inline-flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-cream"
+              className="inline-flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground"
               href="/reflections"
             >
               <ArrowLeft className="h-4 w-4" />

@@ -26,15 +26,13 @@ export function LanguageSwitcher() {
     <div className="flex items-center gap-1 text-xs">
       {locales.map((loc, index) => (
         <span className="flex items-center" key={loc}>
-          {index > 0 && (
-            <span className="mx-1.5 text-muted-foreground/50">|</span>
-          )}
+          {index > 0 && <span className="mx-1.5 text-cream/30">|</span>}
           <button
             aria-label={`Switch to ${loc === "en" ? "English" : "Italian"}`}
             className={`uppercase tracking-widest transition-colors ${
               locale === loc
                 ? "text-cream"
-                : "text-muted-foreground hover:text-cream/70"
+                : "text-cream/50 hover:text-cream/80"
             }`}
             onClick={() => handleLocaleChange(loc)}
             type="button"

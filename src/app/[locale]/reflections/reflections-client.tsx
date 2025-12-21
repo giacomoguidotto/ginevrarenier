@@ -22,7 +22,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
           <div className="mb-16 max-w-3xl">
             <motion.p
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5 }}
             >
@@ -30,7 +30,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-cream"
+              className="mb-6 text-foreground"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >

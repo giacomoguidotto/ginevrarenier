@@ -62,7 +62,7 @@ export function ProjectPageClient() {
             transition={{ duration: 0.5 }}
           >
             <Link
-              className="mb-12 inline-flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-cream"
+              className="mb-12 inline-flex items-center gap-2 text-muted-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground"
               href="/vision"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function ProjectPageClient() {
           <div className="mb-16 max-w-3xl">
             <motion.p
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
@@ -82,7 +82,7 @@ export function ProjectPageClient() {
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-cream"
+              className="mb-6 text-foreground"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
