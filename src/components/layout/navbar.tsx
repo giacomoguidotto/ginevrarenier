@@ -57,18 +57,20 @@ function MagneticLink({
   return (
     <motion.div style={{ x: springX, y: springY }}>
       <Link
-        className="relative px-4 py-2 text-sm uppercase tracking-widest transition-colors hover:text-cream"
+        className="relative px-4 py-2 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
         href={href}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         ref={ref}
       >
-        <span className={isActive ? "text-cream" : "text-muted-foreground"}>
+        <span
+          className={isActive ? "text-foreground" : "text-muted-foreground"}
+        >
           {label}
         </span>
         {isActive ? (
           <motion.div
-            className="absolute right-4 bottom-0 left-4 h-px bg-cream"
+            className="absolute right-4 bottom-0 left-4 h-px bg-foreground"
             layoutId="navbar-indicator"
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
@@ -179,7 +181,7 @@ export function Navbar() {
               <Link
                 className={`font-light text-3xl uppercase tracking-widest ${
                   pathname === link.href
-                    ? "text-cream"
+                    ? "text-foreground"
                     : "text-muted-foreground"
                 }`}
                 href={link.href}

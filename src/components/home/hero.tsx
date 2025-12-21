@@ -45,7 +45,7 @@ export function Hero() {
           {/* Tagline */}
           <motion.p
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 text-cream/80 text-sm uppercase tracking-[0.3em]"
+            className="mb-6 text-foreground/80 text-sm uppercase tracking-[0.3em]"
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
@@ -60,8 +60,10 @@ export function Hero() {
               initial={{ y: "150%" }}
               transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="block text-cream">{t("title")}</span>
-              <span className="block text-cream/60">{t("titleAccent")}</span>
+              <span className="block text-foreground">{t("title")}</span>
+              <span className="block text-foreground/60">
+                {t("titleAccent")}
+              </span>
             </motion.h1>
           </div>
 
@@ -83,13 +85,13 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 1 }}
           >
             <Link
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-cream bg-cream px-8 py-4 font-medium text-background text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-cream"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
               href="/vision"
             >
               <span className="relative z-10">{t("cta")}</span>
             </Link>
             <Link
-              className="inline-flex items-center gap-2 rounded-full border border-cream/30 px-8 py-4 font-medium text-cream text-sm uppercase tracking-widest transition-all hover:border-cream hover:bg-cream/10"
+              className="inline-flex items-center gap-2 rounded-full border border-foreground/30 px-8 py-4 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:border-foreground hover:bg-foreground/10"
               href="/connect"
             >
               <span>{t("ctaSecondary")}</span>

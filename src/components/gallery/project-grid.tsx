@@ -5,17 +5,15 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { fadeUp, staggerContainer } from "@/lib/animations";
+import type { ProjectMeta } from "@/lib/types";
 
-export type Project = {
-  slug: string;
-  count: number;
-};
-
-type ProjectGridProps = {
-  projects: Project[];
-};
-
-function ProjectCard({ project, index }: { project: Project; index: number }) {
+function ProjectCard({
+  project,
+  index,
+}: {
+  project: ProjectMeta;
+  index: number;
+}) {
   const t = useTranslations("common");
   const tp = useTranslations("projects");
 
@@ -68,7 +66,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   );
 }
 
-export function ProjectGrid({ projects }: ProjectGridProps) {
+export function ProjectGrid({ projects }: { projects: ProjectMeta[] }) {
   return (
     <motion.div
       animate="visible"

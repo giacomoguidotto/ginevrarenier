@@ -1,29 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Instagram, Mail, Twitter } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { socials } from "@/content/data";
 import { Link } from "@/i18n/routing";
 import { ExperienceToggle } from "./experience-toggle";
 import { LanguageSwitcher } from "./language-switcher";
-
-const socialLinks = [
-  {
-    href: "https://instagram.com/ginevrarenier",
-    label: "Instagram",
-    icon: Instagram,
-  },
-  {
-    href: "https://twitter.com/ginevrarenier",
-    label: "Twitter",
-    icon: Twitter,
-  },
-  {
-    href: "mailto:hello@ginevrarenier.com",
-    label: "Email",
-    icon: Mail,
-  },
-];
 
 const footerLinkKeys = [
   { href: "/vision", key: "vision" },
@@ -76,7 +58,7 @@ export function Footer() {
               {t("footer.connect")}
             </h3>
             <div className="flex gap-4">
-              {socialLinks.map((social) => (
+              {socials.map((social) => (
                 <motion.a
                   aria-label={social.label}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"

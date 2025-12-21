@@ -1,40 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Instagram, Mail, MapPin, Send, Twitter } from "lucide-react";
+import { Check, MapPin, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { PageTransition } from "@/components/layout/page-transition";
+import { socials } from "@/content/data";
 
-const contactInfoData = [
-  {
-    icon: Mail,
-    labelKey: "email",
-    value: "hello@ginevrarenier.com",
-    href: "mailto:hello@ginevrarenier.com",
-  },
-  {
-    icon: MapPin,
-    labelKey: "basedIn",
-    valueKey: "location",
-    href: null,
-  },
-];
-
-const socialLinksData = [
-  {
-    icon: Instagram,
-    label: "Instagram",
-    value: "@ginevrarenier",
-    href: "https://instagram.com/ginevrarenier",
-  },
-  {
-    icon: Twitter,
-    label: "Twitter",
-    value: "@ginevrarenier",
-    href: "https://twitter.com/ginevrarenier",
-  },
-];
+const contactInfoData = socials
+  .filter((item) => item.label === "email")
+  .concat([
+    {
+      icon: MapPin,
+      label: "basedIn",
+      value: "location",
+      href: "",
+    },
+  ]);
 
 const inquiryTypeKeys = [
   "collaboration",
@@ -272,11 +254,11 @@ export function ConnectClient() {
                 </h3>
                 <div className="space-y-4">
                   {contactInfoData.map((item) => (
-                    <div className="flex items-start gap-4" key={item.labelKey}>
+                    <div className="flex items-start gap-4" key={item.label}>
                       <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
                       <div>
                         <p className="text-muted-foreground text-sm">
-                          {t(`info.${item.labelKey}`)}
+                          {t(`info.${item.label}`)}
                         </p>
                         {item.href ? (
                           <a
@@ -287,9 +269,7 @@ export function ConnectClient() {
                           </a>
                         ) : (
                           <p className="text-foreground text-lg">
-                            {item.valueKey
-                              ? t(`info.${item.valueKey}`)
-                              : item.value}
+                            {item.value ? t(`info.${item.value}`) : item.value}
                           </p>
                         )}
                       </div>
@@ -304,25 +284,27 @@ export function ConnectClient() {
                   {t("info.followAlong")}
                 </h3>
                 <div className="space-y-4">
-                  {socialLinksData.map((item) => (
-                    <a
-                      className="flex items-start gap-4 transition-colors"
-                      href={item.href}
-                      key={item.label}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          {item.label}
-                        </p>
-                        <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
-                          {item.value}
-                        </p>
-                      </div>
-                    </a>
-                  ))}
+                  {socials
+                    .filter((item) => item.label !== "email")
+                    .map((item) => (
+                      <a
+                        className="flex items-start gap-4 transition-colors"
+                        href={item.href}
+                        key={item.label}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            {item.label}
+                          </p>
+                          <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
+                            {item.value}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
                 </div>
               </div>
 

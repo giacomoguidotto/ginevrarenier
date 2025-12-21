@@ -1,7 +1,7 @@
-import type { Project } from "@/components/gallery/project-grid";
+import type { ProjectMeta } from "@/lib/types";
 
 // Project data - in production this could come from a CMS or JSON files
-export const projects: Project[] = [
+export const projects: ProjectMeta[] = [
   {
     slug: "oslo",
     count: 11,
@@ -32,7 +32,7 @@ export const projects: Project[] = [
   },
 ];
 
-export function getProject(slug: string): Project | undefined {
+export function getProject(slug: string): ProjectMeta | undefined {
   return projects.find((p) => p.slug === slug);
 }
 
