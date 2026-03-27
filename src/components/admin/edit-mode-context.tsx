@@ -5,9 +5,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
+
+const STORAGE_KEY = "edit-mode-active";
 
 type EditModeContextValue = {
   isEditMode: boolean;
@@ -26,8 +29,31 @@ const EditModeContext = createContext<EditModeContextValue>({
   exitEditMode: noop,
 });
 
+function getPersistedEditMode(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  try {
+    return localStorage.getItem(STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
 export function EditModeProvider({ children }: { children: ReactNode }) {
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(getPersistedEditMode);
+
+  useEffect(() => {
+    try {
+      if (isEditMode) {
+        localStorage.setItem(STORAGE_KEY, "true");
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      // ignore
+    }
+  }, [isEditMode]);
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);

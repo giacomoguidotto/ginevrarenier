@@ -134,10 +134,14 @@ export function EditToolbar({
     dragRef.current = null;
   }, []);
 
-  const switchLocale = useCallback(() => {
+  const switchLocale = useCallback(async () => {
+    // Auto-save before switching locale to preserve changes
+    if (hasChanges) {
+      await onSave();
+    }
     const nextLocale = locale === "en" ? "it" : "en";
     router.replace(pathname, { locale: nextLocale });
-  }, [locale, router, pathname]);
+  }, [locale, router, pathname, hasChanges, onSave]);
 
   if (!isEditMode) {
     return null;
