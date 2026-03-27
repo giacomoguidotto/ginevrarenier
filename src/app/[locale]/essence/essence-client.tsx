@@ -2,8 +2,8 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Award, Camera, Globe } from "lucide-react";
-import Image from "next/image";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
+import { EditableImage } from "@/components/admin/editable-image";
 import { EditableText } from "@/components/admin/editable-text";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
@@ -29,6 +29,14 @@ export function EssenceClient() {
   const tl = useEditableSiteContent("essence.timeline");
   const ctaSec = useEditableSiteContent("essence.cta");
 
+  const portraitUrl = hero.get("portraitImage").en || undefined;
+  const handlePortraitUpload = useCallback(
+    (url: string) => {
+      hero.set("portraitImage", { en: url, it: url });
+    },
+    [hero]
+  );
+
   return (
     <PageTransition>
       {/* Hero Section */}
@@ -46,13 +54,13 @@ export function EssenceClient() {
               style={{ y: imageY }}
               transition={{ duration: 0.8 }}
             >
-              <Image
+              <EditableImage
                 alt="Ginevra Renier"
-                className="object-cover"
-                fill
+                folder="ginevrarenier/site"
+                onUpload={handlePortraitUpload}
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                src="/images/placeholder.svg"
+                src={portraitUrl}
               />
             </motion.div>
 

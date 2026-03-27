@@ -2,8 +2,8 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
+import { EditableImage } from "@/components/admin/editable-image";
 import { EditableText } from "@/components/admin/editable-text";
 import { Link } from "@/i18n/routing";
 import { useEditableSiteContent } from "@/lib/use-editable-content";
@@ -17,7 +17,15 @@ export function IntroSection() {
 
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  const { bind } = useEditableSiteContent("intro");
+  const { bind, get, set } = useEditableSiteContent("intro");
+
+  const portraitUrl = get("portraitImage").en || undefined;
+  const handlePortraitUpload = useCallback(
+    (url: string) => {
+      set("portraitImage", { en: url, it: url });
+    },
+    [set]
+  );
 
   return (
     <section className="relative bg-background py-32" ref={sectionRef}>
@@ -64,13 +72,16 @@ export function IntroSection() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}
           >
-            <motion.div className="h-full w-full" style={{ y: imageY }}>
-              <Image
+            <motion.div
+              className="relative h-full w-full"
+              style={{ y: imageY }}
+            >
+              <EditableImage
                 alt="Ginevra Renier"
-                className="object-cover"
-                fill
+                folder="ginevrarenier/site"
+                onUpload={handlePortraitUpload}
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                src="/images/placeholder.svg"
+                src={portraitUrl}
               />
             </motion.div>
           </motion.div>

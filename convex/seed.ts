@@ -138,6 +138,7 @@ export const seed = internalMutation({
             it: "Il mio lavoro è un'esplorazione dell'esperienza umana—la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
           },
           cta: { en: "Discover My Story", it: "Scopri la Mia Storia" },
+          portraitImage: { en: "", it: "" },
         },
       },
       {
@@ -174,6 +175,7 @@ export const seed = internalMutation({
             en: "Whether capturing the quiet dignity of a stranger's gaze or the dramatic sweep of a mountain range, I approach each subject with reverence and curiosity.",
             it: "Che si tratti di catturare la quieta dignità dello sguardo di uno sconosciuto o l'ampio respiro di una catena montuosa, mi avvicino a ogni soggetto con riverenza e curiosità.",
           },
+          portraitImage: { en: "", it: "" },
         },
       },
       {
