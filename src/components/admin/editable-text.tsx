@@ -21,7 +21,7 @@ function StaleIndicator({ locale }: { locale: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-amber-400 align-middle" />
+        <span className="-top-1 -right-1 absolute h-2 w-2 rounded-full bg-amber-400" />
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>
         Missing {locale.toUpperCase()} translation
@@ -146,7 +146,7 @@ export function EditableText({
 
   return (
     <Tag
-      className={`${className} -mx-1 cursor-text rounded px-1 transition-colors hover:ring-1 hover:ring-foreground/20`}
+      className={`${className} -mx-1 relative cursor-text rounded px-1 transition-colors hover:ring-1 hover:ring-foreground/20`}
       onClick={() => setEditing(true)}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
