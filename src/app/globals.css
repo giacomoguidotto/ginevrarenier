@@ -167,3 +167,18 @@ img {
 img[data-loading="true"] {
   opacity: 0;
 }
+
+/* Edit mode — blueprint aesthetic */
+body.edit-mode section {
+  position: relative;
+}
+
+body.edit-mode section::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed oklch(0.7 0 0 / 0.15);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 40;
+}

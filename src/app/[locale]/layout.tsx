@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { EditFab } from "@/components/admin/edit-fab";
 import { EditModeProvider } from "@/components/admin/edit-mode-context";
+import { EditOverlay } from "@/components/admin/edit-overlay";
+import { EditToolbarWrapper } from "@/components/admin/edit-toolbar-wrapper";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
@@ -114,10 +116,12 @@ export default async function LocaleLayout({ children, params }: Props) {
       <ThemeProvider>
         <NextIntlClientProvider messages={messages}>
           <EditModeProvider>
+            <EditOverlay />
             <Navbar />
             <main className="min-h-screen">{children}</main>
             <Footer />
             <EditFab />
+            <EditToolbarWrapper />
           </EditModeProvider>
         </NextIntlClientProvider>
       </ThemeProvider>
