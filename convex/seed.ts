@@ -4,92 +4,9 @@ export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
     // Check if already seeded
-    const existing = await ctx.db.query("projects").first();
+    const existing = await ctx.db.query("siteContent").first();
     if (existing) {
       return;
-    }
-
-    // --- Projects ---
-    const projects = [
-      {
-        slug: "oslo",
-        title: { en: "Oslo", it: "Oslo" },
-        subtitle: { en: "City of Light", it: "Città di Luce" },
-        description: {
-          en: "A journey through the city of Oslo. From the bustling streets to the serene parks, each photograph captures a moment of life in the city.",
-          it: "Un viaggio attraverso la città di Oslo. Dalle strade affollate alle parchi tranquilli, ogni fotografia cattura un momento di vita nella città.",
-        },
-        category: { en: "Urban", it: "Urban" },
-      },
-      {
-        slug: "portraits",
-        title: { en: "Portraits", it: "Ritratti" },
-        subtitle: { en: "Human Connection", it: "Connessione Umana" },
-        description: {
-          en: "A journey into the human soul. Each portrait tells a unique story of emotion, strength, and vulnerability.",
-          it: "Un viaggio nell'anima umana. Ogni ritratto racconta una storia unica di emozione, forza e vulnerabilità.",
-        },
-        category: { en: "People", it: "Persone" },
-      },
-      {
-        slug: "landscapes",
-        title: { en: "Landscapes", it: "Paesaggi" },
-        subtitle: { en: "Nature's Poetry", it: "Poesia della Natura" },
-        description: {
-          en: "Nature's grandeur captured in moments of perfect light. From misty mornings to golden sunsets.",
-          it: "La grandiosità della natura catturata in momenti di luce perfetta. Dalle mattine nebbiose ai tramonti dorati.",
-        },
-        category: { en: "Nature", it: "Natura" },
-      },
-      {
-        slug: "urban",
-        title: { en: "Urban", it: "Urbano" },
-        subtitle: { en: "City Whispers", it: "Sussurri di Città" },
-        description: {
-          en: "The poetry of cities. Architecture, streets, and the pulse of urban life through a contemplative lens.",
-          it: "La poesia delle città. Architettura, strade e il battito della vita urbana attraverso uno sguardo contemplativo.",
-        },
-        category: { en: "Architecture", it: "Architettura" },
-      },
-      {
-        slug: "abstract",
-        title: { en: "Abstract", it: "Astratto" },
-        subtitle: { en: "Beyond Form", it: "Oltre la Forma" },
-        description: {
-          en: "Beyond representation. Exploring form, color, and texture in ways that challenge perception.",
-          it: "Oltre la rappresentazione. Esplorando forma, colore e texture in modi che sfidano la percezione.",
-        },
-        category: { en: "Experimental", it: "Sperimentale" },
-      },
-      {
-        slug: "moments",
-        title: { en: "Fleeting Moments", it: "Momenti Fugaci" },
-        subtitle: { en: "Life's Breath", it: "Respiro di Vita" },
-        description: {
-          en: "Life's ephemeral beauty. Candid captures of joy, contemplation, and human connection.",
-          it: "La bellezza effimera della vita. Scatti spontanei di gioia, contemplazione e connessione umana.",
-        },
-        category: { en: "Documentary", it: "Documentario" },
-      },
-      {
-        slug: "noir",
-        title: { en: "Noir", it: "Noir" },
-        subtitle: { en: "Shadow & Light", it: "Ombra & Luce" },
-        description: {
-          en: "A study in contrasts. Black and white photography that embraces shadow and light.",
-          it: "Uno studio sui contrasti. Fotografia in bianco e nero che abbraccia ombra e luce.",
-        },
-        category: { en: "Black & White", it: "Bianco & Nero" },
-      },
-    ];
-
-    for (let i = 0; i < projects.length; i++) {
-      await ctx.db.insert("projects", {
-        ...projects[i],
-        coverImageUrl: undefined,
-        order: i,
-        published: true,
-      });
     }
 
     // --- Site Content ---
