@@ -5,6 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { useEditMode } from "./edit-mode-context";
 
+/**
+ * Returns the active locale for display/editing.
+ * In edit mode, uses the editing locale from toolbar.
+ * Otherwise, uses the page locale from next-intl.
+ */
+function useActiveLocale(): Locale {
+  const pageLocale = useLocale() as Locale;
+  const { isEditMode, editingLocale } = useEditMode();
+  return isEditMode ? editingLocale : pageLocale;
+}
+
 type EditableTextProps = {
   value: { en: string; it: string } | undefined;
   onChange: (value: { en: string; it: string }) => void;
@@ -27,7 +38,7 @@ export function EditableText({
   placeholder = "Enter text...",
 }: EditableTextProps) {
   const { isEditMode } = useEditMode();
-  const locale = useLocale() as Locale;
+  const locale = useActiveLocale();
   const text = value?.[locale] ?? "";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);

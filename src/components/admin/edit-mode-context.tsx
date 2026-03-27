@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import type { ReactNode } from "react";
 import {
   createContext,
@@ -9,14 +10,17 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { Locale } from "@/i18n/config";
 
 const STORAGE_KEY = "edit-mode-active";
 
 type EditModeContextValue = {
   isEditMode: boolean;
+  editingLocale: Locale;
   toggleEditMode: () => void;
   enterEditMode: () => void;
   exitEditMode: () => void;
+  setEditingLocale: (locale: Locale) => void;
 };
 
 // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
@@ -24,9 +28,11 @@ const noop = () => {};
 
 const EditModeContext = createContext<EditModeContextValue>({
   isEditMode: false,
+  editingLocale: "en",
   toggleEditMode: noop,
   enterEditMode: noop,
   exitEditMode: noop,
+  setEditingLocale: noop,
 });
 
 function getPersistedEditMode(): boolean {
@@ -41,7 +47,9 @@ function getPersistedEditMode(): boolean {
 }
 
 export function EditModeProvider({ children }: { children: ReactNode }) {
+  const pageLocale = useLocale() as Locale;
   const [isEditMode, setIsEditMode] = useState(getPersistedEditMode);
+  const [editingLocale, setEditingLocale] = useState<Locale>(pageLocale);
 
   useEffect(() => {
     try {
@@ -68,8 +76,15 @@ export function EditModeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ isEditMode, toggleEditMode, enterEditMode, exitEditMode }),
-    [isEditMode, toggleEditMode, enterEditMode, exitEditMode]
+    () => ({
+      isEditMode,
+      editingLocale,
+      toggleEditMode,
+      enterEditMode,
+      exitEditMode,
+      setEditingLocale,
+    }),
+    [isEditMode, editingLocale, toggleEditMode, enterEditMode, exitEditMode]
   );
 
   return <EditModeContext value={value}>{children}</EditModeContext>;

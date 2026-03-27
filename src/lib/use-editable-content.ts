@@ -4,6 +4,7 @@ import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useLocale } from "next-intl";
 import { useCallback } from "react";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { usePageChanges } from "@/components/admin/page-changes-context";
 import type { Locale } from "@/i18n/config";
 
@@ -13,7 +14,9 @@ import type { Locale } from "@/i18n/config";
  * and an onChange handler for EditableText components.
  */
 export function useEditableSiteContent(section: string) {
-  const locale = useLocale() as Locale;
+  const pageLocale = useLocale() as Locale;
+  const { isEditMode, editingLocale } = useEditMode();
+  const locale = isEditMode ? editingLocale : pageLocale;
   const data = useQuery(api.siteContent.getBySection, { section });
   const { trackSiteContent, getSiteContentDraft } = usePageChanges();
 

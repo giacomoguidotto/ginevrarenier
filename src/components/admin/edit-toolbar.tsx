@@ -2,14 +2,12 @@
 
 import { useClerk } from "@clerk/nextjs";
 import { GripVertical, LogOut, Power, RotateCcw, Save } from "lucide-react";
-import { useLocale } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { usePathname, useRouter } from "@/i18n/routing";
 import { useEditMode } from "./edit-mode-context";
 
 const STORAGE_KEY = "edit-toolbar-position";
@@ -67,11 +65,9 @@ export function EditToolbar({
   onSave,
   onDiscard,
 }: EditToolbarProps) {
-  const { isEditMode, exitEditMode } = useEditMode();
+  const { isEditMode, editingLocale, exitEditMode, setEditingLocale } =
+    useEditMode();
   const { signOut } = useClerk();
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
 
   const [position, setPosition] = useState<Position>(getInitialPosition);
   const [isDragging, setIsDragging] = useState(false);
@@ -134,14 +130,9 @@ export function EditToolbar({
     dragRef.current = null;
   }, []);
 
-  const switchLocale = useCallback(async () => {
-    // Auto-save before switching locale to preserve changes
-    if (hasChanges) {
-      await onSave();
-    }
-    const nextLocale = locale === "en" ? "it" : "en";
-    router.replace(pathname, { locale: nextLocale });
-  }, [locale, router, pathname, hasChanges, onSave]);
+  const switchLocale = useCallback(() => {
+    setEditingLocale(editingLocale === "en" ? "it" : "en");
+  }, [editingLocale, setEditingLocale]);
 
   if (!isEditMode) {
     return null;
@@ -176,13 +167,17 @@ export function EditToolbar({
         onClick={switchLocale}
       >
         <span
-          className={locale === "en" ? "text-foreground" : "text-foreground/40"}
+          className={
+            editingLocale === "en" ? "text-foreground" : "text-foreground/40"
+          }
         >
           EN
         </span>
         <span className="text-foreground/20">|</span>
         <span
-          className={locale === "it" ? "text-foreground" : "text-foreground/40"}
+          className={
+            editingLocale === "it" ? "text-foreground" : "text-foreground/40"
+          }
         >
           IT
         </span>
