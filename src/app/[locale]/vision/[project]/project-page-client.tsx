@@ -1,5 +1,7 @@
 "use client";
 
+import { api } from "convex/_generated/api";
+import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
@@ -7,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImageGrid } from "@/components/admin/editable-image-grid";
+import { EditableText } from "@/components/admin/editable-text";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
@@ -21,9 +24,10 @@ export function ProjectPageClient() {
     project?._id
   );
   const { isEditMode } = useEditMode();
+  const updateProject = useMutation(api.projects.update);
 
   const t = useTranslations("common");
-  const localized = useLocalized();
+  const _localized = useLocalized();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -79,30 +83,47 @@ export function ProjectPageClient() {
 
           {/* Project Header */}
           <div className="mb-16 max-w-3xl">
-            <motion.p
+            <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {localized(project.category)}
-            </motion.p>
-            <motion.h1
+              <EditableText
+                as="p"
+                className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+                onChange={(v) =>
+                  updateProject({ id: project._id, category: v })
+                }
+                value={project.category}
+              />
+            </motion.div>
+            <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-foreground"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {localized(project.title)}
-            </motion.h1>
-            <motion.p
+              <EditableText
+                as="h1"
+                className="mb-6 text-foreground"
+                onChange={(v) => updateProject({ id: project._id, title: v })}
+                value={project.title}
+              />
+            </motion.div>
+            <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="text-lg text-muted-foreground"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {localized(project.description)}
-            </motion.p>
+              <EditableText
+                as="p"
+                className="text-lg text-muted-foreground"
+                multiline
+                onChange={(v) =>
+                  updateProject({ id: project._id, description: v })
+                }
+                value={project.description}
+              />
+            </motion.div>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 text-muted-foreground text-sm"
