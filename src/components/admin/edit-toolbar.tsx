@@ -4,6 +4,11 @@ import { useClerk } from "@clerk/nextjs";
 import { GripVertical, LogOut, Power, RotateCcw, Save } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { useEditMode } from "./edit-mode-context";
 
@@ -32,6 +37,31 @@ type EditToolbarProps = {
   onDiscard: () => void;
 };
 
+function ToolbarButton({
+  children,
+  label,
+  onClick,
+  className,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  className: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button className={className} onClick={onClick} type="button">
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={8}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function EditToolbar({
   hasChanges,
   onSave,
@@ -53,7 +83,6 @@ export function EditToolbar({
   } | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
-  // Persist position
   useEffect(() => {
     if (!isDragging) {
       try {
@@ -137,11 +166,10 @@ export function EditToolbar({
       </button>
 
       {/* Language toggle */}
-      <button
+      <ToolbarButton
         className="flex h-8 items-center gap-1 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
+        label="Switch language"
         onClick={switchLocale}
-        title="Switch language"
-        type="button"
       >
         <span
           className={locale === "en" ? "text-foreground" : "text-foreground/40"}
@@ -154,54 +182,48 @@ export function EditToolbar({
         >
           IT
         </span>
-      </button>
+      </ToolbarButton>
 
-      {/* Save — only visible with changes */}
+      {/* Save & Discard — only visible with changes */}
       {hasChanges ? (
         <>
-          <button
+          <ToolbarButton
             className="flex h-8 items-center gap-1.5 rounded-full bg-foreground/10 px-3 text-foreground text-xs transition-colors hover:bg-foreground/20"
+            label="Save changes"
             onClick={onSave}
-            title="Save changes"
-            type="button"
           >
             <Save className="h-3.5 w-3.5" />
             <span>Save</span>
-          </button>
+          </ToolbarButton>
 
-          <button
+          <ToolbarButton
             className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 text-xs transition-colors hover:bg-foreground/10 hover:text-foreground"
+            label="Discard changes"
             onClick={onDiscard}
-            title="Discard changes"
-            type="button"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Discard</span>
-          </button>
+          </ToolbarButton>
         </>
       ) : null}
 
       {/* Exit edit mode */}
-      <button
-        aria-label="Exit edit mode"
+      <ToolbarButton
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground"
+        label="Exit edit mode"
         onClick={exitEditMode}
-        title="Exit edit mode"
-        type="button"
       >
         <LogOut className="h-3.5 w-3.5" />
-      </button>
+      </ToolbarButton>
 
       {/* Sign out */}
-      <button
-        aria-label="Sign out"
+      <ToolbarButton
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
+        label="Sign out"
         onClick={() => signOut()}
-        title="Sign out"
-        type="button"
       >
         <Power className="h-3.5 w-3.5" />
-      </button>
+      </ToolbarButton>
     </div>
   );
 }

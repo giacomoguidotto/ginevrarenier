@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { type Locale, locales } from "@/i18n/config";
 
 type Props = {
@@ -115,14 +116,16 @@ export default async function LocaleLayout({ children, params }: Props) {
     <ConvexClientProvider>
       <ThemeProvider>
         <NextIntlClientProvider messages={messages}>
-          <EditModeProvider>
-            <EditOverlay />
-            <Navbar />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-            <EditFab />
-            <EditToolbarWrapper />
-          </EditModeProvider>
+          <TooltipProvider>
+            <EditModeProvider>
+              <EditOverlay />
+              <Navbar />
+              <main className="min-h-screen">{children}</main>
+              <Footer />
+              <EditFab />
+              <EditToolbarWrapper />
+            </EditModeProvider>
+          </TooltipProvider>
         </NextIntlClientProvider>
       </ThemeProvider>
     </ConvexClientProvider>
