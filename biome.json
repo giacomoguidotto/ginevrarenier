@@ -34,6 +34,21 @@
       "react": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["convex/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "useAwait": "off"
+          },
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
   "assist": {
     "actions": {
       "source": {
