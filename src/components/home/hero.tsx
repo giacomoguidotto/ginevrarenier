@@ -25,16 +25,15 @@ export function Hero() {
       className="relative h-screen w-full overflow-hidden"
       ref={containerRef}
     >
-      {/* Background Image with Parallax */}
+      {/* Background with subtle spotlight */}
       <motion.div className="absolute inset-0 z-0" style={{ y, scale }}>
+        <div className="absolute inset-0 bg-background" />
         <div
-          className="h-full w-full bg-center bg-cover bg-no-repeat"
+          className="-translate-x-1/2 -translate-y-1/2 absolute top-1/3 left-1/2 h-[600px] w-[800px] rounded-full opacity-[0.07] blur-[120px]"
           style={{
-            backgroundImage: "url('/images/hero/hero-main.svg')",
+            background: "radial-gradient(circle, #555 0%, transparent 70%)",
           }}
         />
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-linear-to-b from-background/60 via-background/40 to-background" />
       </motion.div>
 
       {/* Content */}

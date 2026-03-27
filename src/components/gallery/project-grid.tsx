@@ -22,8 +22,7 @@ function ProjectCard({
   const t = useTranslations("common");
   const localized = useLocalized();
 
-  const coverSrc =
-    project.coverImageUrl || `/images/projects/${project.slug}/cover.svg`;
+  const coverSrc = project.coverImageUrl || "/images/placeholder.svg";
 
   return (
     <motion.div className="group relative" custom={index} variants={fadeUp}>

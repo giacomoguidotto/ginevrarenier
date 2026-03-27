@@ -52,7 +52,7 @@ export function EssenceClient() {
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                src="/images/hero/artist-portrait.jpg"
+                src="/images/placeholder.svg"
               />
             </motion.div>
 
