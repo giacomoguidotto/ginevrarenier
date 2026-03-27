@@ -33,10 +33,12 @@ type Change = SiteContentChange | ProjectChange | SocialLinkChange;
 
 type PageChangesContextValue = {
   hasChanges: boolean;
+  editedLocales: Set<string>;
   trackSiteContent: (
     section: string,
     key: string,
-    value: { en: string; it: string }
+    value: { en: string; it: string },
+    editedLocale: string
   ) => void;
   getSiteContentDraft: (
     section: string,
@@ -51,6 +53,7 @@ const noop = () => {};
 
 const PageChangesContext = createContext<PageChangesContextValue>({
   hasChanges: false,
+  editedLocales: new Set(),
   trackSiteContent: noop,
   getSiteContentDraft: noop as () => undefined,
   save: () => Promise.resolve(),
@@ -59,10 +62,22 @@ const PageChangesContext = createContext<PageChangesContextValue>({
 
 export function PageChangesProvider({ children }: { children: ReactNode }) {
   const [changes, setChanges] = useState<Change[]>([]);
+  const [editedLocales, setEditedLocales] = useState<Set<string>>(new Set());
   const upsertSiteContent = useMutation(api.siteContent.upsert);
 
   const trackSiteContent = useCallback(
-    (section: string, key: string, newValue: { en: string; it: string }) => {
+    (
+      section: string,
+      key: string,
+      newValue: { en: string; it: string },
+      editedLocale: string
+    ) => {
+      setEditedLocales((prev) => {
+        if (prev.has(editedLocale)) {
+          return prev;
+        }
+        return new Set([...prev, editedLocale]);
+      });
       setChanges((prev) => {
         const existing = prev.find(
           (c): c is SiteContentChange =>
@@ -111,21 +126,31 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
       }
     }
     setChanges([]);
+    setEditedLocales(new Set());
   }, [changes, upsertSiteContent]);
 
   const discard = useCallback(() => {
     setChanges([]);
+    setEditedLocales(new Set());
   }, []);
 
   const value = useMemo(
     () => ({
       hasChanges: changes.length > 0,
+      editedLocales,
       trackSiteContent,
       getSiteContentDraft,
       save,
       discard,
     }),
-    [changes.length, trackSiteContent, getSiteContentDraft, save, discard]
+    [
+      changes.length,
+      editedLocales,
+      trackSiteContent,
+      getSiteContentDraft,
+      save,
+      discard,
+    ]
   );
 
   return <PageChangesContext value={value}>{children}</PageChangesContext>;

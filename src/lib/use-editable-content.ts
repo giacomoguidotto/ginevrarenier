@@ -41,10 +41,10 @@ export function useEditableSiteContent(section: string) {
   );
 
   const set = useCallback(
-    (key: string, value: { en: string; it: string }) => {
-      trackSiteContent(section, key, value);
+    (key: string, newValue: { en: string; it: string }) => {
+      trackSiteContent(section, key, newValue, locale);
     },
-    [section, trackSiteContent]
+    [section, trackSiteContent, locale]
   );
 
   return { get, t, set, isLoading: data === undefined };

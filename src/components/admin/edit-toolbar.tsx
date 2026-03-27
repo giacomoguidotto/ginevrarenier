@@ -31,6 +31,7 @@ function getInitialPosition(): Position {
 
 type EditToolbarProps = {
   hasChanges: boolean;
+  editedLocales: Set<string>;
   onSave: () => void;
   onDiscard: () => void;
 };
@@ -62,6 +63,7 @@ function ToolbarButton({
 
 export function EditToolbar({
   hasChanges,
+  editedLocales,
   onSave,
   onDiscard,
 }: EditToolbarProps) {
@@ -134,6 +136,9 @@ export function EditToolbar({
     setEditingLocale(editingLocale === "en" ? "it" : "en");
   }, [editingLocale, setEditingLocale]);
 
+  const enNeedsAttention = hasChanges && !editedLocales.has("en");
+  const itNeedsAttention = hasChanges && !editedLocales.has("it");
+
   if (!isEditMode) {
     return null;
   }
@@ -162,24 +167,34 @@ export function EditToolbar({
 
       {/* Language toggle */}
       <ToolbarButton
-        className="flex h-8 items-center gap-1 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
+        className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
         label="Switch language"
         onClick={switchLocale}
       >
-        <span
-          className={
-            editingLocale === "en" ? "text-foreground" : "text-foreground/40"
-          }
-        >
-          EN
+        <span className="relative">
+          <span
+            className={
+              editingLocale === "en" ? "text-foreground" : "text-foreground/40"
+            }
+          >
+            EN
+          </span>
+          {enNeedsAttention ? (
+            <span className="-top-1 -right-1.5 absolute h-1.5 w-1.5 rounded-full bg-amber-400" />
+          ) : null}
         </span>
         <span className="text-foreground/20">|</span>
-        <span
-          className={
-            editingLocale === "it" ? "text-foreground" : "text-foreground/40"
-          }
-        >
-          IT
+        <span className="relative">
+          <span
+            className={
+              editingLocale === "it" ? "text-foreground" : "text-foreground/40"
+            }
+          >
+            IT
+          </span>
+          {itNeedsAttention ? (
+            <span className="-top-1 -right-1.5 absolute h-1.5 w-1.5 rounded-full bg-amber-400" />
+          ) : null}
         </span>
       </ToolbarButton>
 
