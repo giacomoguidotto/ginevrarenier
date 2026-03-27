@@ -43,7 +43,7 @@ function ToolbarButton({
   className,
 }: {
   children: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   onClick: () => void;
   className: string;
 }) {
@@ -169,9 +169,16 @@ export function EditToolbar({
       <ToolbarButton
         className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
         label={
-          enNeedsAttention || itNeedsAttention
-            ? `Switch language \u2014 ${enNeedsAttention ? "EN" : "IT"} has untranslated changes`
-            : "Switch language"
+          enNeedsAttention || itNeedsAttention ? (
+            <span className="flex flex-col items-center">
+              <span>Switch language</span>
+              <span className="text-[10px] opacity-60">
+                {enNeedsAttention ? "EN" : "IT"} has untranslated changes
+              </span>
+            </span>
+          ) : (
+            "Switch language"
+          )
         }
         onClick={switchLocale}
       >
