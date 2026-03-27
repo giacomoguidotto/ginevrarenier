@@ -14,6 +14,16 @@ const STORAGE_KEY = "edit-toolbar-position";
 
 type Position = { x: number; y: number };
 
+function clampPosition(pos: Position): Position {
+  if (typeof window === "undefined") {
+    return pos;
+  }
+  return {
+    x: Math.max(0, Math.min(pos.x, window.innerWidth - 60)),
+    y: Math.max(0, Math.min(pos.y, window.innerHeight - 50)),
+  };
+}
+
 function getInitialPosition(): Position {
   if (typeof window === "undefined") {
     return { x: 20, y: 20 };
@@ -21,7 +31,7 @@ function getInitialPosition(): Position {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      return JSON.parse(saved) as Position;
+      return clampPosition(JSON.parse(saved) as Position);
     }
   } catch {
     // ignore
@@ -90,6 +100,15 @@ export function EditToolbar({
       }
     }
   }, [position, isDragging]);
+
+  // Clamp position when viewport resizes
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) => clampPosition(prev));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
