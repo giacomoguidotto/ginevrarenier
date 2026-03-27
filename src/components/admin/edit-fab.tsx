@@ -13,7 +13,7 @@ export function EditFab() {
   const { isSignedIn } = useAuth();
   const { isEditMode, toggleEditMode } = useEditMode();
 
-  if (!isSignedIn || isEditMode) {
+  if (isSignedIn !== true || isEditMode) {
     return null;
   }
 

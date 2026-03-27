@@ -220,7 +220,10 @@ export function EditToolbar({
       <ToolbarButton
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
         label="Sign out"
-        onClick={() => signOut({ redirectUrl: window.location.pathname })}
+        onClick={async () => {
+          await signOut();
+          window.location.reload();
+        }}
       >
         <Power className="h-3.5 w-3.5" />
       </ToolbarButton>
