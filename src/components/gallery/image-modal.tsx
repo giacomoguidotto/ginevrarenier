@@ -6,8 +6,7 @@ import Image from "next/image";
 import { useCallback, useEffect } from "react";
 
 type ImageModalProps = {
-  images: string[];
-  projectSlug: string;
+  images: { url: string; id: string }[];
   currentIndex: number;
   isOpen: boolean;
   onClose: () => void;
@@ -17,7 +16,6 @@ type ImageModalProps = {
 
 export function ImageModal({
   images,
-  projectSlug,
   currentIndex,
   isOpen,
   onClose,
@@ -49,9 +47,12 @@ export function ImageModal({
     };
   }, [isOpen, handleKeyDown]);
 
+  const currentImage = images[currentIndex];
+
   return (
     <AnimatePresence>
-      {isOpen ? (
+      {/* biome-ignore lint/nursery/noLeakedRender: isOpen is always boolean */}
+      {isOpen && currentImage !== undefined ? (
         <motion.div
           animate={{ opacity: 1 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
@@ -107,12 +108,12 @@ export function ImageModal({
             transition={{ duration: 0.3 }}
           >
             <Image
-              alt={`${projectSlug} photograph ${currentIndex + 1}`}
+              alt={`Photograph ${currentIndex + 1}`}
               className="object-contain"
               fill
               priority
               sizes="90vw"
-              src={`/images/projects/${projectSlug}/${images[currentIndex]}`}
+              src={currentImage.url}
             />
           </motion.div>
 

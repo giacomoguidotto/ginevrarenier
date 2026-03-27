@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { ProjectGrid } from "@/components/gallery/project-grid";
-import { PageTransition } from "@/components/layout/page-transition";
-import { projects } from "@/lib/projects";
+import { VisionClient } from "./vision-client";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -22,25 +20,5 @@ export default async function VisionPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const t = await getTranslations("vision");
-
-  return (
-    <PageTransition>
-      <div className="min-h-screen pt-32 pb-20">
-        <div className="mx-auto max-w-7xl px-6">
-          {/* Header */}
-          <div className="mb-16 max-w-3xl">
-            <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
-              {t("label")}
-            </p>
-            <h1 className="mb-6 text-foreground">{t("title")}</h1>
-            <p className="text-lg text-muted-foreground">{t("description")}</p>
-          </div>
-
-          {/* Projects Grid */}
-          <ProjectGrid projects={projects} />
-        </div>
-      </div>
-    </PageTransition>
-  );
+  return <VisionClient />;
 }

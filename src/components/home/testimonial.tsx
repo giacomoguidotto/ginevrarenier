@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useSiteContent } from "@/lib/hooks";
 
 export function Testimonial() {
-  const t = useTranslations("home.testimonial");
+  const { t } = useSiteContent("testimonial");
 
   return (
     <section className="relative overflow-hidden bg-background py-32">
@@ -32,7 +32,7 @@ export function Testimonial() {
 
           <blockquote className="mb-8">
             <p className="font-light text-2xl text-foreground/90 leading-relaxed md:text-3xl lg:text-4xl">
-              "{t("quote")}"
+              &ldquo;{t("quote")}&rdquo;
             </p>
           </blockquote>
 

@@ -1,25 +1,19 @@
 "use client";
 
+import type { Doc } from "convex/_generated/dataModel";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { Link } from "@/i18n/routing";
-
-const featuredProjectKeys = [
-  "oslo",
-  "portraits",
-  "landscapes",
-  "urban",
-  "abstract",
-] as const;
+import { useLocalized, useProjects } from "@/lib/hooks";
 
 function ProjectCard({
-  projectKey,
+  project,
   index,
 }: {
-  projectKey: (typeof featuredProjectKeys)[number];
+  project: Doc<"projects">;
   index: number;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -32,10 +26,10 @@ function ProjectCard({
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
 
   const t = useTranslations("common");
-  const tp = useTranslations("projects");
+  const localized = useLocalized();
 
-  // TODO: using SVG placeholders for development. Replace with .jpg for production.
-  const imageExtension = projectKey === "oslo" ? "jpg" : "svg";
+  const coverSrc =
+    project.coverImageUrl || `/images/projects/${project.slug}/cover.svg`;
 
   return (
     <motion.div
@@ -52,15 +46,15 @@ function ProjectCard({
       whileInView={{ opacity: 1, x: 0 }}
       whileTap={{ scale: 0.98 }}
     >
-      <Link className="block h-full w-full" href={`/vision/${projectKey}`}>
+      <Link className="block h-full w-full" href={`/vision/${project.slug}`}>
         {/* Image */}
         <motion.div className="relative h-full w-full" style={{ scale }}>
           <Image
-            alt={tp(`${projectKey}.title`)}
+            alt={localized(project.title)}
             className="object-cover"
             fill
             sizes="(max-width: 768px) 80vw, 40vw"
-            src={`/images/projects/${projectKey}/cover.${imageExtension}`}
+            src={coverSrc}
           />
           {/* Overlay - always dark for consistent text contrast */}
           <div className="absolute inset-0 bg-linear-to-t from-charcoal via-charcoal/40 to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
@@ -72,10 +66,10 @@ function ProjectCard({
           style={{ y }}
         >
           <p className="mb-2 text-cream/60 text-sm uppercase tracking-widest">
-            {tp(`${projectKey}.subtitle`)}
+            {localized(project.subtitle)}
           </p>
           <h3 className="mb-4 font-light text-4xl text-cream md:text-5xl">
-            {tp(`${projectKey}.title`)}
+            {localized(project.title)}
           </h3>
           <div className="flex items-center gap-2 text-cream/80 text-sm uppercase tracking-widest transition-colors group-hover:text-cream">
             <span>{t("viewProject")}</span>
@@ -89,9 +83,11 @@ function ProjectCard({
 
 export function FeaturedWork() {
   const containerRef = useRef<HTMLDivElement>(null);
-
   const t = useTranslations("common");
   const tf = useTranslations("home.featured");
+  const { projects } = useProjects();
+
+  const featured = projects.slice(0, 5);
 
   return (
     <section className="relative bg-charcoal py-32">
@@ -131,8 +127,8 @@ export function FeaturedWork() {
         {/* Spacer for centering first item */}
         <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
 
-        {featuredProjectKeys.map((projectKey, index) => (
-          <ProjectCard index={index} key={projectKey} projectKey={projectKey} />
+        {featured.map((project, index) => (
+          <ProjectCard index={index} key={project._id} project={project} />
         ))}
 
         {/* Spacer for centering last item */}

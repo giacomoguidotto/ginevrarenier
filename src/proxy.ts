@@ -1,12 +1,15 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-export const proxy = clerkMiddleware((_auth, request) =>
-  intlMiddleware(request)
-);
+const clerk = clerkMiddleware((_auth, request) => intlMiddleware(request));
+
+export function proxy(request: NextRequest, event: NextFetchEvent) {
+  return clerk(request, event);
+}
 
 export const config = {
   matcher: [

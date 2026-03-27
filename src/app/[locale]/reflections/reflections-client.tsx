@@ -5,14 +5,11 @@ import { useTranslations } from "next-intl";
 import { PostCard } from "@/components/blog/post-card";
 import { PageTransition } from "@/components/layout/page-transition";
 import { staggerContainer } from "@/lib/animations";
-import type { BlogPostMeta } from "@/lib/types";
+import { usePublishedBlogPosts } from "@/lib/hooks";
 
-type ReflectionsClientProps = {
-  posts: BlogPostMeta[];
-};
-
-export function ReflectionsClient({ posts }: ReflectionsClientProps) {
+export function ReflectionsClient() {
   const t = useTranslations("reflections");
+  const { posts } = usePublishedBlogPosts();
 
   return (
     <PageTransition>
@@ -55,7 +52,7 @@ export function ReflectionsClient({ posts }: ReflectionsClientProps) {
               variants={staggerContainer}
             >
               {posts.map((post, index) => (
-                <PostCard index={index} key={post.slug} post={post} />
+                <PostCard index={index} key={post._id} post={post} />
               ))}
             </motion.div>
           ) : (

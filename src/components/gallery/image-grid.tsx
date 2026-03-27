@@ -5,15 +5,13 @@ import Image from "next/image";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
 type ImageGridProps = {
-  images: string[];
-  projectSlug: string;
+  images: { url: string; id: string }[];
   onImageClick: (index: number) => void;
   onHoverChange?: (isHovering: boolean) => void;
 };
 
 export function ImageGrid({
   images,
-  projectSlug,
   onImageClick,
   onHoverChange,
 }: ImageGridProps) {
@@ -29,7 +27,7 @@ export function ImageGrid({
       {images.map((image, index) => (
         <motion.div
           className="group relative cursor-pointer break-inside-avoid overflow-hidden rounded-lg"
-          key={image}
+          key={image.id}
           onClick={() => onImageClick(index)}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -42,11 +40,11 @@ export function ImageGrid({
         >
           <div className="relative aspect-auto">
             <Image
-              alt={`${projectSlug} photograph ${index + 1}`}
+              alt={`Photograph ${index + 1}`}
               className="w-full transition-transform duration-700 group-hover:scale-105"
               height={1200}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              src={`/images/projects/${projectSlug}/${image}`}
+              src={image.url}
               width={800}
             />
             {/* Hover Overlay */}

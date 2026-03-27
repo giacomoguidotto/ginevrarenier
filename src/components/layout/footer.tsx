@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { socials } from "@/content/data";
 import { Link } from "@/i18n/routing";
+import { useSocialLinks } from "@/lib/hooks";
+import { getSocialIcon } from "@/lib/social-icons";
 import { ExperienceToggle } from "./experience-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 
@@ -17,6 +18,7 @@ const footerLinkKeys = [
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const t = useTranslations("common");
+  const { links: socials } = useSocialLinks();
 
   return (
     <footer className="border-cream/10 border-t bg-charcoal text-cream">
@@ -58,20 +60,23 @@ export function Footer() {
               {t("footer.connect")}
             </h3>
             <div className="flex gap-4">
-              {socials.map((social) => (
-                <motion.a
-                  aria-label={social.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"
-                  href={social.href}
-                  key={social.href}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <social.icon className="h-4 w-4" />
-                </motion.a>
-              ))}
+              {socials.map((social) => {
+                const Icon = getSocialIcon(social.platform);
+                return (
+                  <motion.a
+                    aria-label={social.label}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"
+                    href={social.href}
+                    key={social._id}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </motion.a>
+                );
+              })}
             </div>
           </div>
         </div>

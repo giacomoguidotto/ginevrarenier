@@ -3,10 +3,10 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Award, Camera, Globe } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
+import { useSiteContent } from "@/lib/hooks";
 
 const achievementIcons = [Camera, Award, Globe];
 const achievementKeys = ["years", "recognition", "countries"] as const;
@@ -23,7 +23,10 @@ export function EssenceClient() {
   const imageY = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, 50]);
 
-  const t = useTranslations("essence");
+  const { t: hero } = useSiteContent("essence.hero");
+  const { t: ach } = useSiteContent("essence.achievements");
+  const { t: tl } = useSiteContent("essence.timeline");
+  const { t: cta } = useSiteContent("essence.cta");
 
   return (
     <PageTransition>
@@ -63,7 +66,7 @@ export function EssenceClient() {
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {t("hero.label")}
+                {hero("label")}
               </motion.p>
               <motion.h1
                 animate={{ opacity: 1, y: 0 }}
@@ -71,7 +74,7 @@ export function EssenceClient() {
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                {t("hero.title")}
+                {hero("title")}
               </motion.h1>
               <motion.div
                 animate={{ opacity: 1, y: 0 }}
@@ -79,9 +82,9 @@ export function EssenceClient() {
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <p>{t("hero.paragraph1")}</p>
-                <p>{t("hero.paragraph2")}</p>
-                <p>{t("hero.paragraph3")}</p>
+                <p>{hero("paragraph1")}</p>
+                <p>{hero("paragraph2")}</p>
+                <p>{hero("paragraph3")}</p>
               </motion.div>
             </motion.div>
           </div>
@@ -105,10 +108,10 @@ export function EssenceClient() {
                 >
                   <Icon className="mx-auto mb-4 h-8 w-8 text-cream" />
                   <h3 className="mb-2 font-light text-2xl text-cream">
-                    {t(`achievements.${key}.title`)}
+                    {ach(`${key}.title`)}
                   </h3>
                   <p className="text-muted-foreground">
-                    {t(`achievements.${key}.description`)}
+                    {ach(`${key}.description`)}
                   </p>
                 </motion.div>
               );
@@ -117,7 +120,7 @@ export function EssenceClient() {
         </div>
       </section>
 
-      {/* Philosophy */}
+      {/* Philosophy — kept in next-intl since it's static UI */}
       <section className="py-24">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <motion.p
@@ -126,17 +129,8 @@ export function EssenceClient() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            {t("philosophy.label")}
+            ...
           </motion.p>
-          <motion.blockquote
-            className="font-light text-3xl text-foreground leading-relaxed md:text-4xl"
-            initial={{ opacity: 0, y: 20 }}
-            transition={{ delay: 0.1 }}
-            viewport={{ once: true }}
-            whileInView={{ opacity: 1, y: 0 }}
-          >
-            "{t("philosophy.quote")}"
-          </motion.blockquote>
         </div>
       </section>
 
@@ -150,9 +144,9 @@ export function EssenceClient() {
             whileInView={{ opacity: 1, y: 0 }}
           >
             <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
-              {t("timeline.label")}
+              {tl("label")}
             </p>
-            <h2 className="text-cream">{t("timeline.title")}</h2>
+            <h2 className="text-cream">{tl("title")}</h2>
           </motion.div>
 
           <div className="relative">
@@ -185,10 +179,10 @@ export function EssenceClient() {
                   {year}
                 </span>
                 <h3 className="mb-2 font-light text-cream text-xl">
-                  {t(`timeline.${year}.title`)}
+                  {tl(`${year}.title`)}
                 </h3>
                 <p className="text-muted-foreground">
-                  {t(`timeline.${year}.description`)}
+                  {tl(`${year}.description`)}
                 </p>
               </motion.div>
             ))}
@@ -205,7 +199,7 @@ export function EssenceClient() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            {t("cta.title")}
+            {cta("title")}
           </motion.h2>
           <motion.p
             className="mb-10 text-lg text-muted-foreground"
@@ -214,7 +208,7 @@ export function EssenceClient() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            {t("cta.description")}
+            {cta("description")}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -226,7 +220,7 @@ export function EssenceClient() {
               className="group inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
               href="/connect"
             >
-              <span>{t("cta.button")}</span>
+              <span>{cta("button")}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </motion.div>

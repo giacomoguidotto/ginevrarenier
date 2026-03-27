@@ -10,23 +10,35 @@ import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
-import { getProject, getProjectImages } from "@/lib/projects";
+import { useLocalized, useProject, useProjectImages } from "@/lib/hooks";
 
 export function ProjectPageClient() {
   const { project: slug } = useParams<{ project: string }>();
-  const project = getProject(slug);
-  const images = getProjectImages(slug);
+  const { project, isLoading: projectLoading } = useProject(slug);
+  const { images: rawImages, isLoading: imagesLoading } = useProjectImages(
+    project?._id
+  );
 
   const t = useTranslations("common");
-  const tp = useTranslations("projects");
+  const localized = useLocalized();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
 
+  if (projectLoading || imagesLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+      </div>
+    );
+  }
+
   if (!project) {
     notFound();
   }
+
+  const images = rawImages.map((img) => ({ url: img.url, id: img._id }));
 
   const handleImageClick = (index: number) => {
     setCurrentImageIndex(index);
@@ -40,14 +52,6 @@ export function ProjectPageClient() {
   const handleNext = () => {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
-
-  const projectKey = slug as
-    | "portraits"
-    | "landscapes"
-    | "urban"
-    | "abstract"
-    | "moments"
-    | "noir";
 
   return (
     <PageTransition>
@@ -78,7 +82,7 @@ export function ProjectPageClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {tp(`${projectKey}.category`)}
+              {localized(project.category)}
             </motion.p>
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
@@ -86,7 +90,7 @@ export function ProjectPageClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {tp(`${projectKey}.title`)}
+              {localized(project.title)}
             </motion.h1>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
@@ -94,7 +98,7 @@ export function ProjectPageClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {tp(`${projectKey}.description`)}
+              {localized(project.description)}
             </motion.p>
             <motion.p
               animate={{ opacity: 1, y: 0 }}
@@ -102,30 +106,36 @@ export function ProjectPageClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              {t("photographs", { count: project.count })}
+              {t("photographs", { count: images.length })}
             </motion.p>
           </div>
 
           {/* Image Grid */}
-          <ImageGrid
-            images={images}
-            onHoverChange={setIsHoveringImage}
-            onImageClick={handleImageClick}
-            projectSlug={slug}
-          />
+          {images.length > 0 ? (
+            <ImageGrid
+              images={images}
+              onHoverChange={setIsHoveringImage}
+              onImageClick={handleImageClick}
+            />
+          ) : (
+            <p className="text-center text-muted-foreground">
+              No photographs yet.
+            </p>
+          )}
         </div>
       </div>
 
       {/* Lightbox Modal */}
-      <ImageModal
-        currentIndex={currentImageIndex}
-        images={images}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-        projectSlug={slug}
-      />
+      {images.length > 0 && (
+        <ImageModal
+          currentIndex={currentImageIndex}
+          images={images}
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+        />
+      )}
     </PageTransition>
   );
 }

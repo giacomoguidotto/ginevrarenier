@@ -2,9 +2,9 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { Link } from "@/i18n/routing";
+import { useSiteContent } from "@/lib/hooks";
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,7 +17,7 @@ export function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  const t = useTranslations("home.hero");
+  const { t } = useSiteContent("hero");
 
   return (
     <section

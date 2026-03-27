@@ -3,9 +3,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { Link } from "@/i18n/routing";
+import { useSiteContent } from "@/lib/hooks";
 
 export function IntroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -16,7 +16,7 @@ export function IntroSection() {
 
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  const t = useTranslations("home.intro");
+  const { t } = useSiteContent("intro");
 
   return (
     <section className="relative bg-background py-32" ref={sectionRef}>

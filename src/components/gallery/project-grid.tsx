@@ -1,24 +1,29 @@
 "use client";
 
+import type { Doc } from "convex/_generated/dataModel";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { fadeUp, staggerContainer } from "@/lib/animations";
-import type { ProjectMeta } from "@/lib/types";
+import { useLocalized } from "@/lib/hooks";
+
+type Project = Doc<"projects">;
 
 function ProjectCard({
   project,
   index,
+  imageCount,
 }: {
-  project: ProjectMeta;
+  project: Project;
   index: number;
+  imageCount?: number;
 }) {
   const t = useTranslations("common");
-  const tp = useTranslations("projects");
+  const localized = useLocalized();
 
-  // TODO: using SVG placeholders for development. Replace with .jpg for production.
-  const imageExtension = project.slug === "oslo" ? "jpg" : "svg";
+  const coverSrc =
+    project.coverImageUrl || `/images/projects/${project.slug}/cover.svg`;
 
   return (
     <motion.div className="group relative" custom={index} variants={fadeUp}>
@@ -29,11 +34,11 @@ function ProjectCard({
         {/* Image Container */}
         <div className="relative aspect-4/5 overflow-hidden">
           <Image
-            alt={tp(`${project.slug}.title`)}
+            alt={localized(project.title)}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            src={`/images/projects/${project.slug}/cover.${imageExtension}`}
+            src={coverSrc}
           />
           {/* Overlay - always dark for consistent text contrast */}
           <div className="absolute inset-0 bg-linear-to-t from-charcoal/90 via-charcoal/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -41,24 +46,26 @@ function ProjectCard({
           {/* Hover Content */}
           <div className="absolute right-0 bottom-0 left-0 translate-y-4 p-6 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
             <p className="mb-2 text-cream/60 text-xs uppercase tracking-widest">
-              {tp(`${project.slug}.category`)}
+              {localized(project.category)}
             </p>
             <h3 className="font-light text-2xl text-cream">
-              {tp(`${project.slug}.title`)}
+              {localized(project.title)}
             </h3>
-            <p className="mt-2 text-cream/70 text-sm">
-              {t("photographs", { count: project.count })}
-            </p>
+            {imageCount !== undefined && (
+              <p className="mt-2 text-cream/70 text-sm">
+                {t("photographs", { count: imageCount })}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Static Content (visible by default) */}
         <div className="mt-4 transition-opacity duration-500 group-hover:opacity-0">
           <p className="mb-1 text-muted-foreground text-xs uppercase tracking-widest">
-            {tp(`${project.slug}.category`)}
+            {localized(project.category)}
           </p>
           <h3 className="font-light text-foreground text-xl">
-            {tp(`${project.slug}.title`)}
+            {localized(project.title)}
           </h3>
         </div>
       </Link>
@@ -66,7 +73,7 @@ function ProjectCard({
   );
 }
 
-export function ProjectGrid({ projects }: { projects: ProjectMeta[] }) {
+export function ProjectGrid({ projects }: { projects: Project[] }) {
   return (
     <motion.div
       animate="visible"
@@ -75,7 +82,7 @@ export function ProjectGrid({ projects }: { projects: ProjectMeta[] }) {
       variants={staggerContainer}
     >
       {projects.map((project, index) => (
-        <ProjectCard index={index} key={project.slug} project={project} />
+        <ProjectCard index={index} key={project._id} project={project} />
       ))}
     </motion.div>
   );

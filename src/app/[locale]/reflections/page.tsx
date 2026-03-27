@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getAllPosts } from "@/lib/mdx";
 import { ReflectionsClient } from "./reflections-client";
 
 type Props = {
@@ -24,7 +23,5 @@ export default async function ReflectionsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const posts = getAllPosts();
-
-  return <ReflectionsClient posts={posts} />;
+  return <ReflectionsClient />;
 }

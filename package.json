@@ -42,6 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "baseline-browser-mapping": "^2.10.11",
     "husky": "^9.1.7",
     "lefthook": "^2.0.9",
     "lint-staged": "^16.2.7",

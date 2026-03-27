@@ -5,18 +5,8 @@ import { Check, MapPin, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { PageTransition } from "@/components/layout/page-transition";
-import { socials } from "@/content/data";
-
-const contactInfoData = socials
-  .filter((item) => item.label === "email")
-  .concat([
-    {
-      icon: MapPin,
-      label: "basedIn",
-      value: "location",
-      href: "",
-    },
-  ]);
+import { useSocialLinks } from "@/lib/hooks";
+import { getSocialIcon } from "@/lib/social-icons";
 
 const inquiryTypeKeys = [
   "collaboration",
@@ -37,6 +27,7 @@ export function ConnectClient() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const t = useTranslations("connect");
+  const { links: socials } = useSocialLinks();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -253,28 +244,38 @@ export function ConnectClient() {
                   {t("info.directContact")}
                 </h3>
                 <div className="space-y-4">
-                  {contactInfoData.map((item) => (
-                    <div className="flex items-start gap-4" key={item.label}>
-                      <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
-                      <div>
-                        <p className="text-muted-foreground text-sm">
-                          {t(`info.${item.label}`)}
-                        </p>
-                        {item.href ? (
-                          <a
-                            className="text-foreground text-lg transition-colors hover:text-foreground/80"
-                            href={item.href}
-                          >
-                            {item.value}
-                          </a>
-                        ) : (
-                          <p className="text-foreground text-lg">
-                            {item.value ? t(`info.${item.value}`) : item.value}
-                          </p>
-                        )}
-                      </div>
+                  {socials
+                    .filter((s) => s.platform === "email")
+                    .map((item) => {
+                      const Icon = getSocialIcon(item.platform);
+                      return (
+                        <div className="flex items-start gap-4" key={item._id}>
+                          <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              {t("info.email")}
+                            </p>
+                            <a
+                              className="text-foreground text-lg transition-colors hover:text-foreground/80"
+                              href={item.href}
+                            >
+                              {item.value}
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  <div className="flex items-start gap-4">
+                    <MapPin className="mt-1 h-5 w-5 text-foreground/60" />
+                    <div>
+                      <p className="text-muted-foreground text-sm">
+                        {t("info.basedIn")}
+                      </p>
+                      <p className="text-foreground text-lg">
+                        {t("info.location")}
+                      </p>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
 
@@ -285,26 +286,29 @@ export function ConnectClient() {
                 </h3>
                 <div className="space-y-4">
                   {socials
-                    .filter((item) => item.label !== "email")
-                    .map((item) => (
-                      <a
-                        className="flex items-start gap-4 transition-colors"
-                        href={item.href}
-                        key={item.label}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <item.icon className="mt-1 h-5 w-5 text-foreground/60" />
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            {item.label}
-                          </p>
-                          <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
-                            {item.value}
-                          </p>
-                        </div>
-                      </a>
-                    ))}
+                    .filter((s) => s.platform !== "email")
+                    .map((item) => {
+                      const Icon = getSocialIcon(item.platform);
+                      return (
+                        <a
+                          className="flex items-start gap-4 transition-colors"
+                          href={item.href}
+                          key={item._id}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+                          <div>
+                            <p className="text-muted-foreground text-sm">
+                              {item.label}
+                            </p>
+                            <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
+                              {item.value}
+                            </p>
+                          </div>
+                        </a>
+                      );
+                    })}
                 </div>
               </div>
 
