@@ -17,7 +17,7 @@ export function IntroSection() {
 
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  const { get, set } = useEditableSiteContent("intro");
+  const { bind } = useEditableSiteContent("intro");
 
   return (
     <section className="relative bg-background py-32" ref={sectionRef}>
@@ -34,46 +34,23 @@ export function IntroSection() {
             <EditableText
               as="p"
               className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-              onChange={(v) => set("label", v)}
-              value={get("label")}
+              {...bind("label")}
             />
             <h2 className="mb-8 text-foreground">
-              <EditableText
-                as="span"
-                onChange={(v) => set("title", v)}
-                value={get("title")}
-              />
+              <EditableText as="span" {...bind("title")} />
               <br />
-              <EditableText
-                as="span"
-                onChange={(v) => set("titleBreak", v)}
-                value={get("titleBreak")}
-              />
+              <EditableText as="span" {...bind("titleBreak")} />
             </h2>
             <div className="space-y-6 text-lg text-muted-foreground">
-              <EditableText
-                as="p"
-                multiline
-                onChange={(v) => set("paragraph1", v)}
-                value={get("paragraph1")}
-              />
-              <EditableText
-                as="p"
-                multiline
-                onChange={(v) => set("paragraph2", v)}
-                value={get("paragraph2")}
-              />
+              <EditableText as="p" multiline {...bind("paragraph1")} />
+              <EditableText as="p" multiline {...bind("paragraph2")} />
             </div>
             <div className="mt-10">
               <Link
                 className="group inline-flex items-center gap-2 text-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground/70"
                 href="/essence"
               >
-                <EditableText
-                  as="span"
-                  onChange={(v) => set("cta", v)}
-                  value={get("cta")}
-                />
+                <EditableText as="span" {...bind("cta")} />
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

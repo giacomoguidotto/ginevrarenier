@@ -47,5 +47,15 @@ export function useEditableSiteContent(section: string) {
     [section, trackSiteContent, locale]
   );
 
-  return { get, t, set, isLoading: data === undefined };
+  /** Returns props object for EditableText: { value, onChange, fieldId } */
+  const bind = useCallback(
+    (key: string) => ({
+      value: get(key),
+      onChange: (v: { en: string; it: string }) => set(key, v),
+      fieldId: `${section}:${key}`,
+    }),
+    [get, set, section]
+  );
+
+  return { get, t, set, bind, isLoading: data === undefined };
 }

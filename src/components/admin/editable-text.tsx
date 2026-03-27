@@ -82,6 +82,8 @@ function EditInput({
 type EditableTextProps = {
   value: { en: string; it: string } | undefined;
   onChange: (value: { en: string; it: string }) => void;
+  /** "section:key" identifier for per-field stale tracking */
+  fieldId?: string;
   as?: "p" | "h1" | "h2" | "h3" | "span" | "blockquote";
   className?: string;
   multiline?: boolean;
@@ -91,6 +93,7 @@ type EditableTextProps = {
 export function EditableText({
   value,
   onChange,
+  fieldId,
   as: Tag = "span",
   className = "",
   multiline = false,
@@ -100,17 +103,20 @@ export function EditableText({
   const locale = useActiveLocale();
   const otherLocale: Locale = locale === "en" ? "it" : "en";
   const text = value?.[locale] ?? "";
-  const otherText = value?.[otherLocale] ?? "";
+  const _otherText = value?.[otherLocale] ?? "";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);
 
-  const { editedLocales, hasChanges } = usePageChanges();
-  const otherWasEdited = hasChanges && editedLocales.has(otherLocale);
-  const currentWasEdited = hasChanges && editedLocales.has(locale);
+  const { getFieldEditedLocales } = usePageChanges();
+  const [section, key] = fieldId?.split(":") ?? [];
+  const fieldEdited =
+    section && key ? getFieldEditedLocales(section, key) : new Set<string>();
+  // Show dot only on fields where the other locale was edited but current wasn't
   const otherNeedsAttention =
     isEditMode &&
-    ((otherWasEdited && !currentWasEdited) ||
-      (text.length > 0 && otherText.length === 0));
+    fieldEdited.size > 0 &&
+    fieldEdited.has(otherLocale) &&
+    !fieldEdited.has(locale);
 
   useEffect(() => {
     if (!editing) {

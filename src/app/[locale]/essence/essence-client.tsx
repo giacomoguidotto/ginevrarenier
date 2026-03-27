@@ -69,8 +69,7 @@ export function EssenceClient() {
                 <EditableText
                   as="p"
                   className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-                  onChange={(v) => hero.set("label", v)}
-                  value={hero.get("label")}
+                  {...hero.bind("label")}
                 />
               </motion.div>
               <motion.div
@@ -81,8 +80,7 @@ export function EssenceClient() {
                 <EditableText
                   as="h1"
                   className="mb-8 text-foreground"
-                  onChange={(v) => hero.set("title", v)}
-                  value={hero.get("title")}
+                  {...hero.bind("title")}
                 />
               </motion.div>
               <motion.div
@@ -91,24 +89,9 @@ export function EssenceClient() {
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <EditableText
-                  as="p"
-                  multiline
-                  onChange={(v) => hero.set("paragraph1", v)}
-                  value={hero.get("paragraph1")}
-                />
-                <EditableText
-                  as="p"
-                  multiline
-                  onChange={(v) => hero.set("paragraph2", v)}
-                  value={hero.get("paragraph2")}
-                />
-                <EditableText
-                  as="p"
-                  multiline
-                  onChange={(v) => hero.set("paragraph3", v)}
-                  value={hero.get("paragraph3")}
-                />
+                <EditableText as="p" multiline {...hero.bind("paragraph1")} />
+                <EditableText as="p" multiline {...hero.bind("paragraph2")} />
+                <EditableText as="p" multiline {...hero.bind("paragraph3")} />
               </motion.div>
             </motion.div>
           </div>
@@ -134,14 +117,12 @@ export function EssenceClient() {
                   <EditableText
                     as="h3"
                     className="mb-2 font-light text-2xl text-cream"
-                    onChange={(v) => ach.set(`${key}.title`, v)}
-                    value={ach.get(`${key}.title`)}
+                    {...ach.bind(`${key}.title`)}
                   />
                   <EditableText
                     as="p"
                     className="text-muted-foreground"
-                    onChange={(v) => ach.set(`${key}.description`, v)}
-                    value={ach.get(`${key}.description`)}
+                    {...ach.bind(`${key}.description`)}
                   />
                 </motion.div>
               );
@@ -162,14 +143,12 @@ export function EssenceClient() {
             <EditableText
               as="p"
               className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
-              onChange={(v) => tl.set("label", v)}
-              value={tl.get("label")}
+              {...tl.bind("label")}
             />
             <EditableText
               as="h2"
               className="text-cream"
-              onChange={(v) => tl.set("title", v)}
-              value={tl.get("title")}
+              {...tl.bind("title")}
             />
           </motion.div>
 
@@ -205,15 +184,13 @@ export function EssenceClient() {
                 <EditableText
                   as="h3"
                   className="mb-2 font-light text-cream text-xl"
-                  onChange={(v) => tl.set(`${year}.title`, v)}
-                  value={tl.get(`${year}.title`)}
+                  {...tl.bind(`${year}.title`)}
                 />
                 <EditableText
                   as="p"
                   className="text-muted-foreground"
                   multiline
-                  onChange={(v) => tl.set(`${year}.description`, v)}
-                  value={tl.get(`${year}.description`)}
+                  {...tl.bind(`${year}.description`)}
                 />
               </motion.div>
             ))}
@@ -232,8 +209,7 @@ export function EssenceClient() {
             <EditableText
               as="h2"
               className="mb-6 text-foreground"
-              onChange={(v) => ctaSec.set("title", v)}
-              value={ctaSec.get("title")}
+              {...ctaSec.bind("title")}
             />
           </motion.div>
           <motion.div
@@ -246,8 +222,7 @@ export function EssenceClient() {
               as="p"
               className="mb-10 text-lg text-muted-foreground"
               multiline
-              onChange={(v) => ctaSec.set("description", v)}
-              value={ctaSec.get("description")}
+              {...ctaSec.bind("description")}
             />
           </motion.div>
           <motion.div
@@ -260,11 +235,7 @@ export function EssenceClient() {
               className="group inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
               href="/connect"
             >
-              <EditableText
-                as="span"
-                onChange={(v) => ctaSec.set("button", v)}
-                value={ctaSec.get("button")}
-              />
+              <EditableText as="span" {...ctaSec.bind("button")} />
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </motion.div>

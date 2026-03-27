@@ -18,7 +18,7 @@ export function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  const { get, set } = useEditableSiteContent("hero");
+  const { bind } = useEditableSiteContent("hero");
 
   return (
     <section
@@ -52,8 +52,7 @@ export function Hero() {
             <EditableText
               as="p"
               className="mb-6 text-foreground/80 text-sm uppercase tracking-[0.3em]"
-              onChange={(v) => set("tagline", v)}
-              value={get("tagline")}
+              {...bind("tagline")}
             />
           </motion.div>
 
@@ -68,14 +67,12 @@ export function Hero() {
               <EditableText
                 as="span"
                 className="block text-foreground"
-                onChange={(v) => set("title", v)}
-                value={get("title")}
+                {...bind("title")}
               />
               <EditableText
                 as="span"
                 className="block text-foreground/60"
-                onChange={(v) => set("titleAccent", v)}
-                value={get("titleAccent")}
+                {...bind("titleAccent")}
               />
             </motion.h1>
           </div>
@@ -90,8 +87,7 @@ export function Hero() {
               as="p"
               className="mx-auto mb-12 max-w-xl text-lg text-muted-foreground"
               multiline
-              onChange={(v) => set("description", v)}
-              value={get("description")}
+              {...bind("description")}
             />
           </motion.div>
 
@@ -109,19 +105,14 @@ export function Hero() {
               <EditableText
                 as="span"
                 className="relative z-10"
-                onChange={(v) => set("cta", v)}
-                value={get("cta")}
+                {...bind("cta")}
               />
             </Link>
             <Link
               className="inline-flex items-center gap-2 rounded-full border border-foreground/30 px-8 py-4 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:border-foreground hover:bg-foreground/10"
               href="/connect"
             >
-              <EditableText
-                as="span"
-                onChange={(v) => set("ctaSecondary", v)}
-                value={get("ctaSecondary")}
-              />
+              <EditableText as="span" {...bind("ctaSecondary")} />
             </Link>
           </motion.div>
         </div>

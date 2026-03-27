@@ -44,18 +44,21 @@ type PageChangesContextValue = {
     section: string,
     key: string
   ) => { en: string; it: string } | undefined;
+  getFieldEditedLocales: (section: string, key: string) => Set<string>;
   save: () => Promise<void>;
   discard: () => void;
 };
 
 // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
 const noop = () => {};
+const emptySet = new Set<string>();
 
 const PageChangesContext = createContext<PageChangesContextValue>({
   hasChanges: false,
-  editedLocales: new Set(),
+  editedLocales: emptySet,
   trackSiteContent: noop,
   getSiteContentDraft: noop as () => undefined,
+  getFieldEditedLocales: () => emptySet,
   save: () => Promise.resolve(),
   discard: noop,
 });
@@ -63,6 +66,10 @@ const PageChangesContext = createContext<PageChangesContextValue>({
 export function PageChangesProvider({ children }: { children: ReactNode }) {
   const [changes, setChanges] = useState<Change[]>([]);
   const [editedLocales, setEditedLocales] = useState<Set<string>>(new Set());
+  // Tracks which locales were edited per field: "section:key" → Set<locale>
+  const [fieldLocales, setFieldLocales] = useState<Map<string, Set<string>>>(
+    new Map()
+  );
   const upsertSiteContent = useMutation(api.siteContent.upsert);
 
   const trackSiteContent = useCallback(
@@ -78,6 +85,18 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
         }
         return new Set([...prev, editedLocale]);
       });
+
+      const fieldKey = `${section}:${key}`;
+      setFieldLocales((prev) => {
+        const existing = prev.get(fieldKey);
+        if (existing?.has(editedLocale)) {
+          return prev;
+        }
+        const next = new Map(prev);
+        next.set(fieldKey, new Set([...(existing ?? []), editedLocale]));
+        return next;
+      });
+
       setChanges((prev) => {
         const existing = prev.find(
           (c): c is SiteContentChange =>
@@ -115,10 +134,15 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
     [changes]
   );
 
+  const getFieldEditedLocales = useCallback(
+    (section: string, key: string): Set<string> =>
+      fieldLocales.get(`${section}:${key}`) ?? emptySet,
+    [fieldLocales]
+  );
+
   const save = useCallback(async () => {
     for (const change of changes) {
       if (change.type === "siteContent") {
-        // Merge with existing content by upserting
         await upsertSiteContent({
           section: change.section,
           content: JSON.stringify(change.content),
@@ -127,11 +151,13 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
     }
     setChanges([]);
     setEditedLocales(new Set());
+    setFieldLocales(new Map());
   }, [changes, upsertSiteContent]);
 
   const discard = useCallback(() => {
     setChanges([]);
     setEditedLocales(new Set());
+    setFieldLocales(new Map());
   }, []);
 
   const value = useMemo(
@@ -140,6 +166,7 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
       editedLocales,
       trackSiteContent,
       getSiteContentDraft,
+      getFieldEditedLocales,
       save,
       discard,
     }),
@@ -148,6 +175,7 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
       editedLocales,
       trackSiteContent,
       getSiteContentDraft,
+      getFieldEditedLocales,
       save,
       discard,
     ]
