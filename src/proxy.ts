@@ -1,14 +1,20 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-const clerk = clerkMiddleware((_auth, request) => intlMiddleware(request));
+const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
-export function proxy(request: NextRequest, event: NextFetchEvent) {
-  return clerk(request, event);
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
+  if (clerkConfigured) {
+    // Dynamically import Clerk to avoid errors when env vars are missing
+    const { clerkMiddleware } = await import("@clerk/nextjs/server");
+    const clerk = clerkMiddleware((_auth, req) => intlMiddleware(req));
+    return clerk(request, event);
+  }
+
+  return intlMiddleware(request);
 }
 
 export const config = {
