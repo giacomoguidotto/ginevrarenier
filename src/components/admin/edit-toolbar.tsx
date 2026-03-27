@@ -168,7 +168,11 @@ export function EditToolbar({
       {/* Language toggle */}
       <ToolbarButton
         className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
-        label="Switch language"
+        label={
+          enNeedsAttention || itNeedsAttention
+            ? `Switch language \u2014 ${enNeedsAttention ? "EN" : "IT"} has untranslated changes`
+            : "Switch language"
+        }
         onClick={switchLocale}
       >
         <span className="relative">

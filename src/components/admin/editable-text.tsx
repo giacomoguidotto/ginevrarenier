@@ -2,6 +2,11 @@
 
 import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { Locale } from "@/i18n/config";
 import { useEditMode } from "./edit-mode-context";
 
@@ -28,6 +33,7 @@ type EditableTextProps = {
 /**
  * Text element that becomes editable when edit mode is active.
  * Shows the current locale's text and writes back to the bilingual field.
+ * Shows an amber dot when the other locale is empty.
  */
 export function EditableText({
   value,
@@ -39,10 +45,16 @@ export function EditableText({
 }: EditableTextProps) {
   const { isEditMode } = useEditMode();
   const locale = useActiveLocale();
+  const otherLocale: Locale = locale === "en" ? "it" : "en";
   const text = value?.[locale] ?? "";
+  const otherText = value?.[otherLocale] ?? "";
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+
+  // The other locale needs attention if current has content but the other is empty
+  const otherNeedsAttention =
+    isEditMode && text.length > 0 && otherText.length === 0;
 
   // Sync draft when value or locale changes externally
   useEffect(() => {
@@ -100,6 +112,17 @@ export function EditableText({
   }
 
   // Edit mode but not actively editing — show text with edit affordance
+  const staleIndicator = otherNeedsAttention ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-amber-400 align-middle" />
+      </TooltipTrigger>
+      <TooltipContent side="top" sideOffset={4}>
+        Missing {otherLocale.toUpperCase()} translation
+      </TooltipContent>
+    </Tooltip>
+  ) : null;
+
   return (
     <Tag
       className={`${className} -mx-1 cursor-text rounded px-1 transition-colors hover:ring-1 hover:ring-foreground/20`}
@@ -113,6 +136,7 @@ export function EditableText({
       tabIndex={0}
     >
       {text || <span className="text-foreground/30 italic">{placeholder}</span>}
+      {staleIndicator}
     </Tag>
   );
 }
