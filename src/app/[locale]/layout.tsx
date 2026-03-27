@@ -7,6 +7,7 @@ import { EditModeProvider } from "@/components/admin/edit-mode-context";
 import { EditOverlay } from "@/components/admin/edit-overlay";
 import { EditToolbarWrapper } from "@/components/admin/edit-toolbar-wrapper";
 import { PageChangesProvider } from "@/components/admin/page-changes-context";
+import { UnsavedChangesGuard } from "@/components/admin/unsaved-changes-guard";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
@@ -126,6 +127,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <Footer />
                 <EditFab />
                 <EditToolbarWrapper />
+                <UnsavedChangesGuard />
               </PageChangesProvider>
             </EditModeProvider>
           </TooltipProvider>

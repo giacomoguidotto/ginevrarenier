@@ -27,84 +27,15 @@
     "photographs": "{count} fotografie"
   },
   "home": {
-    "hero": {
-      "tagline": "Narratrice Visiva",
-      "title": "Catturando",
-      "titleAccent": "Momenti Eterei",
-      "description": "Attraverso il mio obiettivo, esploro il delicato gioco di luce e ombra, creando immagini che risuonano con l'anima.",
-      "cta": "Entra nella Visione",
-      "ctaSecondary": "Contattami"
-    },
-    "intro": {
-      "label": "L'Artista",
-      "title": "Dove la Luce",
-      "titleBreak": "Incontra l'Anima",
-      "paragraph1": "Dal momento in cui ho impugnato per la prima volta una fotocamera, inseguo la luce in ogni angolo che scopro, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.",
-      "paragraph2": "Il mio lavoro è un'esplorazione dell'esperienza umana—la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
-      "cta": "Scopri la Mia Storia"
-    },
     "featured": {
       "label": "Progetti in Evidenza",
       "title": "Opere Selezionate"
-    },
-    "testimonial": {
-      "quote": "Ginevra ha una straordinaria capacità di catturare non solo immagini, ma emozioni. Le sue fotografie esprimono il vero moto della vita nei più piccoli dettagli.",
-      "author": " Miranda Priestly",
-      "role": "Art Director, Vogue USA"
     }
   },
   "vision": {
     "label": "Portfolio",
     "title": "Visione",
     "description": "Una collezione curata di opere che spaziano da ritratti, paesaggi, esplorazioni urbane ed espressioni astratte. Ogni progetto è un capitolo di una narrazione visiva in continua evoluzione."
-  },
-  "essence": {
-    "hero": {
-      "label": "L'Artista",
-      "title": "Essenza",
-      "paragraph1": "Cresciuta a Venezia, tra l'intreccio di acqua e luce, ho scoperto presto che il mondo parla per immagini. La fotografia è diventata il mio linguaggio, un modo per catturare i momenti fugaci che definiscono la nostra esistenza.",
-      "paragraph2": "Il mio lavoro è guidato da una filosofia semplice: ogni fotografia dovrebbe evocare un'emozione, raccontare una storia e rivelare qualcosa di invisibile allo sguardo distratto. Cerco lo straordinario nascosto nell'ordinario.",
-      "paragraph3": "Che si tratti di catturare la quieta dignità dello sguardo di uno sconosciuto o l'ampio respiro di una catena montuosa, mi avvicino a ogni soggetto con riverenza e curiosità."
-    },
-    "achievements": {
-      "years": {
-        "title": "Iniziata a 19 Anni",
-        "description": "Una passione nata presto, coltivata con dedizione"
-      },
-      "recognition": {
-        "title": "Accademia di Belle Arti",
-        "description": "Formata da una delle scuole più prestigiose"
-      },
-      "countries": {
-        "title": "Esploratrice Solitaria",
-        "description": "Viaggiando il mondo alla ricerca di storie uniche"
-      }
-    },
-    "philosophy": {
-      "label": "Filosofia",
-      "quote": "..."
-    },
-    "timeline": {
-      "label": "Percorso",
-      "title": "Un Cammino Immersa nella Luce",
-      "2022": {
-        "title": "Prima Fotocamera",
-        "description": "Ho ereditato la mia prima reflex digitale da mia nonna, tramandandomi una passione che durerà per tutta la mia vita."
-      },
-      "2024": {
-        "title": "Oltre i Confini",
-        "description": "Immerso in paesaggi mai visti prima, ho iniziato a catturare orizzonti che parlavano una lingua nuova. Ogni scatto una scoperta, ogni luce una rivelazione."
-      },
-      "2025": {
-        "title": "Alla CPF Bauer",
-        "description": "Dopo Venezia, ho scelto di spingermi oltre. Milano mi ha accolta con un salto nel vuoto, verso la visione che stavo cercando."
-      }
-    },
-    "cta": {
-      "title": "Creiamo Insieme",
-      "description": "Che tu abbia una visione in mente o voglia esplorare le possibilità, mi piacerebbe sentirti.",
-      "button": "Contattami"
-    }
   },
   "connect": {
     "header": {
@@ -156,50 +87,6 @@
     "empty": "Nuove riflessioni in arrivo...",
     "readMore": "Leggi di Più",
     "minRead": "{minutes} min di lettura"
-  },
-  "projects": {
-    "oslo": {
-      "title": "Oslo",
-      "subtitle": "Città di Luce",
-      "description": "Un viaggio attraverso la città di Oslo. Dalle strade affollate alle parchi tranquilli, ogni fotografia cattura un momento di vita nella città.",
-      "category": "Urban"
-    },
-    "portraits": {
-      "title": "Ritratti",
-      "subtitle": "Connessione Umana",
-      "description": "Un viaggio nell'anima umana. Ogni ritratto racconta una storia unica di emozione, forza e vulnerabilità.",
-      "category": "Persone"
-    },
-    "landscapes": {
-      "title": "Paesaggi",
-      "subtitle": "Poesia della Natura",
-      "description": "La grandiosità della natura catturata in momenti di luce perfetta. Dalle mattine nebbiose ai tramonti dorati.",
-      "category": "Natura"
-    },
-    "urban": {
-      "title": "Urbano",
-      "subtitle": "Sussurri di Città",
-      "description": "La poesia delle città. Architettura, strade e il battito della vita urbana attraverso uno sguardo contemplativo.",
-      "category": "Architettura"
-    },
-    "abstract": {
-      "title": "Astratto",
-      "subtitle": "Oltre la Forma",
-      "description": "Oltre la rappresentazione. Esplorando forma, colore e texture in modi che sfidano la percezione.",
-      "category": "Sperimentale"
-    },
-    "moments": {
-      "title": "Momenti Fugaci",
-      "subtitle": "Respiro di Vita",
-      "description": "La bellezza effimera della vita. Scatti spontanei di gioia, contemplazione e connessione umana.",
-      "category": "Documentario"
-    },
-    "noir": {
-      "title": "Noir",
-      "subtitle": "Ombra & Luce",
-      "description": "Uno studio sui contrasti. Fotografia in bianco e nero che abbraccia ombra e luce.",
-      "category": "Bianco & Nero"
-    }
   },
   "metadata": {
     "home": {

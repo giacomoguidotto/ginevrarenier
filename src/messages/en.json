@@ -27,84 +27,15 @@
     "photographs": "{count} photographs"
   },
   "home": {
-    "hero": {
-      "tagline": "Visual Storyteller",
-      "title": "Capturing",
-      "titleAccent": "Ethereal Moments",
-      "description": "Through my lens, I explore the delicate interplay of light and shadow, creating images that resonate with the soul.",
-      "cta": "Enter the Vision",
-      "ctaSecondary": "Get in Touch"
-    },
-    "intro": {
-      "label": "The Artist",
-      "title": "Where Light",
-      "titleBreak": "Meets Soul",
-      "paragraph1": "From the moment I first held a camera, I've been chasing light across every corner I discover, seeking those fleeting moments where reality transcends into something magical.",
-      "paragraph2": "My work is an exploration of the human experience—the quiet intensity of a gaze, the dance of shadows on ancient walls, the poetry hidden in everyday scenes.",
-      "cta": "Discover My Story"
-    },
     "featured": {
       "label": "Featured Projects",
       "title": "Selected Works"
-    },
-    "testimonial": {
-      "quote": "Ginevra has an extraordinary ability to capture not just images, but emotions. Her photographs express the true movement of life in the smallest details.",
-      "author": "Miranda Priestly",
-      "role": "Art Director, Vogue USA"
     }
   },
   "vision": {
     "label": "Portfolio",
     "title": "Vision",
     "description": "A curated collection of works spanning portraits, landscapes, urban explorations, and abstract expressions. Each project is a chapter in an ongoing visual narrative."
-  },
-  "essence": {
-    "hero": {
-      "label": "The Artist",
-      "title": "Essence",
-      "paragraph1": "Raised in Venice, amidst the interplay of water and light, I discovered early that the world speaks in images. Photography became my language, a way to capture the fleeting moments that define our existence.",
-      "paragraph2": "My work is guided by a simple philosophy: every photograph should evoke an emotion, tell a story, and reveal something invisible to the casual glance. I seek the extraordinary hidden within the ordinary.",
-      "paragraph3": "Whether capturing the quiet dignity of a stranger's gaze or the dramatic sweep of a mountain range, I approach each subject with reverence and curiosity."
-    },
-    "achievements": {
-      "years": {
-        "title": "Started at 19",
-        "description": "A passion born early, cultivated with dedication"
-      },
-      "recognition": {
-        "title": "Academy of Fine Arts",
-        "description": "Trained at one of the most prestigious schools"
-      },
-      "countries": {
-        "title": "Solo Explorer",
-        "description": "Traveling the world in search of unique stories"
-      }
-    },
-    "philosophy": {
-      "label": "Philosophy",
-      "quote": "..."
-    },
-    "timeline": {
-      "label": "Journey",
-      "title": "A Path Immersed in Light",
-      "2022": {
-        "title": "First Camera",
-        "description": "I inherited my first DSLR camera from my grandmother, passing down a passion that will last a lifetime."
-      },
-      "2024": {
-        "title": "Beyond Borders",
-        "description": "Immersed in landscapes never seen before, I began capturing horizons that spoke a new language. Each shot a discovery, each light a revelation."
-      },
-      "2025": {
-        "title": "At CPF Bauer",
-        "description": "After Venice, I chose to push further. Milan welcomed me with a leap into the unknown, toward the vision I was seeking."
-      }
-    },
-    "cta": {
-      "title": "Let's Create Together",
-      "description": "Whether you have a vision in mind or want to explore possibilities, I'd love to hear from you.",
-      "button": "Get in Touch"
-    }
   },
   "connect": {
     "header": {
@@ -156,50 +87,6 @@
     "empty": "New reflections coming soon...",
     "readMore": "Read More",
     "minRead": "{minutes} min read"
-  },
-  "projects": {
-    "oslo": {
-      "title": "Oslo",
-      "subtitle": "City of Light",
-      "description": "A journey through the city of Oslo. From the bustling streets to the serene parks, each photograph captures a moment of life in the city.",
-      "category": "Urban"
-    },
-    "portraits": {
-      "title": "Portraits",
-      "subtitle": "Human Connection",
-      "description": "A journey into the human soul. Each portrait tells a unique story of emotion, strength, and vulnerability.",
-      "category": "People"
-    },
-    "landscapes": {
-      "title": "Landscapes",
-      "subtitle": "Nature's Poetry",
-      "description": "Nature's grandeur captured in moments of perfect light. From misty mornings to golden sunsets.",
-      "category": "Nature"
-    },
-    "urban": {
-      "title": "Urban",
-      "subtitle": "City Whispers",
-      "description": "The poetry of cities. Architecture, streets, and the pulse of urban life through a contemplative lens.",
-      "category": "Architecture"
-    },
-    "abstract": {
-      "title": "Abstract",
-      "subtitle": "Beyond Form",
-      "description": "Beyond representation. Exploring form, color, and texture in ways that challenge perception.",
-      "category": "Experimental"
-    },
-    "moments": {
-      "title": "Fleeting Moments",
-      "subtitle": "Life's Breath",
-      "description": "Life's ephemeral beauty. Candid captures of joy, contemplation, and human connection.",
-      "category": "Documentary"
-    },
-    "noir": {
-      "title": "Noir",
-      "subtitle": "Shadow & Light",
-      "description": "A study in contrasts. Black and white photography that embraces shadow and light.",
-      "category": "Black & White"
-    }
   },
   "metadata": {
     "home": {
