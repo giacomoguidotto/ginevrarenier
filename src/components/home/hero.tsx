@@ -3,8 +3,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { useRef } from "react";
+import { EditableText } from "@/components/admin/editable-text";
 import { Link } from "@/i18n/routing";
-import { useSiteContent } from "@/lib/hooks";
+import { useEditableSiteContent } from "@/lib/use-editable-content";
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,7 +18,7 @@ export function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  const { t } = useSiteContent("hero");
+  const { get, set } = useEditableSiteContent("hero");
 
   return (
     <section
@@ -43,14 +44,18 @@ export function Hero() {
       >
         <div className="max-w-5xl text-center">
           {/* Tagline */}
-          <motion.p
+          <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 text-foreground/80 text-sm uppercase tracking-[0.3em]"
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            {t("tagline")}
-          </motion.p>
+            <EditableText
+              as="p"
+              className="mb-6 text-foreground/80 text-sm uppercase tracking-[0.3em]"
+              onChange={(v) => set("tagline", v)}
+              value={get("tagline")}
+            />
+          </motion.div>
 
           {/* Main Heading with Text Reveal */}
           <div className="overflow-hidden">
@@ -60,22 +65,35 @@ export function Hero() {
               initial={{ y: "150%" }}
               transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="block text-foreground">{t("title")}</span>
-              <span className="block text-foreground/60">
-                {t("titleAccent")}
-              </span>
+              <EditableText
+                as="span"
+                className="block text-foreground"
+                onChange={(v) => set("title", v)}
+                value={get("title")}
+              />
+              <EditableText
+                as="span"
+                className="block text-foreground/60"
+                onChange={(v) => set("titleAccent", v)}
+                value={get("titleAccent")}
+              />
             </motion.h1>
           </div>
 
           {/* Subheading */}
-          <motion.p
+          <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className="mx-auto mb-12 max-w-xl text-lg text-muted-foreground"
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            {t("description")}
-          </motion.p>
+            <EditableText
+              as="p"
+              className="mx-auto mb-12 max-w-xl text-lg text-muted-foreground"
+              multiline
+              onChange={(v) => set("description", v)}
+              value={get("description")}
+            />
+          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
@@ -88,13 +106,22 @@ export function Hero() {
               className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
               href="/vision"
             >
-              <span className="relative z-10">{t("cta")}</span>
+              <EditableText
+                as="span"
+                className="relative z-10"
+                onChange={(v) => set("cta", v)}
+                value={get("cta")}
+              />
             </Link>
             <Link
               className="inline-flex items-center gap-2 rounded-full border border-foreground/30 px-8 py-4 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:border-foreground hover:bg-foreground/10"
               href="/connect"
             >
-              <span>{t("ctaSecondary")}</span>
+              <EditableText
+                as="span"
+                onChange={(v) => set("ctaSecondary", v)}
+                value={get("ctaSecondary")}
+              />
             </Link>
           </motion.div>
         </div>

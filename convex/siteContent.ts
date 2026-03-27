@@ -48,7 +48,13 @@ export const upsert = mutation({
       .unique();
 
     if (existing) {
-      await ctx.db.patch(existing._id, { content });
+      // Merge incoming fields with existing content
+      const existingContent = JSON.parse(existing.content);
+      const newContent = JSON.parse(content);
+      const merged = { ...existingContent, ...newContent };
+      await ctx.db.patch(existing._id, {
+        content: JSON.stringify(merged),
+      });
     } else {
       await ctx.db.insert("siteContent", { section, content });
     }

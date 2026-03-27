@@ -2,10 +2,11 @@
 
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
-import { useSiteContent } from "@/lib/hooks";
+import { EditableText } from "@/components/admin/editable-text";
+import { useEditableSiteContent } from "@/lib/use-editable-content";
 
 export function Testimonial() {
-  const { t } = useSiteContent("testimonial");
+  const { get, set } = useEditableSiteContent("testimonial");
 
   return (
     <section className="relative overflow-hidden bg-background py-32">
@@ -31,14 +32,29 @@ export function Testimonial() {
           <Quote className="mx-auto mb-8 h-12 w-12 text-foreground/20" />
 
           <blockquote className="mb-8">
-            <p className="font-light text-2xl text-foreground/90 leading-relaxed md:text-3xl lg:text-4xl">
-              &ldquo;{t("quote")}&rdquo;
-            </p>
+            <EditableText
+              as="p"
+              className="font-light text-2xl text-foreground/90 leading-relaxed md:text-3xl lg:text-4xl"
+              multiline
+              onChange={(v) => set("quote", v)}
+              placeholder="Enter a quote..."
+              value={get("quote")}
+            />
           </blockquote>
 
           <div className="flex flex-col items-center gap-2">
-            <p className="font-medium text-foreground">{t("author")}</p>
-            <p className="text-muted-foreground text-sm">{t("role")}</p>
+            <EditableText
+              as="p"
+              className="font-medium text-foreground"
+              onChange={(v) => set("author", v)}
+              value={get("author")}
+            />
+            <EditableText
+              as="p"
+              className="text-muted-foreground text-sm"
+              onChange={(v) => set("role", v)}
+              value={get("role")}
+            />
           </div>
         </motion.div>
       </div>

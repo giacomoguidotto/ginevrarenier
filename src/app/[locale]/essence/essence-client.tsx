@@ -4,9 +4,10 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Award, Camera, Globe } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
+import { EditableText } from "@/components/admin/editable-text";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
-import { useSiteContent } from "@/lib/hooks";
+import { useEditableSiteContent } from "@/lib/use-editable-content";
 
 const achievementIcons = [Camera, Award, Globe];
 const achievementKeys = ["years", "recognition", "countries"] as const;
@@ -23,10 +24,10 @@ export function EssenceClient() {
   const imageY = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, 50]);
 
-  const { t: hero } = useSiteContent("essence.hero");
-  const { t: ach } = useSiteContent("essence.achievements");
-  const { t: tl } = useSiteContent("essence.timeline");
-  const { t: cta } = useSiteContent("essence.cta");
+  const hero = useEditableSiteContent("essence.hero");
+  const ach = useEditableSiteContent("essence.achievements");
+  const tl = useEditableSiteContent("essence.timeline");
+  const ctaSec = useEditableSiteContent("essence.cta");
 
   return (
     <PageTransition>
@@ -60,31 +61,54 @@ export function EssenceClient() {
               className="flex flex-col justify-center lg:py-20"
               style={{ y: textY }}
             >
-              <motion.p
+              <motion.div
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {hero("label")}
-              </motion.p>
-              <motion.h1
+                <EditableText
+                  as="p"
+                  className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+                  onChange={(v) => hero.set("label", v)}
+                  value={hero.get("label")}
+                />
+              </motion.div>
+              <motion.div
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8 text-foreground"
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                {hero("title")}
-              </motion.h1>
+                <EditableText
+                  as="h1"
+                  className="mb-8 text-foreground"
+                  onChange={(v) => hero.set("title", v)}
+                  value={hero.get("title")}
+                />
+              </motion.div>
               <motion.div
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6 text-lg text-muted-foreground"
                 initial={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <p>{hero("paragraph1")}</p>
-                <p>{hero("paragraph2")}</p>
-                <p>{hero("paragraph3")}</p>
+                <EditableText
+                  as="p"
+                  multiline
+                  onChange={(v) => hero.set("paragraph1", v)}
+                  value={hero.get("paragraph1")}
+                />
+                <EditableText
+                  as="p"
+                  multiline
+                  onChange={(v) => hero.set("paragraph2", v)}
+                  value={hero.get("paragraph2")}
+                />
+                <EditableText
+                  as="p"
+                  multiline
+                  onChange={(v) => hero.set("paragraph3", v)}
+                  value={hero.get("paragraph3")}
+                />
               </motion.div>
             </motion.div>
           </div>
@@ -107,30 +131,22 @@ export function EssenceClient() {
                   whileInView={{ opacity: 1, y: 0 }}
                 >
                   <Icon className="mx-auto mb-4 h-8 w-8 text-cream" />
-                  <h3 className="mb-2 font-light text-2xl text-cream">
-                    {ach(`${key}.title`)}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {ach(`${key}.description`)}
-                  </p>
+                  <EditableText
+                    as="h3"
+                    className="mb-2 font-light text-2xl text-cream"
+                    onChange={(v) => ach.set(`${key}.title`, v)}
+                    value={ach.get(`${key}.title`)}
+                  />
+                  <EditableText
+                    as="p"
+                    className="text-muted-foreground"
+                    onChange={(v) => ach.set(`${key}.description`, v)}
+                    value={ach.get(`${key}.description`)}
+                  />
                 </motion.div>
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* Philosophy — kept in next-intl since it's static UI */}
-      <section className="py-24">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <motion.p
-            className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-            initial={{ opacity: 0, y: 20 }}
-            viewport={{ once: true }}
-            whileInView={{ opacity: 1, y: 0 }}
-          >
-            ...
-          </motion.p>
         </div>
       </section>
 
@@ -143,10 +159,18 @@ export function EssenceClient() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
-              {tl("label")}
-            </p>
-            <h2 className="text-cream">{tl("title")}</h2>
+            <EditableText
+              as="p"
+              className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+              onChange={(v) => tl.set("label", v)}
+              value={tl.get("label")}
+            />
+            <EditableText
+              as="h2"
+              className="text-cream"
+              onChange={(v) => tl.set("title", v)}
+              value={tl.get("title")}
+            />
           </motion.div>
 
           <div className="relative">
@@ -178,12 +202,19 @@ export function EssenceClient() {
                 <span className="mb-2 block text-cream/60 text-sm uppercase tracking-widest">
                   {year}
                 </span>
-                <h3 className="mb-2 font-light text-cream text-xl">
-                  {tl(`${year}.title`)}
-                </h3>
-                <p className="text-muted-foreground">
-                  {tl(`${year}.description`)}
-                </p>
+                <EditableText
+                  as="h3"
+                  className="mb-2 font-light text-cream text-xl"
+                  onChange={(v) => tl.set(`${year}.title`, v)}
+                  value={tl.get(`${year}.title`)}
+                />
+                <EditableText
+                  as="p"
+                  className="text-muted-foreground"
+                  multiline
+                  onChange={(v) => tl.set(`${year}.description`, v)}
+                  value={tl.get(`${year}.description`)}
+                />
               </motion.div>
             ))}
           </div>
@@ -193,23 +224,32 @@ export function EssenceClient() {
       {/* CTA */}
       <section className="py-24">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <motion.h2
-            className="mb-6 text-foreground"
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            {cta("title")}
-          </motion.h2>
-          <motion.p
-            className="mb-10 text-lg text-muted-foreground"
+            <EditableText
+              as="h2"
+              className="mb-6 text-foreground"
+              onChange={(v) => ctaSec.set("title", v)}
+              value={ctaSec.get("title")}
+            />
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             transition={{ delay: 0.1 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
           >
-            {cta("description")}
-          </motion.p>
+            <EditableText
+              as="p"
+              className="mb-10 text-lg text-muted-foreground"
+              multiline
+              onChange={(v) => ctaSec.set("description", v)}
+              value={ctaSec.get("description")}
+            />
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             transition={{ delay: 0.2 }}
@@ -220,7 +260,11 @@ export function EssenceClient() {
               className="group inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
               href="/connect"
             >
-              <span>{cta("button")}</span>
+              <EditableText
+                as="span"
+                onChange={(v) => ctaSec.set("button", v)}
+                value={ctaSec.get("button")}
+              />
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </motion.div>

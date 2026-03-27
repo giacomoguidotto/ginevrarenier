@@ -4,8 +4,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
+import { EditableText } from "@/components/admin/editable-text";
 import { Link } from "@/i18n/routing";
-import { useSiteContent } from "@/lib/hooks";
+import { useEditableSiteContent } from "@/lib/use-editable-content";
 
 export function IntroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -16,7 +17,7 @@ export function IntroSection() {
 
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  const { t } = useSiteContent("intro");
+  const { get, set } = useEditableSiteContent("intro");
 
   return (
     <section className="relative bg-background py-32" ref={sectionRef}>
@@ -30,24 +31,49 @@ export function IntroSection() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}
           >
-            <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
-              {t("label")}
-            </p>
+            <EditableText
+              as="p"
+              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+              onChange={(v) => set("label", v)}
+              value={get("label")}
+            />
             <h2 className="mb-8 text-foreground">
-              {t("title")}
+              <EditableText
+                as="span"
+                onChange={(v) => set("title", v)}
+                value={get("title")}
+              />
               <br />
-              {t("titleBreak")}
+              <EditableText
+                as="span"
+                onChange={(v) => set("titleBreak", v)}
+                value={get("titleBreak")}
+              />
             </h2>
             <div className="space-y-6 text-lg text-muted-foreground">
-              <p>{t("paragraph1")}</p>
-              <p>{t("paragraph2")}</p>
+              <EditableText
+                as="p"
+                multiline
+                onChange={(v) => set("paragraph1", v)}
+                value={get("paragraph1")}
+              />
+              <EditableText
+                as="p"
+                multiline
+                onChange={(v) => set("paragraph2", v)}
+                value={get("paragraph2")}
+              />
             </div>
             <div className="mt-10">
               <Link
                 className="group inline-flex items-center gap-2 text-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground/70"
                 href="/essence"
               >
-                <span>{t("cta")}</span>
+                <EditableText
+                  as="span"
+                  onChange={(v) => set("cta", v)}
+                  value={get("cta")}
+                />
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
