@@ -44,11 +44,24 @@ export function IntroSection() {
               className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
               {...bind("label")}
             />
-            <h2 className="mb-8 text-foreground">
-              <EditableText as="span" {...bind("title")} />
-              <br />
-              <EditableText as="span" {...bind("titleBreak")} />
-            </h2>
+            <EditableText
+              as="h2"
+              className="mb-8 text-foreground"
+              multiline
+              {...bind("title")}
+              renderDisplay={(text) => {
+                const lines = text.split("\n");
+                return (
+                  <>
+                    {lines.map((line, i) => (
+                      <span className="block" key={`${i}-${line}`}>
+                        {line}
+                      </span>
+                    ))}
+                  </>
+                );
+              }}
+            />
             <div className="space-y-6 text-lg text-muted-foreground">
               <EditableText as="p" multiline {...bind("paragraph1")} />
               <EditableText as="p" multiline {...bind("paragraph2")} />

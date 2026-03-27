@@ -88,6 +88,8 @@ type EditableTextProps = {
   className?: string;
   multiline?: boolean;
   placeholder?: string;
+  /** Custom render for display mode text. Receives the localized string. */
+  renderDisplay?: (text: string) => React.ReactNode;
 };
 
 export function EditableText({
@@ -98,6 +100,7 @@ export function EditableText({
   className = "",
   multiline = false,
   placeholder = "Enter text...",
+  renderDisplay,
 }: EditableTextProps) {
   const { isEditMode } = useEditMode();
   const locale = useActiveLocale();
@@ -125,7 +128,10 @@ export function EditableText({
   }, [value, locale, editing]);
 
   if (!isEditMode) {
-    return <Tag className={className}>{text || placeholder}</Tag>;
+    const displayContent = renderDisplay
+      ? renderDisplay(text)
+      : text || placeholder;
+    return <Tag className={className}>{displayContent}</Tag>;
   }
 
   if (editing) {
@@ -162,7 +168,11 @@ export function EditableText({
       role="button"
       tabIndex={0}
     >
-      {text || <span className="text-foreground/30 italic">{placeholder}</span>}
+      {renderDisplay
+        ? renderDisplay(text)
+        : text || (
+            <span className="text-foreground/30 italic">{placeholder}</span>
+          )}
       {otherNeedsAttention ? <StaleIndicator locale={otherLocale} /> : null}
     </Tag>
   );

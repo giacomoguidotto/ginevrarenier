@@ -102,12 +102,8 @@ export const seed = internalMutation({
             it: "Narratrice Visiva",
           },
           title: {
-            en: "Capturing",
-            it: "Catturando",
-          },
-          titleAccent: {
-            en: "Ethereal Moments",
-            it: "Momenti Eterei",
+            en: "Capturing\nEthereal Moments",
+            it: "Catturando\nMomenti Eterei",
           },
           description: {
             en: "Through my lens, I explore the delicate interplay of light and shadow, creating images that resonate with the soul.",
@@ -127,8 +123,10 @@ export const seed = internalMutation({
         section: "intro",
         content: {
           label: { en: "The Artist", it: "L'Artista" },
-          title: { en: "Where Light", it: "Dove la Luce" },
-          titleBreak: { en: "Meets Soul", it: "Incontra l'Anima" },
+          title: {
+            en: "Where Light\nMeets Soul",
+            it: "Dove la Luce\nIncontra l'Anima",
+          },
           paragraph1: {
             en: "From the moment I first held a camera, I've been chasing light across every corner I discover, seeking those fleeting moments where reality transcends into something magical.",
             it: "Dal momento in cui ho impugnato per la prima volta una fotocamera, inseguo la luce in ogni angolo che scopro, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.",

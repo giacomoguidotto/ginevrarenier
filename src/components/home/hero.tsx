@@ -7,6 +7,41 @@ import { EditableText } from "@/components/admin/editable-text";
 import { Link } from "@/i18n/routing";
 import { useEditableSiteContent } from "@/lib/use-editable-content";
 
+/**
+ * Renders a bilingual text field as multiline heading.
+ * First line gets text-foreground, subsequent lines get text-foreground/60.
+ * In edit mode, shows a multiline EditableText.
+ */
+function MultilineHeading(props: {
+  value: { en: string; it: string };
+  onChange: (v: { en: string; it: string }) => void;
+  fieldId: string;
+}) {
+  return (
+    <EditableText
+      as="span"
+      className="block"
+      multiline
+      {...props}
+      renderDisplay={(text) => {
+        const lines = text.split("\n");
+        return (
+          <>
+            {lines.map((line, i) => (
+              <span
+                className={`block ${i === 0 ? "text-foreground" : "text-foreground/60"}`}
+                key={`${i}-${line}`}
+              >
+                {line}
+              </span>
+            ))}
+          </>
+        );
+      }}
+    />
+  );
+}
+
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -63,16 +98,7 @@ export function Hero() {
               initial={{ y: "150%" }}
               transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
-              <EditableText
-                as="span"
-                className="block text-foreground"
-                {...bind("title")}
-              />
-              <EditableText
-                as="span"
-                className="block text-foreground/60"
-                {...bind("titleAccent")}
-              />
+              <MultilineHeading {...bind("title")} />
             </motion.h1>
           </div>
 
