@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { ConvexClientProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { type Locale, locales } from "@/i18n/config";
 import "../globals.css";
@@ -119,17 +120,19 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>
-            <Navbar />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-          </NextIntlClientProvider>
-        </ThemeProvider>
+        <ConvexClientProvider>
+          <ThemeProvider>
+            <NextIntlClientProvider messages={messages}>
+              <Navbar />
+              <main className="min-h-screen">{children}</main>
+              <Footer />
+            </NextIntlClientProvider>
+          </ThemeProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

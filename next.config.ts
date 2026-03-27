@@ -11,8 +11,13 @@ const nextConfig: NextConfig = {
     // Enable modern image formats
     formats: ["image/avif", "image/webp"],
 
-    // Define remote patterns for external images if needed
-    remotePatterns: [],
+    // Cloudinary remote images
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
 
     // Device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
