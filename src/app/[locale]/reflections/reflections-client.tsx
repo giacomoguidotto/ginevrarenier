@@ -1,15 +1,50 @@
 "use client";
 
+import { api } from "convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
+import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { PostCard } from "@/components/blog/post-card";
 import { PageTransition } from "@/components/layout/page-transition";
-import { staggerContainer } from "@/lib/animations";
-import { usePublishedBlogPosts } from "@/lib/hooks";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { fadeUp, staggerContainer } from "@/lib/animations";
 
 export function ReflectionsClient() {
   const t = useTranslations("reflections");
-  const { posts } = usePublishedBlogPosts();
+  const { isEditMode } = useEditMode();
+
+  const allPosts = useQuery(api.blogPosts.list);
+  const publishedPosts = useQuery(api.blogPosts.listPublished);
+  const posts = isEditMode ? (allPosts ?? []) : (publishedPosts ?? []);
+
+  const createPost = useMutation(api.blogPosts.create);
+  const removePost = useMutation(api.blogPosts.remove);
+  const updatePost = useMutation(api.blogPosts.update);
+
+  const [creating, setCreating] = useState(false);
+  const [newSlug, setNewSlug] = useState("");
+
+  const handleCreate = useCallback(async () => {
+    if (!newSlug.trim()) {
+      return;
+    }
+    const slug = newSlug.trim().toLowerCase().replace(/\s+/g, "-");
+    await createPost({
+      slug,
+      title: { en: slug, it: slug },
+      excerpt: { en: "", it: "" },
+    });
+    setNewSlug("");
+    setCreating(false);
+  }, [newSlug, createPost]);
 
   return (
     <PageTransition>
@@ -44,18 +79,117 @@ export function ReflectionsClient() {
           </div>
 
           {/* Posts Grid */}
-          {posts.length > 0 ? (
-            <motion.div
-              animate="visible"
-              className="grid gap-12 md:grid-cols-2 lg:grid-cols-3"
-              initial="hidden"
-              variants={staggerContainer}
-            >
-              {posts.map((post, index) => (
-                <PostCard index={index} key={post._id} post={post} />
-              ))}
-            </motion.div>
-          ) : (
+          <motion.div
+            animate="visible"
+            className="grid gap-12 md:grid-cols-2 lg:grid-cols-3"
+            initial="hidden"
+            variants={staggerContainer}
+          >
+            {posts.map((post, index) => (
+              <motion.div key={post._id} variants={fadeUp}>
+                {isEditMode ? (
+                  <ContextMenu>
+                    <ContextMenuTrigger asChild>
+                      <div
+                        className={`relative ${post.published ? "" : "opacity-50"}`}
+                      >
+                        <PostCard index={index} post={post} />
+                        {post.published ? null : (
+                          <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+                            Draft
+                          </div>
+                        )}
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onClick={() =>
+                          updatePost({
+                            id: post._id,
+                            published: !post.published,
+                          })
+                        }
+                      >
+                        {post.published ? (
+                          <>
+                            <EyeOff className="mr-2 h-4 w-4" /> Unpublish
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-2 h-4 w-4" /> Publish
+                          </>
+                        )}
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        className="text-red-400 focus:text-red-400"
+                        onClick={() => removePost({ id: post._id })}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                ) : (
+                  <PostCard index={index} post={post} />
+                )}
+              </motion.div>
+            ))}
+
+            {/* Create new post */}
+            {isEditMode ? (
+              <motion.div variants={fadeUp}>
+                {creating ? (
+                  <div className="flex aspect-video flex-col items-center justify-center gap-4 rounded-lg border-2 border-foreground/15 border-dashed p-6">
+                    <input
+                      autoFocus
+                      className="w-full rounded bg-transparent px-3 py-2 text-center text-foreground outline-none ring-1 ring-foreground/20 placeholder:text-foreground/30 focus:ring-foreground/40"
+                      onChange={(e) => setNewSlug(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleCreate();
+                        }
+                        if (e.key === "Escape") {
+                          setCreating(false);
+                          setNewSlug("");
+                        }
+                      }}
+                      placeholder="post-slug"
+                      value={newSlug}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        className="rounded-full bg-foreground/10 px-4 py-1.5 text-foreground text-xs transition-colors hover:bg-foreground/20"
+                        onClick={handleCreate}
+                        type="button"
+                      >
+                        Create
+                      </button>
+                      <button
+                        className="rounded-full px-4 py-1.5 text-foreground/50 text-xs transition-colors hover:text-foreground"
+                        onClick={() => {
+                          setCreating(false);
+                          setNewSlug("");
+                        }}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className="flex aspect-video w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+                    onClick={() => setCreating(true)}
+                    type="button"
+                  >
+                    <Plus className="h-8 w-8" />
+                  </button>
+                )}
+              </motion.div>
+            ) : null}
+          </motion.div>
+
+          {posts.length === 0 && !isEditMode ? (
             <motion.div
               animate={{ opacity: 1 }}
               className="py-20 text-center"
@@ -64,7 +198,7 @@ export function ReflectionsClient() {
             >
               <p className="text-lg text-muted-foreground">{t("empty")}</p>
             </motion.div>
-          )}
+          ) : null}
         </div>
       </div>
     </PageTransition>

@@ -1,22 +1,53 @@
 "use client";
 
+import { api } from "convex/_generated/api";
+import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useCallback } from "react";
+import { useEditMode } from "@/components/admin/edit-mode-context";
+import { EditableText } from "@/components/admin/editable-text";
 import { ScrollProgress } from "@/components/blog/scroll-progress";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
 import { formatDate } from "@/lib/format";
 import { useBlogPost, useLocalized } from "@/lib/hooks";
 
+// Lazy load BlockNote to avoid SSR issues
+const BlockEditor = dynamic(
+  () =>
+    import("@/components/admin/block-editor").then((mod) => mod.BlockEditor),
+  { ssr: false }
+);
+
 export function BlogPostClient() {
   const { slug } = useParams<{ slug: string }>();
   const { post, isLoading } = useBlogPost(slug);
+  const { isEditMode, editingLocale } = useEditMode();
   const t = useTranslations("common");
   const tr = useTranslations("reflections");
   const localized = useLocalized();
+  const updatePost = useMutation(api.blogPosts.update);
+
+  const handleContentChange = useCallback(
+    (json: string) => {
+      if (!post) {
+        return;
+      }
+      updatePost({
+        id: post._id,
+        content: {
+          ...post.content,
+          [editingLocale]: json,
+        },
+      });
+    },
+    [post, editingLocale, updatePost]
+  );
 
   if (isLoading) {
     return (
@@ -31,25 +62,10 @@ export function BlogPostClient() {
   }
 
   const title = localized(post.title);
-  const excerpt = localized(post.excerpt);
-  const content = localized(post.content);
-
-  // Parse BlockNote JSON or render as plain text for now
-  let paragraphs: string[] = [];
-  try {
-    const blocks = JSON.parse(content);
-    if (Array.isArray(blocks)) {
-      paragraphs = blocks
-        .map(
-          (block: { content?: { text?: string }[] }) =>
-            block.content?.map((c) => c.text).join("") ?? ""
-        )
-        .filter(Boolean);
-    }
-  } catch {
-    // Fallback: treat as plain text
-    paragraphs = content.split("\n\n").filter((p) => p.trim());
-  }
+  const _excerpt = localized(post.excerpt);
+  const content = isEditMode
+    ? post.content[editingLocale]
+    : localized(post.content);
 
   return (
     <PageTransition>
@@ -74,7 +90,6 @@ export function BlogPostClient() {
 
           {/* Header */}
           <header className="mb-12">
-            {/* Meta */}
             {post.publishedAt ? (
               <motion.div
                 animate={{ opacity: 1, y: 0 }}
@@ -91,25 +106,32 @@ export function BlogPostClient() {
               </motion.div>
             ) : null}
 
-            {/* Title */}
-            <motion.h1
+            <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {title}
-            </motion.h1>
+              <EditableText
+                as="h1"
+                className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
+                onChange={(v) => updatePost({ id: post._id, title: v })}
+                value={post.title}
+              />
+            </motion.div>
 
-            {/* Excerpt */}
-            <motion.p
+            <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="text-muted-foreground text-xl"
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {excerpt}
-            </motion.p>
+              <EditableText
+                as="p"
+                className="text-muted-foreground text-xl"
+                multiline
+                onChange={(v) => updatePost({ id: post._id, excerpt: v })}
+                value={post.excerpt}
+              />
+            </motion.div>
           </header>
 
           {/* Cover Image */}
@@ -138,14 +160,15 @@ export function BlogPostClient() {
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            {paragraphs.map((paragraph) => (
-              <p
-                className="mb-6 text-lg text-muted-foreground leading-relaxed"
-                key={paragraph.slice(0, 50)}
-              >
-                {paragraph}
-              </p>
-            ))}
+            {isEditMode ? (
+              <BlockEditor
+                content={content}
+                editable
+                onChange={handleContentChange}
+              />
+            ) : (
+              <BlockEditor content={content} editable={false} />
+            )}
           </motion.div>
 
           {/* Footer */}
