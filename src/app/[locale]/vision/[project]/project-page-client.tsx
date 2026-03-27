@@ -5,6 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useEditMode } from "@/components/admin/edit-mode-context";
+import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
@@ -18,6 +20,7 @@ export function ProjectPageClient() {
   const { images: rawImages, isLoading: imagesLoading } = useProjectImages(
     project?._id
   );
+  const { isEditMode } = useEditMode();
 
   const t = useTranslations("common");
   const localized = useLocalized();
@@ -110,18 +113,29 @@ export function ProjectPageClient() {
             </motion.p>
           </div>
 
-          {/* Image Grid */}
-          {images.length > 0 ? (
+          {/* Image Grid — edit mode shows sortable grid with upload */}
+          {isEditMode ? (
+            <EditableImageGrid
+              images={rawImages}
+              projectId={project._id}
+              projectSlug={slug}
+            />
+          ) : null}
+
+          {/* Image Grid — public view */}
+          {!isEditMode && images.length > 0 ? (
             <ImageGrid
               images={images}
               onHoverChange={setIsHoveringImage}
               onImageClick={handleImageClick}
             />
-          ) : (
+          ) : null}
+
+          {!isEditMode && images.length === 0 ? (
             <p className="text-center text-muted-foreground">
               No photographs yet.
             </p>
-          )}
+          ) : null}
         </div>
       </div>
 
