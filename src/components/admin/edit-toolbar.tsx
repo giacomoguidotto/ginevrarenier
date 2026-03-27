@@ -1,6 +1,7 @@
 "use client";
 
-import { GripVertical, LogOut, RotateCcw, Save } from "lucide-react";
+import { useClerk } from "@clerk/nextjs";
+import { GripVertical, LogOut, Power, RotateCcw, Save } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "@/i18n/routing";
@@ -37,6 +38,7 @@ export function EditToolbar({
   onDiscard,
 }: EditToolbarProps) {
   const { isEditMode, exitEditMode } = useEditMode();
+  const { signOut } = useClerk();
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -178,11 +180,22 @@ export function EditToolbar({
 
       {/* Exit edit mode */}
       <button
+        aria-label="Exit edit mode"
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground"
         onClick={exitEditMode}
         type="button"
       >
         <LogOut className="h-3.5 w-3.5" />
+      </button>
+
+      {/* Sign out */}
+      <button
+        aria-label="Sign out"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
+        onClick={() => signOut()}
+        type="button"
+      >
+        <Power className="h-3.5 w-3.5" />
       </button>
     </div>
   );
