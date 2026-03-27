@@ -140,6 +140,7 @@ export function EditToolbar({
       <button
         className="flex h-8 items-center gap-1 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
         onClick={switchLocale}
+        title="Switch language"
         type="button"
       >
         <span
@@ -161,6 +162,7 @@ export function EditToolbar({
           <button
             className="flex h-8 items-center gap-1.5 rounded-full bg-foreground/10 px-3 text-foreground text-xs transition-colors hover:bg-foreground/20"
             onClick={onSave}
+            title="Save changes"
             type="button"
           >
             <Save className="h-3.5 w-3.5" />
@@ -170,6 +172,7 @@ export function EditToolbar({
           <button
             className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 text-xs transition-colors hover:bg-foreground/10 hover:text-foreground"
             onClick={onDiscard}
+            title="Discard changes"
             type="button"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -183,6 +186,7 @@ export function EditToolbar({
         aria-label="Exit edit mode"
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground"
         onClick={exitEditMode}
+        title="Exit edit mode"
         type="button"
       >
         <LogOut className="h-3.5 w-3.5" />
@@ -193,6 +197,7 @@ export function EditToolbar({
         aria-label="Sign out"
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
         onClick={() => signOut()}
+        title="Sign out"
         type="button"
       >
         <Power className="h-3.5 w-3.5" />

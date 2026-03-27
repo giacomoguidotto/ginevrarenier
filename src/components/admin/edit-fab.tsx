@@ -17,6 +17,7 @@ export function EditFab() {
       aria-label="Enter edit mode"
       className="fixed right-6 bottom-6 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-foreground/20 bg-foreground/10 text-foreground/70 shadow-lg backdrop-blur-md transition-all hover:scale-110 hover:bg-foreground/20 hover:text-foreground"
       onClick={toggleEditMode}
+      title="Enter edit mode"
       type="button"
     >
       <Pencil className="h-5 w-5" />
