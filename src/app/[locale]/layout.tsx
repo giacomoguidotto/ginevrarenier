@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { EditFab } from "@/components/admin/edit-fab";
+import { EditModeProvider } from "@/components/admin/edit-mode-context";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
@@ -127,9 +129,12 @@ export default async function LocaleLayout({ children, params }: Props) {
         <ConvexClientProvider>
           <ThemeProvider>
             <NextIntlClientProvider messages={messages}>
-              <Navbar />
-              <main className="min-h-screen">{children}</main>
-              <Footer />
+              <EditModeProvider>
+                <Navbar />
+                <main className="min-h-screen">{children}</main>
+                <Footer />
+                <EditFab />
+              </EditModeProvider>
             </NextIntlClientProvider>
           </ThemeProvider>
         </ConvexClientProvider>
