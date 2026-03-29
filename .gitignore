@@ -3,9 +3,6 @@
 # mise
 .mise.local.toml
 
-# convex
-convex/_generated
-
 # dependencies
 /node_modules
 /.pnp
