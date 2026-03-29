@@ -48,8 +48,17 @@ function getPersistedEditMode(): boolean {
 
 export function EditModeProvider({ children }: { children: ReactNode }) {
   const pageLocale = useLocale() as Locale;
-  const [isEditMode, setIsEditMode] = useState(getPersistedEditMode);
+  // Start false on server, then sync from localStorage after hydration
+  const [isEditMode, setIsEditMode] = useState(false);
   const [editingLocale, setEditingLocale] = useState<Locale>(pageLocale);
+
+  // Restore persisted state after hydration
+  useEffect(() => {
+    const persisted = getPersistedEditMode();
+    if (persisted) {
+      setIsEditMode(true);
+    }
+  }, []);
 
   useEffect(() => {
     try {

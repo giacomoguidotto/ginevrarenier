@@ -12,7 +12,8 @@
       "!.next",
       "!dist",
       "!build",
-      "!convex/_generated"
+      "!convex/_generated",
+      "!.agents"
     ]
   },
   "formatter": {
