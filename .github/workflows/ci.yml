@@ -41,6 +41,7 @@ jobs:
       - run: bun install --frozen-lockfile
         env:
           HUSKY: "0"
+      - run: bunx convex codegen
       - run: bun run typecheck
 
   test:
@@ -78,6 +79,7 @@ jobs:
       - run: bun install --frozen-lockfile
         env:
           HUSKY: "0"
+      - run: bunx convex codegen
       - run: bun run build
         env:
           NEXT_PUBLIC_CONVEX_URL: https://stub.convex.cloud
