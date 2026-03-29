@@ -168,133 +168,34 @@ img[data-loading="true"] {
   opacity: 0;
 }
 
-/* ═══════════════════════════════════════════════════
-   Edit mode — Architectural Blueprint Aesthetic
-   ═══════════════════════════════════════════════════ */
+/* Edit mode — subtle architectural cues */
 
 :root {
-  --blueprint: oklch(0.6 0.08 230);
-  --blueprint-dim: oklch(0.6 0.08 230 / 0.08);
-  --blueprint-mid: oklch(0.6 0.08 230 / 0.15);
-  --blueprint-bright: oklch(0.6 0.08 230 / 0.3);
+  --blueprint: oklch(0.6 0.08 230 / 0.2);
+  --blueprint-line: oklch(0.6 0.08 230 / 0.1);
+  --blueprint-accent: oklch(0.6 0.08 230 / 0.35);
 }
 
-/* Cursor becomes crosshair in edit mode */
-body.edit-mode,
-body.edit-mode * {
-  cursor: crosshair !important;
+/* Editable text fields — left accent + extension line to left edge */
+body.edit-mode [role="button"][tabindex="0"] {
+  box-shadow: inset 2px 0 0 var(--blueprint-accent);
 }
 
-body.edit-mode [role="button"],
-body.edit-mode button,
-body.edit-mode a,
-body.edit-mode input,
-body.edit-mode textarea {
-  cursor: pointer !important;
-}
-
-/* Fine technical grid — crosshatch lines */
-.blueprint-grid {
-  background-image:
-    linear-gradient(var(--blueprint-dim) 1px, transparent 1px),
-    linear-gradient(90deg, var(--blueprint-dim) 1px, transparent 1px),
-    linear-gradient(var(--blueprint-mid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--blueprint-mid) 1px, transparent 1px);
-  background-size:
-    24px 24px,
-    24px 24px,
-    120px 120px,
-    120px 120px;
-  opacity: 1;
-  animation: blueprint-fade-in 0.6s ease-out;
-}
-
-/* Left ruler */
-.blueprint-ruler-left {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    var(--blueprint-mid) 0px,
-    var(--blueprint-mid) 1px,
-    transparent 1px,
-    transparent 24px
-  );
-  border-right: 1px solid var(--blueprint-mid);
-}
-
-/* Top ruler */
-.blueprint-ruler-top {
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--blueprint-mid) 0px,
-    var(--blueprint-mid) 1px,
-    transparent 1px,
-    transparent 24px
-  );
-  border-bottom: 1px solid var(--blueprint-mid);
-}
-
-@keyframes blueprint-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Section outlines — corner bracket style */
-body.edit-mode section {
-  position: relative;
-}
-
-body.edit-mode section::before,
-body.edit-mode section::after {
+/* Extension lines: a faint horizontal line from left edge to the element */
+body.edit-mode [role="button"][tabindex="0"]::before {
   position: absolute;
-  z-index: 1;
+  top: 50%;
+  right: 100%;
+  left: calc(-100vw);
+  z-index: 0;
   pointer-events: none;
   content: "";
+  border-top: 1px solid var(--blueprint-line);
 }
 
-/* Section: top-left and bottom-right corner brackets */
-body.edit-mode section::before {
-  top: 6px;
-  left: 6px;
-  width: 20px;
-  height: 20px;
-  border-top: 1px solid var(--blueprint-bright);
-  border-left: 1px solid var(--blueprint-bright);
-}
-
-body.edit-mode section::after {
-  right: 6px;
-  bottom: 6px;
-  width: 20px;
-  height: 20px;
-  border-right: 1px solid var(--blueprint-bright);
-  border-bottom: 1px solid var(--blueprint-bright);
-}
-
-/* Inner containers — fine dashed outline */
-body.edit-mode section > div {
-  outline: 1px dashed var(--blueprint-dim);
-  outline-offset: -2px;
-}
-
-/* Editable text fields — left accent line */
-body.edit-mode [role="button"][tabindex="0"] {
-  box-shadow: inset 2px 0 0 var(--blueprint-bright);
-}
-
-/* Grid children */
-body.edit-mode section .grid > * {
-  outline: 1px dashed var(--blueprint-dim);
+/* Section separator — faint top border */
+body.edit-mode section {
+  position: relative;
+  outline: 1px solid var(--blueprint-line);
   outline-offset: -1px;
-}
-
-/* Header/footer/nav */
-body.edit-mode header,
-body.edit-mode footer,
-body.edit-mode nav {
-  outline: 1px dashed var(--blueprint-dim);
-  outline-offset: -2px;
 }
