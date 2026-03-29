@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 
 interface CursorFollowerProps {
   isHoveringImage?: boolean;
@@ -10,6 +11,7 @@ interface CursorFollowerProps {
 export function CursorFollower({
   isHoveringImage = false,
 }: CursorFollowerProps) {
+  const { isEditMode } = useEditMode();
   const [isVisible, setIsVisible] = useState(false);
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
@@ -40,6 +42,10 @@ export function CursorFollower({
 
   // Hide on touch devices
   if (typeof window !== "undefined" && "ontouchstart" in window) {
+    return null;
+  }
+
+  if (isEditMode) {
     return null;
   }
 
