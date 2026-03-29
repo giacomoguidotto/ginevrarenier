@@ -99,9 +99,17 @@ export function EditableText({
   as: Tag = "span",
   className = "",
   multiline = false,
-  placeholder = "Enter text...",
+  placeholder: placeholderProp,
   renderDisplay,
 }: EditableTextProps) {
+  // Derive placeholder from fieldId key (e.g. "hero:tagline" → "Enter tagline...")
+  const fieldKey = fieldId?.split(":").pop() ?? "";
+  const placeholder =
+    placeholderProp ??
+    (fieldKey
+      ? `Enter ${fieldKey.replace(/([A-Z])/g, " $1").toLowerCase()}...`
+      : "Enter text...");
+
   const { isEditMode } = useEditMode();
   const locale = useActiveLocale();
   const otherLocale: Locale = locale === "en" ? "it" : "en";
