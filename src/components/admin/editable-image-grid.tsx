@@ -106,11 +106,11 @@ function SortableImage({
   );
 }
 
-type EditableImageGridProps = {
+interface EditableImageGridProps {
   images: ProjectImage[];
   projectId: Id<"projects">;
   projectSlug: string;
-};
+}
 
 export function EditableImageGrid({
   images,

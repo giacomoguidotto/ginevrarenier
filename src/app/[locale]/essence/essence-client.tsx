@@ -162,7 +162,7 @@ export function EssenceClient() {
 
           <div className="relative">
             {/* Timeline line */}
-            <div className="md:-translate-x-px absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2" />
+            <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
 
             {timelineYears.map((year, index) => (
               <motion.div

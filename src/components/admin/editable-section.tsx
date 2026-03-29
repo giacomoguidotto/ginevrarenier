@@ -3,11 +3,11 @@
 import type { ReactNode } from "react";
 import { useEditMode } from "./edit-mode-context";
 
-type EditableSectionProps = {
+interface EditableSectionProps {
   children: ReactNode;
-  label: string;
   className?: string;
-};
+  label: string;
+}
 
 /**
  * Wraps a page section with blueprint-style dashed outline and

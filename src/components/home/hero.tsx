@@ -30,7 +30,7 @@ function MultilineHeading(props: {
             {lines.map((line, i) => (
               <span
                 className={`block ${i === 0 ? "text-foreground" : "text-foreground/60"}`}
-                key={`${i}-${line}`}
+                key={line}
               >
                 {line}
               </span>
@@ -64,7 +64,7 @@ export function Hero() {
       <motion.div className="absolute inset-0 z-0" style={{ y, scale }}>
         <div className="absolute inset-0 bg-background" />
         <div
-          className="-translate-x-1/2 -translate-y-1/2 absolute top-1/3 left-1/2 h-[600px] w-[800px] rounded-full opacity-[0.07] blur-[120px]"
+          className="absolute top-1/3 left-1/2 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.07] blur-[120px]"
           style={{
             background: "radial-gradient(circle, #555 0%, transparent 70%)",
           }}
@@ -146,7 +146,7 @@ export function Hero() {
       {/* Scroll Indicator */}
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="-translate-x-1/2 absolute bottom-12 left-1/2 z-10"
+        className="absolute bottom-12 left-1/2 z-10 -translate-x-1/2"
         initial={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.8, delay: 1.2 }}
       >

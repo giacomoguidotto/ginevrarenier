@@ -3,9 +3,9 @@
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useState } from "react";
 
-type CursorFollowerProps = {
+interface CursorFollowerProps {
   isHoveringImage?: boolean;
-};
+}
 
 export function CursorFollower({
   isHoveringImage = false,
@@ -59,7 +59,7 @@ export function CursorFollower({
             height: isHoveringImage ? 80 : 8,
             opacity: isVisible ? 1 : 0,
           }}
-          className="-translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-cream"
+          className="flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-cream"
           transition={{
             width: { duration: 0.3 },
             height: { duration: 0.3 },

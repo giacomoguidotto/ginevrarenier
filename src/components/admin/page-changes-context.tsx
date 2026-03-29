@@ -11,43 +11,43 @@ import {
   useState,
 } from "react";
 
-type SiteContentChange = {
-  type: "siteContent";
-  section: string;
+interface SiteContentChange {
   content: Record<string, { en: string; it: string }>;
-};
+  section: string;
+  type: "siteContent";
+}
 
-type ProjectChange = {
+interface ProjectChange {
+  fields: Record<string, unknown>;
+  id: string;
   type: "project";
-  id: string;
-  fields: Record<string, unknown>;
-};
+}
 
-type SocialLinkChange = {
-  type: "socialLink";
-  id: string;
+interface SocialLinkChange {
   fields: Record<string, unknown>;
-};
+  id: string;
+  type: "socialLink";
+}
 
 type Change = SiteContentChange | ProjectChange | SocialLinkChange;
 
-type PageChangesContextValue = {
-  hasChanges: boolean;
+interface PageChangesContextValue {
+  discard: () => void;
   editedLocales: Set<string>;
+  getFieldEditedLocales: (section: string, key: string) => Set<string>;
+  getSiteContentDraft: (
+    section: string,
+    key: string
+  ) => { en: string; it: string } | undefined;
+  hasChanges: boolean;
+  save: () => Promise<void>;
   trackSiteContent: (
     section: string,
     key: string,
     value: { en: string; it: string },
     editedLocale: string
   ) => void;
-  getSiteContentDraft: (
-    section: string,
-    key: string
-  ) => { en: string; it: string } | undefined;
-  getFieldEditedLocales: (section: string, key: string) => Set<string>;
-  save: () => Promise<void>;
-  discard: () => void;
-};
+}
 
 // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
 const noop = () => {};

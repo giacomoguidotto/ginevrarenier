@@ -53,8 +53,8 @@ export function IntroSection() {
                 const lines = text.split("\n");
                 return (
                   <>
-                    {lines.map((line, i) => (
-                      <span className="block" key={`${i}-${line}`}>
+                    {lines.map((line) => (
+                      <span className="block" key={line}>
                         {line}
                       </span>
                     ))}

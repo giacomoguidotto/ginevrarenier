@@ -10,10 +10,10 @@ import { fadeUp } from "@/lib/animations";
 import { formatDate } from "@/lib/format";
 import { useLocalized } from "@/lib/hooks";
 
-type PostCardProps = {
-  post: Doc<"blogPosts">;
+interface PostCardProps {
   index: number;
-};
+  post: Doc<"blogPosts">;
+}
 
 export function PostCard({ post, index }: PostCardProps) {
   const t = useTranslations("reflections");

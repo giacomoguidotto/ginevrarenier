@@ -14,14 +14,14 @@ import type { Locale } from "@/i18n/config";
 
 const STORAGE_KEY = "edit-mode-active";
 
-type EditModeContextValue = {
-  isEditMode: boolean;
+interface EditModeContextValue {
   editingLocale: Locale;
-  toggleEditMode: () => void;
   enterEditMode: () => void;
   exitEditMode: () => void;
+  isEditMode: boolean;
   setEditingLocale: (locale: Locale) => void;
-};
+  toggleEditMode: () => void;
+}
 
 // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
 const noop = () => {};

@@ -6,16 +6,16 @@ import { useCallback, useRef, useState } from "react";
 import { useEditMode } from "./edit-mode-context";
 import { uploadImage } from "./image-upload";
 
-type EditableImageProps = {
-  src: string | undefined;
+interface EditableImageProps {
   alt: string;
-  onUpload: (url: string, publicId: string) => void;
-  folder: string;
-  fill?: boolean;
-  sizes?: string;
   className?: string;
+  fill?: boolean;
+  folder: string;
+  onUpload: (url: string, publicId: string) => void;
   priority?: boolean;
-};
+  sizes?: string;
+  src: string | undefined;
+}
 
 /**
  * Image that shows an upload overlay in edit mode.

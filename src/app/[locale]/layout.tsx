@@ -15,10 +15,10 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { type Locale, locales } from "@/i18n/config";
 
-type Props = {
+interface Props {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
-};
+}
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

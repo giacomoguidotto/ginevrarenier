@@ -5,11 +5,11 @@ import { useCreateBlockNote } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
 import { useEffect, useRef } from "react";
 
-type BlockEditorProps = {
+interface BlockEditorProps {
   content: string;
-  onChange?: (content: string) => void;
   editable?: boolean;
-};
+  onChange?: (content: string) => void;
+}
 
 /**
  * BlockNote editor wrapper. Content is stored as JSON string.
