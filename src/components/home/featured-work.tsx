@@ -64,13 +64,13 @@ function ProjectCard({
           className="absolute right-0 bottom-0 left-0 p-8"
           style={{ y }}
         >
-          <p className="mb-2 text-cream/60 text-sm uppercase tracking-widest">
+          <p className="mb-2 text-foreground/60 text-sm uppercase tracking-widest">
             {localized(project.subtitle)}
           </p>
           <h3 className="mb-4 font-light text-4xl text-cream md:text-5xl">
             {localized(project.title)}
           </h3>
-          <div className="flex items-center gap-2 text-cream/80 text-sm uppercase tracking-widest transition-colors group-hover:text-cream">
+          <div className="flex items-center gap-2 text-cream/80 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
             <span>{t("viewProject")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
@@ -89,7 +89,7 @@ export function FeaturedWork() {
   const featured = projects.slice(0, 5);
 
   return (
-    <section className="relative bg-charcoal py-32">
+    <section className="relative bg-background py-32">
       {/* Section Header */}
       <div className="mx-auto mb-16 max-w-7xl px-6">
         <motion.div
@@ -98,13 +98,13 @@ export function FeaturedWork() {
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
         >
-          <p className="mb-4 text-cream/60 text-sm uppercase tracking-widest">
+          <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
             {tf("label")}
           </p>
           <div className="flex items-end justify-between">
-            <h2 className="text-cream">{tf("title")}</h2>
+            <h2 className="text-foreground">{tf("title")}</h2>
             <Link
-              className="hidden items-center gap-2 text-cream/60 text-sm uppercase tracking-widest transition-colors hover:text-cream md:flex"
+              className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
               href="/vision"
             >
               <span>{t("viewAll")}</span>
@@ -137,7 +137,7 @@ export function FeaturedWork() {
       {/* Mobile View All Link */}
       <div className="mt-8 text-center md:hidden">
         <Link
-          className="inline-flex items-center gap-2 text-cream/60 text-sm uppercase tracking-widest transition-colors hover:text-cream"
+          className="inline-flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
           href="/vision"
         >
           <span>{t("viewAllProjects")}</span>

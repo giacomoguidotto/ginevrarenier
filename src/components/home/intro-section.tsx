@@ -28,7 +28,7 @@ export function IntroSection() {
   );
 
   return (
-    <section className="relative bg-background py-32" ref={sectionRef}>
+    <section className="relative bg-charcoal py-32 text-cream" ref={sectionRef}>
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
           {/* Text Content */}
@@ -41,12 +41,12 @@ export function IntroSection() {
           >
             <EditableText
               as="p"
-              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+              className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
               {...bind("label")}
             />
             <EditableText
               as="h2"
-              className="mb-8 text-foreground"
+              className="mb-8 text-cream"
               multiline
               {...bind("title")}
               renderDisplay={(text) => {
@@ -62,13 +62,13 @@ export function IntroSection() {
                 );
               }}
             />
-            <div className="space-y-6 text-lg text-muted-foreground">
+            <div className="space-y-6 text-cream/70 text-lg">
               <EditableText as="p" multiline {...bind("paragraph1")} />
               <EditableText as="p" multiline {...bind("paragraph2")} />
             </div>
             <div className="mt-10">
               <Link
-                className="group inline-flex items-center gap-2 text-foreground text-sm uppercase tracking-widest transition-colors hover:text-foreground/70"
+                className="group inline-flex items-center gap-2 text-cream text-sm uppercase tracking-widest transition-colors hover:text-cream/70"
                 href="/essence"
               >
                 <EditableText as="span" {...bind("cta")} />
