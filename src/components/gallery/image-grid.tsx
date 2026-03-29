@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
-type ImageGridProps = {
+interface ImageGridProps {
   images: { url: string; id: string }[];
-  onImageClick: (index: number) => void;
   onHoverChange?: (isHovering: boolean) => void;
-};
+  onImageClick: (index: number) => void;
+}
 
 export function ImageGrid({
   images,

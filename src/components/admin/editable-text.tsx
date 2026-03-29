@@ -21,7 +21,7 @@ function StaleIndicator({ locale }: { locale: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="-top-1 -right-1 absolute h-2 w-2 rounded-full bg-amber-400" />
+        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-400" />
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>
         Missing {locale.toUpperCase()} translation
@@ -79,18 +79,18 @@ function EditInput({
   return <input type="text" {...sharedProps} />;
 }
 
-type EditableTextProps = {
-  value: { en: string; it: string } | undefined;
-  onChange: (value: { en: string; it: string }) => void;
-  /** "section:key" identifier for per-field stale tracking */
-  fieldId?: string;
+interface EditableTextProps {
   as?: "p" | "h1" | "h2" | "h3" | "span" | "blockquote";
   className?: string;
+  /** "section:key" identifier for per-field stale tracking */
+  fieldId?: string;
   multiline?: boolean;
+  onChange: (value: { en: string; it: string }) => void;
   placeholder?: string;
   /** Custom render for display mode text. Receives the localized string. */
   renderDisplay?: (text: string) => React.ReactNode;
-};
+  value: { en: string; it: string } | undefined;
+}
 
 export function EditableText({
   value,
@@ -158,7 +158,7 @@ export function EditableText({
 
   return (
     <Tag
-      className={`${className} -mx-1 relative cursor-text rounded px-1 transition-colors hover:ring-1 hover:ring-foreground/20`}
+      className={`${className} relative -mx-1 cursor-text rounded px-1 transition-colors hover:ring-1 hover:ring-foreground/20`}
       onClick={() => setEditing(true)}
       onKeyDown={(e) => {
         if (e.key === "Enter") {

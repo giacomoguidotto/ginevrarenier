@@ -1,11 +1,11 @@
 "use client";
 
-type PlaceholderImageProps = {
-  width?: number;
+interface PlaceholderImageProps {
+  className?: string;
   height?: number;
   text?: string;
-  className?: string;
-};
+  width?: number;
+}
 
 export function PlaceholderImage({
   width = 800,

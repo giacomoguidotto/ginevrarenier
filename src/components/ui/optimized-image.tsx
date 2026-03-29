@@ -23,7 +23,7 @@ export function OptimizedImage({
   return (
     <div
       className={cn("overflow-hidden", className)}
-      style={aspectRatio !== undefined ? { aspectRatio } : {}}
+      style={aspectRatio === undefined ? {} : { aspectRatio }}
     >
       <Image
         {...props}

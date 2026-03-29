@@ -12,9 +12,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-type Props = {
+interface Props {
   children: ReactNode;
-};
+}
 
 export default function RootLayout({ children }: Props) {
   return (

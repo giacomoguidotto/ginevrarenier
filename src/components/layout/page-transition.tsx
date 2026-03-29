@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { pageTransition } from "@/lib/animations";
 
-type PageTransitionProps = {
+interface PageTransitionProps {
   children: ReactNode;
   className?: string;
-};
+}
 
 export function PageTransition({ children, className }: PageTransitionProps) {
   return (

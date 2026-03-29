@@ -5,14 +5,14 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect } from "react";
 
-type ImageModalProps = {
-  images: { url: string; id: string }[];
+interface ImageModalProps {
   currentIndex: number;
+  images: { url: string; id: string }[];
   isOpen: boolean;
   onClose: () => void;
-  onPrevious: () => void;
   onNext: () => void;
-};
+  onPrevious: () => void;
+}
 
 export function ImageModal({
   images,
@@ -51,7 +51,6 @@ export function ImageModal({
 
   return (
     <AnimatePresence>
-      {/* biome-ignore lint/nursery/noLeakedRender: isOpen is always boolean */}
       {isOpen && currentImage !== undefined ? (
         <motion.div
           animate={{ opacity: 1 }}
@@ -118,7 +117,7 @@ export function ImageModal({
           </motion.div>
 
           {/* Counter */}
-          <div className="-translate-x-1/2 absolute bottom-6 left-1/2 text-muted-foreground text-sm">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-muted-foreground text-sm">
             {currentIndex + 1} / {images.length}
           </div>
         </motion.div>

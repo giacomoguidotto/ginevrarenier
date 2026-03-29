@@ -4,9 +4,9 @@ import { Hero } from "@/components/home/hero";
 import { IntroSection } from "@/components/home/intro-section";
 import { Testimonial } from "@/components/home/testimonial";
 
-type Props = {
+interface Props {
   params: Promise<{ locale: string }>;
-};
+}
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;

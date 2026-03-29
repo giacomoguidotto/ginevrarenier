@@ -12,7 +12,10 @@ import { useEditMode } from "./edit-mode-context";
 
 const STORAGE_KEY = "edit-toolbar-position";
 
-type Position = { x: number; y: number };
+interface Position {
+  x: number;
+  y: number;
+}
 
 function clampPosition(pos: Position): Position {
   if (typeof window === "undefined") {
@@ -39,12 +42,12 @@ function getInitialPosition(): Position {
   return { x: 20, y: window.innerHeight - 80 };
 }
 
-type EditToolbarProps = {
-  hasChanges: boolean;
+interface EditToolbarProps {
   editedLocales: Set<string>;
-  onSave: () => void;
+  hasChanges: boolean;
   onDiscard: () => void;
-};
+  onSave: () => void;
+}
 
 function ToolbarButton({
   children,
@@ -210,7 +213,7 @@ export function EditToolbar({
             EN
           </span>
           {enNeedsAttention ? (
-            <span className="-top-1 -right-1.5 absolute h-1.5 w-1.5 rounded-full bg-amber-400" />
+            <span className="absolute -top-1 -right-1.5 h-1.5 w-1.5 rounded-full bg-amber-400" />
           ) : null}
         </span>
         <span className="text-foreground/20">|</span>
@@ -223,7 +226,7 @@ export function EditToolbar({
             IT
           </span>
           {itNeedsAttention ? (
-            <span className="-top-1 -right-1.5 absolute h-1.5 w-1.5 rounded-full bg-amber-400" />
+            <span className="absolute -top-1 -right-1.5 h-1.5 w-1.5 rounded-full bg-amber-400" />
           ) : null}
         </span>
       </ToolbarButton>
