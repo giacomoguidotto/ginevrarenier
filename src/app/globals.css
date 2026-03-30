@@ -167,14 +167,3 @@ img {
 img[data-loading="true"] {
   opacity: 0;
 }
-
-/* Edit mode — lines injected as DOM elements by edit-mode-lines.tsx */
-
-/* Ensure images and media sit above the architectural lines (z-index: 1) */
-body.edit-mode img,
-body.edit-mode video,
-body.edit-mode figure,
-body.edit-mode [data-slot="editable-image"] {
-  position: relative;
-  z-index: 2;
-}
