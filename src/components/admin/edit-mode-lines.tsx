@@ -342,7 +342,7 @@ export function EditModeLines() {
 
           return (
             <line
-              key={`${line.x1}-${line.y1}-${line.x2}-${line.y2}`}
+              key={`${line.x1}-${line.y1}-${line.x2}-${line.y2}-${line.staggerKey}`}
               stroke="currentColor"
               strokeWidth="1"
               style={{
