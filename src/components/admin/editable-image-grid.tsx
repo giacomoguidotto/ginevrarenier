@@ -114,16 +114,18 @@ function TrashDropZone({ active }: { active: boolean }) {
     return null;
   }
   return (
-    <div
-      className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-4 text-sm transition-colors ${
-        isOver
-          ? "border-red-400 bg-red-500/10 text-red-400"
-          : "border-foreground/15 text-foreground/40"
-      }`}
-      ref={setNodeRef}
-    >
-      <Trash2 className="h-4 w-4" />
-      <span>Drop to delete</span>
+    <div className="pointer-events-auto fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
+      <div
+        className={`flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-lg backdrop-blur-md transition-all ${
+          isOver
+            ? "scale-110 border-red-400 bg-red-500/20 text-red-400"
+            : "border-foreground/20 bg-background/80 text-foreground/50"
+        } border`}
+        ref={setNodeRef}
+      >
+        <Trash2 className="h-4 w-4" />
+        <span>Drop to delete</span>
+      </div>
     </div>
   );
 }
@@ -134,16 +136,18 @@ function CoverDropZone({ active }: { active: boolean }) {
     return null;
   }
   return (
-    <div
-      className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-4 text-sm transition-colors ${
-        isOver
-          ? "border-foreground/40 bg-foreground/10 text-foreground"
-          : "border-foreground/15 text-foreground/40"
-      }`}
-      ref={setNodeRef}
-    >
-      <ImageIcon className="h-4 w-4" />
-      <span>Drop to set as cover</span>
+    <div className="pointer-events-auto fixed top-6 left-1/2 z-50 -translate-x-1/2">
+      <div
+        className={`flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-lg backdrop-blur-md transition-all ${
+          isOver
+            ? "scale-110 border-foreground/40 bg-foreground/15 text-foreground"
+            : "border-foreground/20 bg-background/80 text-foreground/50"
+        } border`}
+        ref={setNodeRef}
+      >
+        <ImageIcon className="h-4 w-4" />
+        <span>Drop to set as cover</span>
+      </div>
     </div>
   );
 }
@@ -282,10 +286,8 @@ export function EditableImageGrid({
         onDragStart={handleDragStart}
         sensors={sensors}
       >
-        {/* Cover drop zone — top */}
-        <div className="mb-4">
-          <CoverDropZone active={isDragging} />
-        </div>
+        {/* Drop zones — fixed to viewport edges */}
+        <CoverDropZone active={isDragging} />
 
         <SortableContext
           items={images.map((img) => img._id)}
@@ -316,10 +318,7 @@ export function EditableImageGrid({
           </div>
         </SortableContext>
 
-        {/* Trash drop zone — bottom */}
-        <div className="mt-4">
-          <TrashDropZone active={isDragging} />
-        </div>
+        <TrashDropZone active={isDragging} />
 
         <DragOverlay>
           {activeImage ? (
