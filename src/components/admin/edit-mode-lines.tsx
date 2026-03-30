@@ -244,8 +244,18 @@ export function EditModeLines() {
   const _docHeight =
     typeof document === "undefined" ? 0 : document.documentElement.scrollHeight;
 
-  // Sort lines by stagger key and assign delays
-  const sorted = [...lines].sort((a, b) => a.staggerKey - b.staggerKey);
+  // Deduplicate and sort lines by stagger key
+  const seen = new Set<string>();
+  const sorted = [...lines]
+    .sort((a, b) => a.staggerKey - b.staggerKey)
+    .filter((l) => {
+      const key = `${l.x1},${l.y1},${l.x2},${l.y2}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
   const maxStagger = sorted.length > 0 ? (sorted.at(-1)?.staggerKey ?? 1) : 1;
   const isEntering = phase === "entering";
   const isExiting = phase === "exiting";
