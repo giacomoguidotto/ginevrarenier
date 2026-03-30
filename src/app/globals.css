@@ -168,4 +168,141 @@ img[data-loading="true"] {
   opacity: 0;
 }
 
-/* Edit mode — architectural lines are rendered via SVG overlay */
+/* ══════════════════════════════════════════════════════════
+   Edit mode — Architectural section drawing aesthetic
+   Pure CSS, zero CLS, scrolls naturally with the DOM.
+   ══════════════════════════════════════════════════════════ */
+
+:root {
+  --line: oklch(from var(--foreground) l c h / 0.1);
+  --line-strong: oklch(from var(--foreground) l c h / 0.15);
+  --hatch-color: oklch(from var(--foreground) l c h / 0.06);
+}
+
+/* ── Section boundaries ── */
+/* Full-width horizontal lines at section top/bottom + hatching separator */
+body.edit-mode section {
+  position: relative;
+  outline: 1px solid var(--line-strong);
+  outline-offset: -1px;
+}
+
+/* Hatching strip between sections — rendered as a pseudo-element */
+body.edit-mode section::before {
+  position: absolute;
+  top: -9px;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  display: block;
+  height: 16px;
+  pointer-events: none;
+  content: "";
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--hatch-color) 0px,
+    var(--hatch-color) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+body.edit-mode section::before {
+  opacity: 1;
+}
+
+/* ── Editable fields ── */
+/* Horizontal lines extending from top and bottom edges to viewport edges,
+   interrupted at the field. Uses box-shadow for zero layout impact. */
+body.edit-mode .editable-field {
+  position: relative;
+  box-shadow:
+    -100vw 0 0 0 transparent,
+    100vw 0 0 0 transparent;
+}
+
+/* Top edge line — extends left and right */
+body.edit-mode .editable-field::before {
+  position: absolute;
+  top: 0;
+  right: -100vw;
+  left: -100vw;
+  z-index: 1;
+  display: block;
+  height: 0;
+  pointer-events: none;
+  content: "";
+  border-top: 1px solid var(--line);
+}
+
+/* Bottom edge line — extends left and right */
+body.edit-mode .editable-field::after {
+  position: absolute;
+  right: -100vw;
+  bottom: 0;
+  left: -100vw;
+  z-index: 1;
+  display: block;
+  height: 0;
+  pointer-events: none;
+  content: "";
+  border-top: 1px solid var(--line);
+}
+
+/* Left and right vertical lines — uses outline which doesn't affect layout */
+body.edit-mode .editable-field {
+  outline: 1px solid var(--line);
+  outline-offset: 0px;
+}
+
+/* ── Viewport edge hatching ── */
+/* Uses fixed pseudo-elements on body so no layout impact */
+body.edit-mode::before,
+body.edit-mode::after {
+  position: fixed;
+  top: 0;
+  z-index: 41;
+  display: block;
+  width: 20px;
+  height: 100vh;
+  pointer-events: none;
+  content: "";
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--hatch-color) 0px,
+    var(--hatch-color) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+body.edit-mode::before {
+  left: 0;
+}
+
+body.edit-mode::after {
+  right: 0;
+}
+
+/* ── Transitions ── */
+body.edit-mode section,
+body.edit-mode .editable-field,
+body.edit-mode .editable-field::before,
+body.edit-mode .editable-field::after,
+body.edit-mode main {
+  animation: edit-fade-in 0.4s ease-out;
+}
+
+@keyframes edit-fade-in {
+  from {
+    border-color: transparent;
+    outline-color: transparent;
+  }
+}
+
+/* Editing state — subtle accent when contentEditable is active */
+body.edit-mode .editable-field[contenteditable="true"] {
+  outline: 1px solid oklch(from var(--foreground) l c h / 0.25);
+}
