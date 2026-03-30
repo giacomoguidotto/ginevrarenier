@@ -124,7 +124,7 @@ function TrashDropZone({ active }: { active: boolean }) {
         ref={setNodeRef}
       >
         <Trash2 className="h-4 w-4" />
-        <span>Drop to delete</span>
+        <span>Delete</span>
       </div>
     </div>
   );
@@ -146,7 +146,7 @@ function CoverDropZone({ active }: { active: boolean }) {
         ref={setNodeRef}
       >
         <ImageIcon className="h-4 w-4" />
-        <span>Drop to set as cover</span>
+        <span>Set as cover</span>
       </div>
     </div>
   );
