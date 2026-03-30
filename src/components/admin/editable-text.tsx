@@ -166,7 +166,7 @@ export function EditableText({
 
   return (
     <Tag
-      className={`${className} relative -mx-1 cursor-text rounded px-1 transition-colors hover:ring-1 hover:ring-foreground/20`}
+      className={`${className} editable-field relative cursor-text`}
       onClick={() => setEditing(true)}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
