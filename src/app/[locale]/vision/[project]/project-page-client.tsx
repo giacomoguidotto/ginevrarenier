@@ -94,6 +94,7 @@ export function ProjectPageClient() {
                 onChange={(v) =>
                   updateProject({ id: project._id, category: v })
                 }
+                placeholder="Enter category..."
                 value={project.category}
               />
             </motion.div>
@@ -106,6 +107,7 @@ export function ProjectPageClient() {
                 as="h1"
                 className="mb-6 text-foreground"
                 onChange={(v) => updateProject({ id: project._id, title: v })}
+                placeholder="Enter title..."
                 value={project.title}
               />
             </motion.div>
@@ -121,6 +123,7 @@ export function ProjectPageClient() {
                 onChange={(v) =>
                   updateProject({ id: project._id, description: v })
                 }
+                placeholder="Enter description..."
                 value={project.description}
               />
             </motion.div>
