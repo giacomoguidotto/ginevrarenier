@@ -6,7 +6,8 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
-import { useAnimationReady } from "@/components/admin/animation-ready-context";
+import { useEditMode } from "@/components/admin/edit-mode-context";
+import { injectSectionLines } from "@/components/admin/edit-mode-lines";
 import { Link } from "@/i18n/routing";
 import { useLocalized, useProjects } from "@/lib/hooks";
 
@@ -86,17 +87,24 @@ export function FeaturedWork() {
   const t = useTranslations("common");
   const tf = useTranslations("home.featured");
   const { projects } = useProjects();
-  const { signalReady } = useAnimationReady();
+  const { isEditMode } = useEditMode();
+  const sectionRef = useRef<HTMLElement>(null);
 
-  // Signal immediately — this section uses whileInView (below fold)
+  // Inject lines immediately — this section uses whileInView (no enter anim on mount)
   useEffect(() => {
-    signalReady();
-  }, [signalReady]);
+    if (isEditMode && sectionRef.current) {
+      requestAnimationFrame(() => {
+        if (sectionRef.current) {
+          injectSectionLines(sectionRef.current);
+        }
+      });
+    }
+  }, [isEditMode]);
 
   const featured = projects.slice(0, 5);
 
   return (
-    <section className="relative bg-background py-32">
+    <section className="relative bg-background py-32" ref={sectionRef}>
       {/* Section Header */}
       <div className="mx-auto mb-16 max-w-7xl px-6">
         <motion.div

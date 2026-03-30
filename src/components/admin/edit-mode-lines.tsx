@@ -1,8 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useAnimationReady } from "./animation-ready-context";
+import { useCallback, useEffect, useRef } from "react";
 import { useEditMode } from "./edit-mode-context";
 
 const LINE_COLOR = "oklch(from var(--foreground) l c h / 0.1)";
@@ -10,9 +9,6 @@ const LINE_STRONG = "oklch(from var(--foreground) l c h / 0.15)";
 const HATCH_COLOR = "oklch(from var(--foreground) l c h / 0.1)";
 const ANIM_DURATION = 400;
 
-/**
- * Creates a horizontal line div (full width of parent, 1px tall, absolute).
- */
 function createHLine(
   topPx: number,
   color: string,
@@ -21,19 +17,12 @@ function createHLine(
   const el = document.createElement("div");
   el.className = "arch-line";
   el.style.cssText = `
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: ${topPx}px;
-    height: 0;
-    border-top: 1px solid ${color};
-    pointer-events: none;
-    z-index: 1;
-    transform-origin: left;
-    transform: scaleX(0);
+    position: absolute; left: 0; right: 0; top: ${topPx}px;
+    height: 0; border-top: 1px solid ${color};
+    pointer-events: none; z-index: 1;
+    transform-origin: left; transform: scaleX(0);
     transition: transform ${ANIM_DURATION * 0.4}ms ease-out ${delay}ms;
   `;
-  // Trigger animation
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       el.style.transform = "scaleX(1)";
@@ -42,9 +31,6 @@ function createHLine(
   return el;
 }
 
-/**
- * Creates a vertical line div (full height of parent, 1px wide, absolute).
- */
 function createVLine(
   leftPx: number,
   color: string,
@@ -53,16 +39,10 @@ function createVLine(
   const el = document.createElement("div");
   el.className = "arch-line";
   el.style.cssText = `
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: ${leftPx}px;
-    width: 0;
-    border-left: 1px solid ${color};
-    pointer-events: none;
-    z-index: 1;
-    transform-origin: top;
-    transform: scaleY(0);
+    position: absolute; top: 0; bottom: 0; left: ${leftPx}px;
+    width: 0; border-left: 1px solid ${color};
+    pointer-events: none; z-index: 1;
+    transform-origin: top; transform: scaleY(0);
     transition: transform ${ANIM_DURATION * 0.4}ms ease-out ${delay}ms;
   `;
   requestAnimationFrame(() => {
@@ -74,31 +54,124 @@ function createVLine(
 }
 
 /**
- * Creates the hatching strips on viewport left/right edges (fixed).
+ * Inject architectural lines for a single section element.
+ * Call this when the section's enter animations have completed.
  */
+export function injectSectionLines(section: HTMLElement): HTMLElement[] {
+  const lines: HTMLElement[] = [];
+  const vw = window.innerWidth;
+  const sectionH = section.scrollHeight;
+
+  const computed = getComputedStyle(section);
+  if (computed.position === "static") {
+    section.style.position = "relative";
+    section.setAttribute("data-arch-positioned", "true");
+  }
+
+  const sectionRect = section.getBoundingClientRect();
+
+  // Stagger within section: normalize Y to 0-200ms, X to 0-200ms
+  const yDelay = (y: number) => (y / sectionH) * 200;
+  const xDelay = (x: number) => (x / vw) * 200;
+
+  // Section top boundary line
+  lines.push(section.appendChild(createHLine(0, LINE_STRONG, 0)));
+
+  // Editable fields
+  const fields = section.querySelectorAll(".editable-field");
+  for (const field of fields) {
+    if (field.closest("a") || field.closest("button")) {
+      continue;
+    }
+    const r = field.getBoundingClientRect();
+    const relTop = r.top - sectionRect.top + section.scrollTop;
+    const relBottom = relTop + r.height;
+    const relLeft = r.left - sectionRect.left;
+    const relRight = relLeft + r.width;
+
+    lines.push(
+      section.appendChild(createHLine(relTop, LINE_COLOR, yDelay(relTop)))
+    );
+    lines.push(
+      section.appendChild(createHLine(relBottom, LINE_COLOR, yDelay(relBottom)))
+    );
+    lines.push(
+      section.appendChild(createVLine(relLeft, LINE_COLOR, xDelay(relLeft)))
+    );
+    lines.push(
+      section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
+    );
+  }
+
+  // Buttons/links containing editable fields
+  const buttons = section.querySelectorAll(
+    "a:has(.editable-field), button:has(.editable-field)"
+  );
+  for (const btn of buttons) {
+    const r = btn.getBoundingClientRect();
+    const relTop = r.top - sectionRect.top + section.scrollTop;
+    const relBottom = relTop + r.height;
+    const relLeft = r.left - sectionRect.left;
+    const relRight = relLeft + r.width;
+
+    lines.push(
+      section.appendChild(createHLine(relTop, LINE_COLOR, yDelay(relTop)))
+    );
+    lines.push(
+      section.appendChild(createHLine(relBottom, LINE_COLOR, yDelay(relBottom)))
+    );
+    lines.push(
+      section.appendChild(createVLine(relLeft, LINE_COLOR, xDelay(relLeft)))
+    );
+    lines.push(
+      section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
+    );
+  }
+
+  // Hatching separator at section bottom — appended to main to avoid overflow clip
+  const mainEl = section.closest("main");
+  if (mainEl) {
+    const mainRect = mainEl.getBoundingClientRect();
+    const bottomPos = sectionRect.bottom - mainRect.top + window.scrollY;
+
+    const hatch = document.createElement("div");
+    hatch.className = "arch-line";
+    hatch.style.cssText = `
+      position: absolute; left: 0; right: 0; top: ${bottomPos - 8}px;
+      height: 16px; pointer-events: none; z-index: 2;
+      background-color: var(--background);
+      background-image: repeating-linear-gradient(45deg,
+        ${LINE_COLOR} 0px, ${LINE_COLOR} 1px, transparent 1px, transparent 4px);
+      opacity: 0; transition: opacity ${ANIM_DURATION}ms ease;
+    `;
+    // Ensure main is positioned
+    if (getComputedStyle(mainEl).position === "static") {
+      mainEl.style.position = "relative";
+      mainEl.setAttribute("data-arch-positioned", "true");
+    }
+    requestAnimationFrame(() => {
+      hatch.style.opacity = "1";
+    });
+    mainEl.appendChild(hatch);
+    lines.push(hatch);
+  }
+
+  return lines;
+}
+
 function createHatching(): HTMLDivElement[] {
   const strips: HTMLDivElement[] = [];
   for (const side of ["left", "right"] as const) {
     const el = document.createElement("div");
     el.className = "arch-hatch";
     el.style.cssText = `
-      position: fixed;
-      top: 0;
-      ${side}: 0;
-      width: 20px;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 41;
+      position: fixed; top: 0; ${side}: 0;
+      width: 20px; height: 100vh;
+      pointer-events: none; z-index: 41;
       background-color: var(--background);
-      background-image: repeating-linear-gradient(
-        45deg,
-        ${HATCH_COLOR} 0px,
-        ${HATCH_COLOR} 1px,
-        transparent 1px,
-        transparent 4px
-      );
-      opacity: 0;
-      transition: opacity ${ANIM_DURATION}ms ease;
+      background-image: repeating-linear-gradient(45deg,
+        ${HATCH_COLOR} 0px, ${HATCH_COLOR} 1px, transparent 1px, transparent 4px);
+      opacity: 0; transition: opacity ${ANIM_DURATION}ms ease;
     `;
     requestAnimationFrame(() => {
       el.style.opacity = "1";
@@ -108,165 +181,23 @@ function createHatching(): HTMLDivElement[] {
   return strips;
 }
 
-function injectLines() {
-  const sections = document.querySelectorAll("section");
-  const allLines: HTMLElement[] = [];
-  const docHeight = document.documentElement.scrollHeight;
-  const vw = window.innerWidth;
-  const staggerMax = ANIM_DURATION * 0.6;
-
-  for (const section of sections) {
-    // Ensure section is positioned for absolute children
-    const computed = getComputedStyle(section);
-    if (computed.position === "static") {
-      section.style.position = "relative";
-      section.setAttribute("data-arch-positioned", "true");
-    }
-
-    const sectionRect = section.getBoundingClientRect();
-    const sectionAbsTop = sectionRect.top + window.scrollY;
-
-    // Delay based on Y position (top-to-bottom)
-    const yDelay = (y: number) =>
-      ((sectionAbsTop + y) / docHeight) * staggerMax;
-    // Delay based on X position (left-to-right)
-    const xDelay = (x: number) => (x / vw) * staggerMax;
-
-    // Section top boundary line only — bottom is replaced by hatching
-    const topLine = createHLine(0, LINE_STRONG, yDelay(0));
-    section.appendChild(topLine);
-    allLines.push(topLine);
-
-    // Find editable fields — skip those inside a button/link (handled separately)
-    const fields = section.querySelectorAll(".editable-field");
-    for (const field of fields) {
-      if (field.closest("a") || field.closest("button")) {
-        continue;
-      }
-      const fieldRect = field.getBoundingClientRect();
-      const relTop = fieldRect.top - sectionRect.top + section.scrollTop;
-      const relBottom = relTop + fieldRect.height;
-      const relLeft = fieldRect.left - sectionRect.left;
-      const relRight = relLeft + fieldRect.width;
-
-      // Horizontal lines — delay by Y position
-      allLines.push(
-        section.appendChild(createHLine(relTop, LINE_COLOR, yDelay(relTop)))
-      );
-      allLines.push(
-        section.appendChild(
-          createHLine(relBottom, LINE_COLOR, yDelay(relBottom))
-        )
-      );
-
-      // Vertical lines — delay by X position
-      allLines.push(
-        section.appendChild(createVLine(relLeft, LINE_COLOR, xDelay(relLeft)))
-      );
-      allLines.push(
-        section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
-      );
-    }
-
-    // Also find buttons/links with editable-field children and draw from the button edges
-    const buttons = section.querySelectorAll(
-      "a:has(.editable-field), button:has(.editable-field)"
-    );
-    for (const btn of buttons) {
-      const btnRect = btn.getBoundingClientRect();
-      const relTop = btnRect.top - sectionRect.top + section.scrollTop;
-      const relBottom = relTop + btnRect.height;
-      const relLeft = btnRect.left - sectionRect.left;
-      const relRight = relLeft + btnRect.width;
-
-      allLines.push(
-        section.appendChild(createHLine(relTop, LINE_COLOR, yDelay(relTop)))
-      );
-      allLines.push(
-        section.appendChild(
-          createHLine(relBottom, LINE_COLOR, yDelay(relBottom))
-        )
-      );
-      allLines.push(
-        section.appendChild(createVLine(relLeft, LINE_COLOR, xDelay(relLeft)))
-      );
-      allLines.push(
-        section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
-      );
+function cleanupAll() {
+  const existing = document.querySelectorAll(".arch-line, .arch-hatch");
+  for (const el of existing) {
+    // Animate out
+    if ((el as HTMLElement).style.transform?.includes("scaleX")) {
+      (el as HTMLElement).style.transform = "scaleX(0)";
+    } else if ((el as HTMLElement).style.transform?.includes("scaleY")) {
+      (el as HTMLElement).style.transform = "scaleY(0)";
+    } else {
+      (el as HTMLElement).style.opacity = "0";
     }
   }
-
-  // Hatching separators between sections — appended to body at absolute positions
-  const mainEl = document.querySelector("main");
-  if (mainEl) {
-    const mainStyle = getComputedStyle(mainEl);
-    if (mainStyle.position === "static") {
-      mainEl.style.position = "relative";
-      mainEl.setAttribute("data-arch-positioned", "true");
-    }
-    const mainRect = mainEl.getBoundingClientRect();
-
-    for (const section of sections) {
-      const rect = section.getBoundingClientRect();
-      const bottomPos = rect.bottom - mainRect.top + window.scrollY;
-
-      const hatchSep = document.createElement("div");
-      hatchSep.className = "arch-line";
-      hatchSep.style.cssText = `
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: ${bottomPos - 8}px;
-        height: 16px;
-        pointer-events: none;
-        z-index: 2;
-        background-color: var(--background);
-        background-image: repeating-linear-gradient(
-          45deg,
-          ${LINE_COLOR} 0px,
-          ${LINE_COLOR} 1px,
-          transparent 1px,
-          transparent 4px
-        );
-        opacity: 0;
-        transition: opacity ${ANIM_DURATION}ms ease;
-      `;
-      requestAnimationFrame(() => {
-        hatchSep.style.opacity = "1";
-      });
-      mainEl.appendChild(hatchSep);
-      allLines.push(hatchSep);
-    }
-  }
-
-  // Hatching on viewport edges
-  const hatches = createHatching();
-  for (const h of hatches) {
-    document.body.appendChild(h);
-    allLines.push(h);
-  }
-
-  return allLines;
-}
-
-function removeLines(lines: HTMLElement[]) {
-  // Animate out
-  for (const el of lines) {
-    if (el.classList.contains("arch-hatch")) {
-      el.style.opacity = "0";
-    } else if (el.style.transform?.includes("scaleX")) {
-      el.style.transform = "scaleX(0)";
-    } else if (el.style.transform?.includes("scaleY")) {
-      el.style.transform = "scaleY(0)";
-    }
-  }
-
-  // Remove after animation
   setTimeout(() => {
-    for (const el of lines) {
+    const toRemove = document.querySelectorAll(".arch-line, .arch-hatch");
+    for (const el of toRemove) {
       el.remove();
     }
-    // Clean up position overrides
     const positioned = document.querySelectorAll("[data-arch-positioned]");
     for (const el of positioned) {
       (el as HTMLElement).style.position = "";
@@ -287,48 +218,45 @@ function cleanupImmediate() {
   }
 }
 
+/**
+ * Global component that manages hatching + cleanup.
+ * Individual sections inject their own lines via injectSectionLines().
+ */
 export function EditModeLines() {
   const { isEditMode } = useEditMode();
-  const { settled } = useAnimationReady();
   const pathname = usePathname();
-  const linesRef = useRef<HTMLElement[]>([]);
-  const [wasEditMode, setWasEditMode] = useState(false);
+  const hatchRef = useRef<HTMLElement[]>([]);
 
-  const inject = useCallback(() => {
-    cleanupImmediate();
-    linesRef.current = injectLines();
+  const injectHatching = useCallback(() => {
+    const hatches = createHatching();
+    for (const h of hatches) {
+      document.body.appendChild(h);
+    }
+    hatchRef.current = hatches;
   }, []);
 
-  // Inject lines when edit mode is active AND animations have settled
+  // Hatching on enter/exit
   useEffect(() => {
-    if (isEditMode && settled && !wasEditMode) {
-      requestAnimationFrame(() => {
-        inject();
-      });
-      setWasEditMode(true);
-    } else if (!isEditMode && wasEditMode) {
-      removeLines(linesRef.current);
-      linesRef.current = [];
-      setWasEditMode(false);
+    if (isEditMode) {
+      injectHatching();
+    } else {
+      cleanupAll();
+      hatchRef.current = [];
     }
-  }, [isEditMode, settled, wasEditMode, inject]);
+  }, [isEditMode, injectHatching]);
 
-  // Re-inject lines on page navigation
+  // Cleanup on page navigation
   useEffect(() => {
-    // pathname is used as a trigger to re-run when the route changes
     const _route = pathname;
-    if (isEditMode && _route) {
-      // Wait for new page content to render
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          cleanupImmediate();
-          linesRef.current = injectLines();
-        });
-      });
+    if (_route) {
+      cleanupImmediate();
+      if (isEditMode) {
+        injectHatching();
+      }
     }
-  }, [pathname, isEditMode]);
+  }, [pathname, isEditMode, injectHatching]);
 
-  // Also keep body class for any remaining hooks
+  // Body class
   useEffect(() => {
     if (isEditMode) {
       document.body.classList.add("edit-mode");
@@ -343,10 +271,7 @@ export function EditModeLines() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      const existing = document.querySelectorAll(".arch-line, .arch-hatch");
-      for (const el of existing) {
-        el.remove();
-      }
+      cleanupImmediate();
     };
   }, []);
 
