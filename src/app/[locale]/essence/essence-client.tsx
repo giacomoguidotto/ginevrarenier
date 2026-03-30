@@ -5,6 +5,7 @@ import { ArrowRight, Award, Camera, Globe } from "lucide-react";
 import { useCallback, useRef } from "react";
 import { EditableImage } from "@/components/admin/editable-image";
 import { EditableText } from "@/components/admin/editable-text";
+import { useSectionLines } from "@/components/admin/use-section-lines";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
 import { useEditableSiteContent } from "@/lib/use-editable-content";
@@ -23,6 +24,15 @@ export function EssenceClient() {
 
   const imageY = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, 50]);
+
+  const achievementsRef = useRef<HTMLElement>(null);
+  const timelineRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLElement>(null);
+
+  const { onSectionReady: onHeroReady } = useSectionLines(heroRef);
+  const { onSectionReady: onAchReady } = useSectionLines(achievementsRef);
+  const { onSectionReady: onTlReady } = useSectionLines(timelineRef);
+  const { onSectionReady: onCtaReady } = useSectionLines(ctaRef);
 
   const hero = useEditableSiteContent("essence.hero");
   const ach = useEditableSiteContent("essence.achievements");
@@ -95,6 +105,7 @@ export function EssenceClient() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6 text-lg text-muted-foreground"
                 initial={{ opacity: 0, y: 20 }}
+                onAnimationComplete={onHeroReady}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
                 <EditableText as="p" multiline {...hero.bind("paragraph1")} />
@@ -107,7 +118,7 @@ export function EssenceClient() {
       </section>
 
       {/* Achievements */}
-      <section className="bg-charcoal py-24">
+      <section className="bg-charcoal py-24" ref={achievementsRef}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-8 md:grid-cols-3">
             {achievementKeys.map((key, index) => {
@@ -117,6 +128,11 @@ export function EssenceClient() {
                   className="text-center"
                   initial={{ opacity: 0, y: 40 }}
                   key={key}
+                  onAnimationComplete={
+                    index === achievementKeys.length - 1
+                      ? onAchReady
+                      : undefined
+                  }
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -140,7 +156,7 @@ export function EssenceClient() {
       </section>
 
       {/* Timeline */}
-      <section className="bg-charcoal py-24">
+      <section className="bg-charcoal py-24" ref={timelineRef}>
         <div className="mx-auto max-w-4xl px-6">
           <motion.div
             className="mb-16 text-center"
@@ -173,6 +189,9 @@ export function EssenceClient() {
                 }`}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
                 key={year}
+                onAnimationComplete={
+                  index === timelineYears.length - 1 ? onTlReady : undefined
+                }
                 transition={{ duration: 0.5 }}
                 viewport={{ once: true }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -207,7 +226,7 @@ export function EssenceClient() {
       </section>
 
       {/* CTA */}
-      <section className="py-24">
+      <section className="py-24" ref={ctaRef}>
         <div className="mx-auto max-w-4xl px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -235,6 +254,7 @@ export function EssenceClient() {
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
+            onAnimationComplete={onCtaReady}
             transition={{ delay: 0.2 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, y: 0 }}
