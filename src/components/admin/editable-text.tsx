@@ -74,7 +74,8 @@ function EditInput({
   };
 
   if (multiline) {
-    return <textarea rows={3} {...sharedProps} />;
+    const rows = Math.max(3, draft.split("\n").length + 1);
+    return <textarea rows={rows} {...sharedProps} />;
   }
   return <input type="text" {...sharedProps} />;
 }

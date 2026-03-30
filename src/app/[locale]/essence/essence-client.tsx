@@ -108,9 +108,23 @@ export function EssenceClient() {
                 onAnimationComplete={onHeroReady}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <EditableText as="p" multiline {...hero.bind("paragraph1")} />
-                <EditableText as="p" multiline {...hero.bind("paragraph2")} />
-                <EditableText as="p" multiline {...hero.bind("paragraph3")} />
+                <EditableText
+                  as="p"
+                  multiline
+                  {...hero.bind("bio")}
+                  renderDisplay={(text) => (
+                    <>
+                      {text.split("\n\n").map((para) => (
+                        <span
+                          className="mb-6 block last:mb-0"
+                          key={para.slice(0, 30)}
+                        >
+                          {para}
+                        </span>
+                      ))}
+                    </>
+                  )}
+                />
               </motion.div>
             </motion.div>
           </div>
