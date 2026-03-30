@@ -25,15 +25,19 @@ export default async function SignInPage({ params }: Props) {
             fontFamily: "var(--font-geist-sans)",
           },
           elements: {
-            card: "!shadow-none",
+            rootBox: "w-full max-w-md",
+            card: "!shadow-none !bg-transparent",
+            footer: "!bg-transparent",
+            footerAction: "!text-muted-foreground",
+            footerActionLink: "!text-foreground",
             formFieldLabel:
               "!text-muted-foreground !text-xs !uppercase !tracking-widest",
             formButtonPrimary:
               "!bg-primary !text-primary-foreground !uppercase !tracking-widest !text-sm !shadow-none",
-            footerActionLink: "!text-foreground",
             socialButtonsBlockButton: "!border-border !text-foreground",
             dividerLine: "!bg-border",
             dividerText: "!text-muted-foreground",
+            badge: "!bg-muted !text-muted-foreground !border-border",
           },
         }}
         fallbackRedirectUrl={`/${locale}`}
