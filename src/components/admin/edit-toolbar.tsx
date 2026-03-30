@@ -45,8 +45,8 @@ function getInitialPosition(): Position {
 interface EditToolbarProps {
   editedLocales: Set<string>;
   hasChanges: boolean;
-  onDiscard: () => void;
-  onSave: () => void;
+  onDiscard: () => void | Promise<void>;
+  onSave: () => void | Promise<void>;
 }
 
 function ToolbarButton({
@@ -84,6 +84,7 @@ export function EditToolbar({
     useEditMode();
   const { signOut } = useClerk();
 
+  const [loading, setLoading] = useState<"save" | "discard" | null>(null);
   const [position, setPosition] = useState<Position>(getInitialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{
@@ -237,18 +238,34 @@ export function EditToolbar({
           <ToolbarButton
             className="flex h-8 items-center gap-1.5 rounded-full bg-foreground/10 px-3 text-foreground text-xs transition-colors hover:bg-foreground/20"
             label="Save changes"
-            onClick={onSave}
+            onClick={async () => {
+              setLoading("save");
+              await onSave();
+              setLoading(null);
+            }}
           >
-            <Save className="h-3.5 w-3.5" />
+            {loading === "save" ? (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
             <span>Save</span>
           </ToolbarButton>
 
           <ToolbarButton
             className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 text-xs transition-colors hover:bg-foreground/10 hover:text-foreground"
             label="Discard changes"
-            onClick={onDiscard}
+            onClick={async () => {
+              setLoading("discard");
+              await onDiscard();
+              setLoading(null);
+            }}
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            {loading === "discard" ? (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
+            ) : (
+              <RotateCcw className="h-3.5 w-3.5" />
+            )}
             <span>Discard</span>
           </ToolbarButton>
         </>
