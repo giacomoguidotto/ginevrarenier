@@ -122,7 +122,6 @@ function injectLines() {
     }
 
     const sectionRect = section.getBoundingClientRect();
-    const sectionH = section.scrollHeight;
     const sectionAbsTop = sectionRect.top + window.scrollY;
 
     // Delay based on Y position (top-to-bottom)
@@ -131,40 +130,10 @@ function injectLines() {
     // Delay based on X position (left-to-right)
     const xDelay = (x: number) => (x / vw) * staggerMax;
 
-    // Section top/bottom boundary lines
+    // Section top boundary line only — bottom is replaced by hatching
     const topLine = createHLine(0, LINE_STRONG, yDelay(0));
-    const botLine = createHLine(sectionH, LINE_STRONG, yDelay(sectionH));
     section.appendChild(topLine);
-    section.appendChild(botLine);
-    allLines.push(topLine, botLine);
-
-    // Hatching separator at section bottom boundary
-    const hatchSep = document.createElement("div");
-    hatchSep.className = "arch-line";
-    hatchSep.style.cssText = `
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -8px;
-      height: 16px;
-      pointer-events: none;
-      z-index: 2;
-      background-color: var(--background);
-      background-image: repeating-linear-gradient(
-        45deg,
-        ${LINE_COLOR} 0px,
-        ${LINE_COLOR} 1px,
-        transparent 1px,
-        transparent 4px
-      );
-      opacity: 0;
-      transition: opacity ${ANIM_DURATION}ms ease;
-    `;
-    requestAnimationFrame(() => {
-      hatchSep.style.opacity = "1";
-    });
-    section.appendChild(hatchSep);
-    allLines.push(hatchSep);
+    allLines.push(topLine);
 
     // Find editable fields — skip those inside a button/link (handled separately)
     const fields = section.querySelectorAll(".editable-field");
@@ -222,6 +191,49 @@ function injectLines() {
       allLines.push(
         section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
       );
+    }
+  }
+
+  // Hatching separators between sections — appended to body at absolute positions
+  const mainEl = document.querySelector("main");
+  if (mainEl) {
+    const mainStyle = getComputedStyle(mainEl);
+    if (mainStyle.position === "static") {
+      mainEl.style.position = "relative";
+      mainEl.setAttribute("data-arch-positioned", "true");
+    }
+    const mainRect = mainEl.getBoundingClientRect();
+
+    for (const section of sections) {
+      const rect = section.getBoundingClientRect();
+      const bottomPos = rect.bottom - mainRect.top + window.scrollY;
+
+      const hatchSep = document.createElement("div");
+      hatchSep.className = "arch-line";
+      hatchSep.style.cssText = `
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: ${bottomPos - 8}px;
+        height: 16px;
+        pointer-events: none;
+        z-index: 2;
+        background-color: var(--background);
+        background-image: repeating-linear-gradient(
+          45deg,
+          ${LINE_COLOR} 0px,
+          ${LINE_COLOR} 1px,
+          transparent 1px,
+          transparent 4px
+        );
+        opacity: 0;
+        transition: opacity ${ANIM_DURATION}ms ease;
+      `;
+      requestAnimationFrame(() => {
+        hatchSep.style.opacity = "1";
+      });
+      mainEl.appendChild(hatchSep);
+      allLines.push(hatchSep);
     }
   }
 
