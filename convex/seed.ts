@@ -44,13 +44,9 @@ export const seed = internalMutation({
             en: "Where Light\nMeets Soul",
             it: "Dove la Luce\nIncontra l'Anima",
           },
-          paragraph1: {
-            en: "From the moment I first held a camera, I've been chasing light across every corner I discover, seeking those fleeting moments where reality transcends into something magical.",
-            it: "Dal momento in cui ho impugnato per la prima volta una fotocamera, inseguo la luce in ogni angolo che scopro, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.",
-          },
-          paragraph2: {
-            en: "My work is an exploration of the human experience—the quiet intensity of a gaze, the dance of shadows on ancient walls, the poetry hidden in everyday scenes.",
-            it: "Il mio lavoro è un'esplorazione dell'esperienza umana—la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
+          bio: {
+            en: "From the moment I first held a camera, I've been chasing light across every corner I discover, seeking those fleeting moments where reality transcends into something magical.\n\nMy work is an exploration of the human experience—the quiet intensity of a gaze, the dance of shadows on ancient walls, the poetry hidden in everyday scenes.",
+            it: "Dal momento in cui ho impugnato per la prima volta una fotocamera, inseguo la luce in ogni angolo che scopro, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.\n\nIl mio lavoro è un'esplorazione dell'esperienza umana—la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
           },
           cta: { en: "Discover My Story", it: "Scopri la Mia Storia" },
           portraitImage: { en: "", it: "" },

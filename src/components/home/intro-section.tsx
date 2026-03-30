@@ -64,10 +64,24 @@ export function IntroSection() {
                 );
               }}
             />
-            <div className="space-y-6 text-cream/70 text-lg">
-              <EditableText as="p" multiline {...bind("paragraph1")} />
-              <EditableText as="p" multiline {...bind("paragraph2")} />
-            </div>
+            <EditableText
+              as="p"
+              className="text-cream/70 text-lg"
+              multiline
+              {...bind("bio")}
+              renderDisplay={(text) => (
+                <>
+                  {text.split("\n\n").map((para) => (
+                    <span
+                      className="mb-6 block last:mb-0"
+                      key={para.slice(0, 30)}
+                    >
+                      {para}
+                    </span>
+                  ))}
+                </>
+              )}
+            />
             <div className="mt-10">
               <Link
                 className="group inline-flex items-center gap-2 text-cream text-sm uppercase tracking-widest transition-colors hover:text-cream/70"
