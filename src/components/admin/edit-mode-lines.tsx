@@ -5,7 +5,7 @@ import { useEditMode } from "./edit-mode-context";
 
 const LINE_COLOR = "oklch(from var(--foreground) l c h / 0.1)";
 const LINE_STRONG = "oklch(from var(--foreground) l c h / 0.15)";
-const HATCH_COLOR = "oklch(from var(--foreground) l c h / 0.06)";
+const HATCH_COLOR = "oklch(from var(--foreground) l c h / 0.12)";
 const ANIM_DURATION = 400;
 
 /**
@@ -27,6 +27,7 @@ function createHLine(
     border-top: 1px solid ${color};
     pointer-events: none;
     z-index: 1;
+    transform-origin: left;
     transform: scaleX(0);
     transition: transform ${ANIM_DURATION * 0.4}ms ease-out ${delay}ms;
   `;
@@ -58,6 +59,7 @@ function createVLine(
     border-left: 1px solid ${color};
     pointer-events: none;
     z-index: 1;
+    transform-origin: top;
     transform: scaleY(0);
     transition: transform ${ANIM_DURATION * 0.4}ms ease-out ${delay}ms;
   `;
@@ -106,7 +108,9 @@ function createHatching(): HTMLDivElement[] {
 function injectLines() {
   const sections = document.querySelectorAll("section");
   const allLines: HTMLElement[] = [];
-  let staggerIndex = 0;
+  const docHeight = document.documentElement.scrollHeight;
+  const vw = window.innerWidth;
+  const staggerMax = ANIM_DURATION * 0.6;
 
   for (const section of sections) {
     // Ensure section is positioned for absolute children
@@ -118,15 +122,20 @@ function injectLines() {
 
     const sectionRect = section.getBoundingClientRect();
     const sectionH = section.scrollHeight;
-    const _sectionW = section.scrollWidth;
+    const sectionAbsTop = sectionRect.top + window.scrollY;
+
+    // Delay based on Y position (top-to-bottom)
+    const yDelay = (y: number) =>
+      ((sectionAbsTop + y) / docHeight) * staggerMax;
+    // Delay based on X position (left-to-right)
+    const xDelay = (x: number) => (x / vw) * staggerMax;
 
     // Section top/bottom boundary lines
-    const topLine = createHLine(0, LINE_STRONG, staggerIndex * 15);
-    const botLine = createHLine(sectionH, LINE_STRONG, staggerIndex * 15 + 10);
+    const topLine = createHLine(0, LINE_STRONG, yDelay(0));
+    const botLine = createHLine(sectionH, LINE_STRONG, yDelay(sectionH));
     section.appendChild(topLine);
     section.appendChild(botLine);
     allLines.push(topLine, botLine);
-    staggerIndex++;
 
     // Find editable fields within this section
     const fields = section.querySelectorAll(".editable-field");
@@ -136,25 +145,24 @@ function injectLines() {
       const relBottom = relTop + fieldRect.height;
       const relLeft = fieldRect.left - sectionRect.left;
       const relRight = relLeft + fieldRect.width;
-      const delay = staggerIndex * 15;
 
-      // Horizontal lines from top and bottom edges (full section width)
+      // Horizontal lines — delay by Y position
       allLines.push(
-        section.appendChild(createHLine(relTop, LINE_COLOR, delay))
+        section.appendChild(createHLine(relTop, LINE_COLOR, yDelay(relTop)))
       );
       allLines.push(
-        section.appendChild(createHLine(relBottom, LINE_COLOR, delay + 5))
-      );
-
-      // Vertical lines from left and right edges (full section height)
-      allLines.push(
-        section.appendChild(createVLine(relLeft, LINE_COLOR, delay + 3))
-      );
-      allLines.push(
-        section.appendChild(createVLine(relRight, LINE_COLOR, delay + 8))
+        section.appendChild(
+          createHLine(relBottom, LINE_COLOR, yDelay(relBottom))
+        )
       );
 
-      staggerIndex++;
+      // Vertical lines — delay by X position
+      allLines.push(
+        section.appendChild(createVLine(relLeft, LINE_COLOR, xDelay(relLeft)))
+      );
+      allLines.push(
+        section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
+      );
     }
 
     // Also find buttons/links with editable-field children and draw from the button edges
@@ -167,22 +175,21 @@ function injectLines() {
       const relBottom = relTop + btnRect.height;
       const relLeft = btnRect.left - sectionRect.left;
       const relRight = relLeft + btnRect.width;
-      const delay = staggerIndex * 15;
 
       allLines.push(
-        section.appendChild(createHLine(relTop, LINE_COLOR, delay))
+        section.appendChild(createHLine(relTop, LINE_COLOR, yDelay(relTop)))
       );
       allLines.push(
-        section.appendChild(createHLine(relBottom, LINE_COLOR, delay + 5))
+        section.appendChild(
+          createHLine(relBottom, LINE_COLOR, yDelay(relBottom))
+        )
       );
       allLines.push(
-        section.appendChild(createVLine(relLeft, LINE_COLOR, delay + 3))
+        section.appendChild(createVLine(relLeft, LINE_COLOR, xDelay(relLeft)))
       );
       allLines.push(
-        section.appendChild(createVLine(relRight, LINE_COLOR, delay + 8))
+        section.appendChild(createVLine(relRight, LINE_COLOR, xDelay(relRight)))
       );
-
-      staggerIndex++;
     }
   }
 
