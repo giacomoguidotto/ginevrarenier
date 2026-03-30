@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditMode } from "./edit-mode-context";
 
@@ -273,34 +274,56 @@ function removeLines(lines: HTMLElement[]) {
   }, ANIM_DURATION);
 }
 
+function cleanupImmediate() {
+  const existing = document.querySelectorAll(".arch-line, .arch-hatch");
+  for (const el of existing) {
+    el.remove();
+  }
+  const positioned = document.querySelectorAll("[data-arch-positioned]");
+  for (const el of positioned) {
+    (el as HTMLElement).style.position = "";
+    el.removeAttribute("data-arch-positioned");
+  }
+}
+
 export function EditModeLines() {
   const { isEditMode } = useEditMode();
+  const pathname = usePathname();
   const linesRef = useRef<HTMLElement[]>([]);
   const [wasEditMode, setWasEditMode] = useState(false);
 
   const inject = useCallback(() => {
-    // Clean up any existing lines first
-    const existing = document.querySelectorAll(".arch-line, .arch-hatch");
-    for (const el of existing) {
-      el.remove();
-    }
+    cleanupImmediate();
     linesRef.current = injectLines();
   }, []);
 
   useEffect(() => {
     if (isEditMode && !wasEditMode) {
-      // Entering edit mode — inject lines after a frame to let layout settle
       requestAnimationFrame(() => {
         inject();
       });
       setWasEditMode(true);
     } else if (!isEditMode && wasEditMode) {
-      // Exiting edit mode — animate out and remove
       removeLines(linesRef.current);
       linesRef.current = [];
       setWasEditMode(false);
     }
   }, [isEditMode, wasEditMode, inject]);
+
+  // Re-inject lines on page navigation
+  useEffect(() => {
+    // pathname is used as a trigger to re-run when the route changes
+    const _route = pathname;
+    if (isEditMode && _route) {
+      // Wait for new page content to render
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          cleanupImmediate();
+          linesRef.current = injectLines();
+        });
+      });
+    }
+  }, [pathname, isEditMode]);
 
   // Also keep body class for any remaining hooks
   useEffect(() => {
