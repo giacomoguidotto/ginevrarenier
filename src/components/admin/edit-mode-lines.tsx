@@ -11,7 +11,6 @@ interface FieldRect {
 }
 
 interface LineData {
-  /** Sort key for stagger: distance from top-left origin */
   staggerKey: number;
   x1: number;
   x2: number;
@@ -26,17 +25,35 @@ const HATCH_SPACING = 4;
 const LINE_OPACITY = 0.1;
 const HATCH_OPACITY = 0.05;
 
+/**
+ * Find the section that contains a field (by vertical overlap).
+ */
+function findParentSection(
+  field: FieldRect,
+  sections: FieldRect[]
+): FieldRect | null {
+  for (const s of sections) {
+    if (field.top >= s.top && field.bottom <= s.bottom) {
+      return s;
+    }
+  }
+  return null;
+}
+
 function computeLines(
   fields: FieldRect[],
   sections: FieldRect[],
   vw: number,
-  vh: number
+  scrollTop: number,
+  scrollBottom: number
 ): LineData[] {
   const lines: LineData[] = [];
 
-  // Section boundary horizontals (full width)
+  // Section boundary horizontals — only for visible sections
   for (const s of sections) {
-    // Top edge
+    if (s.bottom < scrollTop || s.top > scrollBottom) {
+      continue;
+    }
     lines.push({
       x1: 0,
       y1: s.top,
@@ -44,7 +61,6 @@ function computeLines(
       y2: s.top,
       staggerKey: s.top,
     });
-    // Bottom edge
     lines.push({
       x1: 0,
       y1: s.bottom,
@@ -54,9 +70,17 @@ function computeLines(
     });
   }
 
-  // Field lines — horizontals and verticals, interrupted at field boundary
+  // Field lines — only for fields visible in viewport
   for (const f of fields) {
-    // Horizontal from top edge: left segment + right segment
+    if (f.bottom < scrollTop || f.top > scrollBottom) {
+      continue;
+    }
+
+    const section = findParentSection(f, sections);
+    const vTop = section ? section.top : scrollTop;
+    const vBottom = section ? section.bottom : scrollBottom;
+
+    // Horizontal from top edge: left + right segments
     lines.push({
       x1: 0,
       y1: f.top,
@@ -72,7 +96,7 @@ function computeLines(
       staggerKey: f.top + f.right * 0.001,
     });
 
-    // Horizontal from bottom edge: left segment + right segment
+    // Horizontal from bottom edge: left + right segments
     lines.push({
       x1: 0,
       y1: f.bottom,
@@ -88,36 +112,36 @@ function computeLines(
       staggerKey: f.bottom + f.right * 0.001,
     });
 
-    // Vertical from left edge: top segment + bottom segment
+    // Vertical from left edge: top segment (to section top) + bottom segment (to section bottom)
     lines.push({
       x1: f.left,
-      y1: 0,
+      y1: vTop,
       x2: f.left,
       y2: f.top,
-      staggerKey: f.left + f.top * 0.001,
+      staggerKey: f.left * 0.1 + f.top * 0.001,
     });
     lines.push({
       x1: f.left,
       y1: f.bottom,
       x2: f.left,
-      y2: vh,
-      staggerKey: f.left + f.bottom * 0.001,
+      y2: vBottom,
+      staggerKey: f.left * 0.1 + f.bottom * 0.001,
     });
 
     // Vertical from right edge: top segment + bottom segment
     lines.push({
       x1: f.right,
-      y1: 0,
+      y1: vTop,
       x2: f.right,
       y2: f.top,
-      staggerKey: f.right + f.top * 0.001,
+      staggerKey: f.right * 0.1 + f.top * 0.001,
     });
     lines.push({
       x1: f.right,
       y1: f.bottom,
       x2: f.right,
-      y2: vh,
-      staggerKey: f.right + f.bottom * 0.001,
+      y2: vBottom,
+      staggerKey: f.right * 0.1 + f.bottom * 0.001,
     });
   }
 
@@ -139,12 +163,14 @@ export function EditModeLines() {
   >("hidden");
   const svgRef = useRef<SVGSVGElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const animFrameRef = useRef(0);
 
   const scanElements = useCallback(() => {
     const scrollY = window.scrollY;
     const vw = window.innerWidth;
-    // Use full document height for lines that extend vertically
-    const vh = document.documentElement.scrollHeight;
+    const vh = window.innerHeight;
+    const scrollTop = scrollY;
+    const scrollBottom = scrollY + vh;
 
     const fieldEls = document.querySelectorAll(".editable-field");
     const fields: FieldRect[] = [];
@@ -173,7 +199,7 @@ export function EditModeLines() {
       });
     }
 
-    setLines(computeLines(fields, sections, vw, vh));
+    setLines(computeLines(fields, sections, vw, scrollTop, scrollBottom));
   }, []);
 
   // Toggle visibility with animation phases
@@ -181,16 +207,18 @@ export function EditModeLines() {
     if (isEditMode) {
       setVisible(true);
       scanElements();
-      // Small delay to ensure DOM is ready
-      requestAnimationFrame(() => {
-        setPhase("entering");
-        if (timerRef.current) {
-          clearTimeout(timerRef.current);
-        }
-        timerRef.current = setTimeout(
-          () => setPhase("visible"),
-          ENTER_DURATION
-        );
+      // Use double rAF to ensure the initial dashoffset renders before transition
+      animFrameRef.current = requestAnimationFrame(() => {
+        animFrameRef.current = requestAnimationFrame(() => {
+          setPhase("entering");
+          if (timerRef.current) {
+            clearTimeout(timerRef.current);
+          }
+          timerRef.current = setTimeout(
+            () => setPhase("visible"),
+            ENTER_DURATION
+          );
+        });
       });
     } else if (visible) {
       setPhase("exiting");
@@ -202,6 +230,12 @@ export function EditModeLines() {
         setVisible(false);
       }, EXIT_DURATION);
     }
+
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
   }, [isEditMode, visible, scanElements]);
 
   // Update lines on scroll/resize
@@ -223,7 +257,7 @@ export function EditModeLines() {
     };
   }, [visible, scanElements]);
 
-  // Also toggle body class for any remaining CSS hooks
+  // Body class for any remaining CSS hooks
   useEffect(() => {
     if (isEditMode) {
       document.body.classList.add("edit-mode");
@@ -241,42 +275,42 @@ export function EditModeLines() {
 
   const scrollY = typeof window === "undefined" ? 0 : window.scrollY;
   const vw = typeof window === "undefined" ? 0 : window.innerWidth;
-  const _docHeight =
-    typeof document === "undefined" ? 0 : document.documentElement.scrollHeight;
 
-  // Deduplicate and sort lines by stagger key
+  // Deduplicate and sort
   const seen = new Set<string>();
   const sorted = [...lines]
     .sort((a, b) => a.staggerKey - b.staggerKey)
     .filter((l) => {
-      const key = `${l.x1},${l.y1},${l.x2},${l.y2}`;
-      if (seen.has(key)) {
+      const k = `${Math.round(l.x1)},${Math.round(l.y1)},${Math.round(l.x2)},${Math.round(l.y2)}`;
+      if (seen.has(k)) {
         return false;
       }
-      seen.add(key);
+      seen.add(k);
       return true;
     });
+
   const maxStagger = sorted.length > 0 ? (sorted.at(-1)?.staggerKey ?? 1) : 1;
   const isEntering = phase === "entering";
   const isExiting = phase === "exiting";
-  const animating = isEntering || isExiting;
   const duration = isEntering ? ENTER_DURATION : EXIT_DURATION;
-  // Reserve 60% of budget for stagger, 40% for each line's draw
   const staggerBudget = duration * 0.6;
   const lineDuration = duration * 0.4;
+
+  // Before entering phase: lines should be at full dashoffset (invisible)
+  // During entering: transition to 0 (visible)
+  // During exiting: transition to full dashoffset (invisible)
+  const preEnter =
+    phase === "hidden" ||
+    (visible && !isEntering && !isExiting && phase !== "visible");
 
   return (
     <svg
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-40"
       ref={svgRef}
-      style={{
-        width: "100vw",
-        height: "100vh",
-        overflow: "visible",
-      }}
+      style={{ width: "100vw", height: "100vh", overflow: "visible" }}
     >
-      {/* Hatching — left edge */}
+      {/* Hatching */}
       <g
         style={{
           opacity: phase === "visible" || phase === "entering" ? 1 : 0,
@@ -303,7 +337,7 @@ export function EditModeLines() {
         </defs>
         <rect
           fill="url(#hatch)"
-          height="100vh"
+          height="100%"
           style={{
             color: `oklch(from var(--foreground) l c h / ${HATCH_OPACITY})`,
           }}
@@ -313,7 +347,7 @@ export function EditModeLines() {
         />
         <rect
           fill="url(#hatch)"
-          height="100vh"
+          height="100%"
           style={{
             color: `oklch(from var(--foreground) l c h / ${HATCH_OPACITY})`,
           }}
@@ -324,11 +358,7 @@ export function EditModeLines() {
       </g>
 
       {/* Lines */}
-      <g
-        style={{
-          transform: `translateY(${-scrollY}px)`,
-        }}
-      >
+      <g style={{ transform: `translateY(${-scrollY}px)` }}>
         {sorted.map((line) => {
           const len = lineLength(line);
           if (len < 1) {
@@ -339,26 +369,37 @@ export function EditModeLines() {
             maxStagger > 0 ? line.staggerKey / maxStagger : 0;
           const delay = normalizedPos * staggerBudget;
 
-          const dashStyle = animating
-            ? {
-                strokeDasharray: len,
-                strokeDashoffset: isEntering ? 0 : len,
-                transition: `stroke-dashoffset ${lineDuration}ms ease-out ${delay}ms`,
-              }
-            : {};
+          let strokeDashoffset: number;
+          let transition: string;
 
-          const initialOffset =
-            isEntering && phase === "entering" ? { strokeDashoffset: len } : {};
+          if (preEnter) {
+            // Initial state: fully hidden
+            strokeDashoffset = len;
+            transition = "none";
+          } else if (isEntering) {
+            // Animate to visible
+            strokeDashoffset = 0;
+            transition = `stroke-dashoffset ${lineDuration}ms ease-out ${delay}ms`;
+          } else if (isExiting) {
+            // Animate to hidden
+            strokeDashoffset = len;
+            transition = `stroke-dashoffset ${lineDuration}ms ease-in ${delay}ms`;
+          } else {
+            // Fully visible
+            strokeDashoffset = 0;
+            transition = "none";
+          }
 
           return (
             <line
-              key={`${line.x1}-${line.y1}-${line.x2}-${line.y2}-${line.staggerKey}`}
+              key={`${Math.round(line.x1)}-${Math.round(line.y1)}-${Math.round(line.x2)}-${Math.round(line.y2)}-${line.staggerKey}`}
               stroke="currentColor"
               strokeWidth="1"
               style={{
                 color: `oklch(from var(--foreground) l c h / ${LINE_OPACITY})`,
-                ...initialOffset,
-                ...dashStyle,
+                strokeDasharray: len,
+                strokeDashoffset,
+                transition,
               }}
               x1={line.x1}
               x2={line.x2}
