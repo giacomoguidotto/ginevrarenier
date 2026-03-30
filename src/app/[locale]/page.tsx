@@ -1,24 +1,19 @@
-import { setRequestLocale } from "next-intl/server";
+"use client";
+
+import { AnimationReadyProvider } from "@/components/admin/animation-ready-context";
 import { FeaturedWork } from "@/components/home/featured-work";
 import { Hero } from "@/components/home/hero";
 import { IntroSection } from "@/components/home/intro-section";
 
-// import { Testimonial } from "@/components/home/testimonial";
+// 3 sections: Hero, IntroSection, FeaturedWork
+const SECTION_COUNT = 3;
 
-interface Props {
-  params: Promise<{ locale: string }>;
-}
-
-export default async function HomePage({ params }: Props) {
-  const { locale } = await params;
-  setRequestLocale(locale);
-
+export default function HomePage() {
   return (
-    <>
+    <AnimationReadyProvider expectedCount={SECTION_COUNT}>
       <Hero />
       <IntroSection />
       <FeaturedWork />
-      {/* <Testimonial /> */}
-    </>
+    </AnimationReadyProvider>
   );
 }

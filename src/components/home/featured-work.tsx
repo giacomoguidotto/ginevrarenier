@@ -5,7 +5,8 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { useAnimationReady } from "@/components/admin/animation-ready-context";
 import { Link } from "@/i18n/routing";
 import { useLocalized, useProjects } from "@/lib/hooks";
 
@@ -85,6 +86,12 @@ export function FeaturedWork() {
   const t = useTranslations("common");
   const tf = useTranslations("home.featured");
   const { projects } = useProjects();
+  const { signalReady } = useAnimationReady();
+
+  // Signal immediately — this section uses whileInView (below fold)
+  useEffect(() => {
+    signalReady();
+  }, [signalReady]);
 
   const featured = projects.slice(0, 5);
 

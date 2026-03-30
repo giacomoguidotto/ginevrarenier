@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useCallback, useRef } from "react";
+import { useAnimationReady } from "@/components/admin/animation-ready-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { EditableText } from "@/components/admin/editable-text";
 import { Link } from "@/i18n/routing";
@@ -18,6 +19,7 @@ export function IntroSection() {
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   const { bind, get, set } = useEditableSiteContent("intro");
+  const { signalReady } = useAnimationReady();
 
   const portraitUrl = get("portraitImage").en || undefined;
   const handlePortraitUpload = useCallback(
@@ -81,6 +83,7 @@ export function IntroSection() {
           <motion.div
             className="relative aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[600px]"
             initial={{ opacity: 0, x: 50 }}
+            onAnimationComplete={signalReady}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}

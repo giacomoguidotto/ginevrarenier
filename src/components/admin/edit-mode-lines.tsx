@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAnimationReady } from "./animation-ready-context";
 import { useEditMode } from "./edit-mode-context";
 
 const LINE_COLOR = "oklch(from var(--foreground) l c h / 0.1)";
@@ -286,37 +287,31 @@ function cleanupImmediate() {
   }
 }
 
-const INITIAL_DELAY = 1500; // Wait for framer-motion enter animations
-
 export function EditModeLines() {
   const { isEditMode } = useEditMode();
+  const { settled } = useAnimationReady();
   const pathname = usePathname();
   const linesRef = useRef<HTMLElement[]>([]);
   const [wasEditMode, setWasEditMode] = useState(false);
-  const initialMount = useRef(true);
 
   const inject = useCallback(() => {
     cleanupImmediate();
     linesRef.current = injectLines();
   }, []);
 
+  // Inject lines when edit mode is active AND animations have settled
   useEffect(() => {
-    if (isEditMode && !wasEditMode) {
-      // On initial page load, wait for enter animations to settle
-      const delay = initialMount.current ? INITIAL_DELAY : 0;
-      initialMount.current = false;
-      setTimeout(() => {
-        requestAnimationFrame(() => {
-          inject();
-        });
-      }, delay);
+    if (isEditMode && settled && !wasEditMode) {
+      requestAnimationFrame(() => {
+        inject();
+      });
       setWasEditMode(true);
     } else if (!isEditMode && wasEditMode) {
       removeLines(linesRef.current);
       linesRef.current = [];
       setWasEditMode(false);
     }
-  }, [isEditMode, wasEditMode, inject]);
+  }, [isEditMode, settled, wasEditMode, inject]);
 
   // Re-inject lines on page navigation
   useEffect(() => {

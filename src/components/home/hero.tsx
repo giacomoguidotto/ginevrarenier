@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { useRef } from "react";
+import { useAnimationReady } from "@/components/admin/animation-ready-context";
 import { EditableText } from "@/components/admin/editable-text";
 import { Link } from "@/i18n/routing";
 import { useEditableSiteContent } from "@/lib/use-editable-content";
@@ -54,6 +55,7 @@ export function Hero() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   const { bind } = useEditableSiteContent("hero");
+  const { signalReady } = useAnimationReady();
 
   return (
     <section
@@ -121,6 +123,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
             initial={{ opacity: 0, y: 20 }}
+            onAnimationComplete={signalReady}
             transition={{ duration: 0.8, delay: 1 }}
           >
             <Link
