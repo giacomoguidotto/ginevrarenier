@@ -138,6 +138,34 @@ function injectLines() {
     section.appendChild(botLine);
     allLines.push(topLine, botLine);
 
+    // Hatching separator at section bottom boundary
+    const hatchSep = document.createElement("div");
+    hatchSep.className = "arch-line";
+    hatchSep.style.cssText = `
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -8px;
+      height: 16px;
+      pointer-events: none;
+      z-index: 2;
+      background-color: var(--background);
+      background-image: repeating-linear-gradient(
+        45deg,
+        ${LINE_COLOR} 0px,
+        ${LINE_COLOR} 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0;
+      transition: opacity ${ANIM_DURATION}ms ease;
+    `;
+    requestAnimationFrame(() => {
+      hatchSep.style.opacity = "1";
+    });
+    section.appendChild(hatchSep);
+    allLines.push(hatchSep);
+
     // Find editable fields — skip those inside a button/link (handled separately)
     const fields = section.querySelectorAll(".editable-field");
     for (const field of fields) {
