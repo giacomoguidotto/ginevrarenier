@@ -322,7 +322,7 @@ export function EditableImageGrid({
 
         <DragOverlay>
           {activeImage ? (
-            <div className="rounded-lg opacity-80 shadow-2xl">
+            <div className="rounded-lg shadow-2xl">
               <Image
                 alt="Dragging"
                 className="w-full rounded-lg"
