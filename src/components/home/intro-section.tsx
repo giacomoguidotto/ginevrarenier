@@ -81,7 +81,7 @@ export function IntroSection() {
 
           {/* Image */}
           <motion.div
-            className="relative aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[600px]"
+            className="relative z-[1] aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[600px]"
             initial={{ opacity: 0, x: 50 }}
             onAnimationComplete={onSectionReady}
             transition={{ duration: 0.8, delay: 0.2 }}

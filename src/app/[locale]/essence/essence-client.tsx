@@ -49,7 +49,7 @@ export function EssenceClient() {
             {/* Image */}
             <motion.div
               animate={{ opacity: 1, x: 0 }}
-              className="relative aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[80vh]"
+              className="relative z-[1] aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[80vh]"
               initial={{ opacity: 0, x: -50 }}
               style={{ y: imageY }}
               transition={{ duration: 0.8 }}

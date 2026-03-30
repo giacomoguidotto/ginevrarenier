@@ -60,7 +60,7 @@ export function EditableImage({
           src={src}
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-foreground/5">
+        <div className="flex h-full w-full items-center justify-center bg-card">
           <Camera className="h-8 w-8 text-foreground/20" />
         </div>
       )}

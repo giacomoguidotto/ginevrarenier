@@ -31,7 +31,7 @@ function ProjectCard({
         href={`/vision/${project.slug}`}
       >
         {/* Image Container */}
-        <div className="relative aspect-4/5 overflow-hidden">
+        <div className="relative z-[1] aspect-4/5 overflow-hidden">
           <Image
             alt={localized(project.title)}
             className="object-cover transition-transform duration-700 group-hover:scale-105"

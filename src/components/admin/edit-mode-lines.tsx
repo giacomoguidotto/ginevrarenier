@@ -19,7 +19,7 @@ function createHLine(
   el.style.cssText = `
     position: absolute; left: 0; right: 0; top: ${topPx}px;
     height: 0; border-top: 1px solid ${color};
-    pointer-events: none; z-index: 1;
+    pointer-events: none; z-index: 0;
     transform-origin: left; transform: scaleX(0);
     transition: transform ${ANIM_DURATION * 0.4}ms ease-out ${delay}ms;
   `;
@@ -41,7 +41,7 @@ function createVLine(
   el.style.cssText = `
     position: absolute; top: 0; bottom: 0; left: ${leftPx}px;
     width: 0; border-left: 1px solid ${color};
-    pointer-events: none; z-index: 1;
+    pointer-events: none; z-index: 0;
     transform-origin: top; transform: scaleY(0);
     transition: transform ${ANIM_DURATION * 0.4}ms ease-out ${delay}ms;
   `;
