@@ -7,7 +7,9 @@ import {
   DragOverlay,
   type DragStartEvent,
   MouseSensor,
+  pointerWithin,
   TouchSensor,
+  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -106,6 +108,46 @@ function SortableImage({
   );
 }
 
+function TrashDropZone({ active }: { active: boolean }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "drop-trash" });
+  if (!active) {
+    return null;
+  }
+  return (
+    <div
+      className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-4 text-sm transition-colors ${
+        isOver
+          ? "border-red-400 bg-red-500/10 text-red-400"
+          : "border-foreground/15 text-foreground/40"
+      }`}
+      ref={setNodeRef}
+    >
+      <Trash2 className="h-4 w-4" />
+      <span>Drop to delete</span>
+    </div>
+  );
+}
+
+function CoverDropZone({ active }: { active: boolean }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "drop-cover" });
+  if (!active) {
+    return null;
+  }
+  return (
+    <div
+      className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-4 text-sm transition-colors ${
+        isOver
+          ? "border-foreground/40 bg-foreground/10 text-foreground"
+          : "border-foreground/15 text-foreground/40"
+      }`}
+      ref={setNodeRef}
+    >
+      <ImageIcon className="h-4 w-4" />
+      <span>Drop to set as cover</span>
+    </div>
+  );
+}
+
 interface EditableImageGridProps {
   images: ProjectImage[];
   projectId: Id<"projects">;
@@ -140,25 +182,46 @@ export function EditableImageGrid({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
-      setActiveId(null);
       const { active, over } = event;
-      if (!over || active.id === over.id) {
+      setActiveId(null);
+
+      if (!over) {
         return;
       }
 
+      const draggedImage = images.find((img) => img._id === active.id);
+
+      // Drop on trash zone
+      if (over.id === "drop-trash" && draggedImage) {
+        deleteCloudinaryImage(draggedImage.cloudinaryPublicId);
+        removeImage({ id: draggedImage._id });
+        return;
+      }
+
+      // Drop on cover zone
+      if (over.id === "drop-cover" && draggedImage) {
+        setCover({
+          projectId,
+          imageId: draggedImage._id as Id<"projectImages">,
+        });
+        return;
+      }
+
+      // Reorder
+      if (active.id === over.id) {
+        return;
+      }
       const oldIndex = images.findIndex((img) => img._id === active.id);
       const newIndex = images.findIndex((img) => img._id === over.id);
       if (oldIndex === -1 || newIndex === -1) {
         return;
       }
-
-      // Compute new order
       const reordered = [...images];
       const [moved] = reordered.splice(oldIndex, 1);
       reordered.splice(newIndex, 0, moved);
       reorderImages({ ids: reordered.map((img) => img._id) });
     },
-    [images, reorderImages]
+    [images, reorderImages, removeImage, setCover, projectId]
   );
 
   const handleUpload = useCallback(
@@ -192,7 +255,7 @@ export function EditableImageGrid({
     [projectId, setCover]
   );
 
-  const handleDrop = useCallback(
+  const handleFileDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       if (e.dataTransfer.files.length > 0) {
@@ -209,15 +272,21 @@ export function EditableImageGrid({
   const activeImage = activeId
     ? images.find((img) => img._id === activeId)
     : null;
+  const isDragging = activeId !== null;
 
   return (
-    <DropZone onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+    <DropZone onDragOver={(e) => e.preventDefault()} onDrop={handleFileDrop}>
       <DndContext
-        collisionDetection={closestCenter}
+        collisionDetection={isDragging ? pointerWithin : closestCenter}
         onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
         sensors={sensors}
       >
+        {/* Cover drop zone — top */}
+        <div className="mb-4">
+          <CoverDropZone active={isDragging} />
+        </div>
+
         <SortableContext
           items={images.map((img) => img._id)}
           strategy={rectSortingStrategy}
@@ -246,6 +315,11 @@ export function EditableImageGrid({
             </button>
           </div>
         </SortableContext>
+
+        {/* Trash drop zone — bottom */}
+        <div className="mt-4">
+          <TrashDropZone active={isDragging} />
+        </div>
 
         <DragOverlay>
           {activeImage ? (
