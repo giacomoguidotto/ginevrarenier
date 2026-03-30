@@ -137,9 +137,12 @@ function injectLines() {
     section.appendChild(botLine);
     allLines.push(topLine, botLine);
 
-    // Find editable fields within this section
+    // Find editable fields — skip those inside a button/link (handled separately)
     const fields = section.querySelectorAll(".editable-field");
     for (const field of fields) {
+      if (field.closest("a") || field.closest("button")) {
+        continue;
+      }
       const fieldRect = field.getBoundingClientRect();
       const relTop = fieldRect.top - sectionRect.top + section.scrollTop;
       const relBottom = relTop + fieldRect.height;
