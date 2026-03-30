@@ -5,7 +5,7 @@ import { useEditMode } from "./edit-mode-context";
 
 const LINE_COLOR = "oklch(from var(--foreground) l c h / 0.1)";
 const LINE_STRONG = "oklch(from var(--foreground) l c h / 0.15)";
-const HATCH_COLOR = "oklch(from var(--foreground) l c h / 0.12)";
+const HATCH_COLOR = "oklch(from var(--foreground) l c h / 0.1)";
 const ANIM_DURATION = 400;
 
 /**
@@ -87,6 +87,7 @@ function createHatching(): HTMLDivElement[] {
       height: 100vh;
       pointer-events: none;
       z-index: 41;
+      background-color: var(--background);
       background-image: repeating-linear-gradient(
         45deg,
         ${HATCH_COLOR} 0px,
