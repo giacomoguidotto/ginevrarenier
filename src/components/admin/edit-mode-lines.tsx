@@ -286,11 +286,14 @@ function cleanupImmediate() {
   }
 }
 
+const INITIAL_DELAY = 1500; // Wait for framer-motion enter animations
+
 export function EditModeLines() {
   const { isEditMode } = useEditMode();
   const pathname = usePathname();
   const linesRef = useRef<HTMLElement[]>([]);
   const [wasEditMode, setWasEditMode] = useState(false);
+  const initialMount = useRef(true);
 
   const inject = useCallback(() => {
     cleanupImmediate();
@@ -299,9 +302,14 @@ export function EditModeLines() {
 
   useEffect(() => {
     if (isEditMode && !wasEditMode) {
-      requestAnimationFrame(() => {
-        inject();
-      });
+      // On initial page load, wait for enter animations to settle
+      const delay = initialMount.current ? INITIAL_DELAY : 0;
+      initialMount.current = false;
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          inject();
+        });
+      }, delay);
       setWasEditMode(true);
     } else if (!isEditMode && wasEditMode) {
       removeLines(linesRef.current);
