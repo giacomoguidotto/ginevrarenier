@@ -168,34 +168,4 @@ img[data-loading="true"] {
   opacity: 0;
 }
 
-/* Edit mode — subtle architectural cues */
-
-:root {
-  --blueprint: oklch(0.6 0.08 230 / 0.2);
-  --blueprint-line: oklch(0.6 0.08 230 / 0.1);
-  --blueprint-accent: oklch(0.6 0.08 230 / 0.35);
-}
-
-/* Editable text fields — left accent + extension line to left edge */
-body.edit-mode [role="button"][tabindex="0"] {
-  box-shadow: inset 2px 0 0 var(--blueprint-accent);
-}
-
-/* Extension lines: a faint horizontal line from left edge to the element */
-body.edit-mode [role="button"][tabindex="0"]::before {
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  left: calc(-100vw);
-  z-index: 0;
-  pointer-events: none;
-  content: "";
-  border-top: 1px solid var(--blueprint-line);
-}
-
-/* Section separator — faint top border */
-body.edit-mode section {
-  position: relative;
-  outline: 1px solid var(--blueprint-line);
-  outline-offset: -1px;
-}
+/* Edit mode — architectural lines are rendered via SVG overlay */

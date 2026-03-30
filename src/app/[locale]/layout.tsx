@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { EditFab } from "@/components/admin/edit-fab";
 import { EditModeProvider } from "@/components/admin/edit-mode-context";
-import { EditOverlay } from "@/components/admin/edit-overlay";
+import { EditModeLines } from "@/components/admin/edit-mode-lines";
 import { EditToolbarWrapper } from "@/components/admin/edit-toolbar-wrapper";
 import { PageChangesProvider } from "@/components/admin/page-changes-context";
 import { UnsavedChangesGuard } from "@/components/admin/unsaved-changes-guard";
@@ -121,7 +121,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <TooltipProvider>
             <EditModeProvider>
               <PageChangesProvider>
-                <EditOverlay />
+                <EditModeLines />
                 <Navbar />
                 <main className="min-h-screen">{children}</main>
                 <Footer />
