@@ -65,7 +65,7 @@ export function EditableImage({
       {isEditMode ? (
         <>
           <button
-            className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-background/0 opacity-0 transition-all hover:bg-background/40 hover:opacity-100"
+            className={`absolute inset-0 z-10 flex cursor-pointer items-center justify-center transition-all ${uploading ? "bg-background/40 opacity-100" : "bg-background/0 opacity-0 hover:bg-background/40 hover:opacity-100"}`}
             onClick={() => fileInputRef.current?.click()}
             type="button"
           >

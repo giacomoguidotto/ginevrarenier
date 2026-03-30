@@ -42,7 +42,13 @@ export function useEditableSiteContent(section: string) {
 
   const set = useCallback(
     (key: string, newValue: { en: string; it: string }) => {
-      trackSiteContent(section, key, newValue, locale);
+      // If both locales have the same value (e.g. image URL), track both
+      if (newValue.en === newValue.it) {
+        trackSiteContent(section, key, newValue, "en");
+        trackSiteContent(section, key, newValue, "it");
+      } else {
+        trackSiteContent(section, key, newValue, locale);
+      }
     },
     [section, trackSiteContent, locale]
   );
