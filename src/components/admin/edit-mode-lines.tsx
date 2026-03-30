@@ -55,7 +55,7 @@ function createVLine(
 
 /**
  * Inject architectural lines for a single section element.
- * Call this when the section's enter animations have completed.
+ * Returns the created line elements for later cleanup.
  */
 export function injectSectionLines(section: HTMLElement): HTMLElement[] {
   const lines: HTMLElement[] = [];
@@ -69,15 +69,13 @@ export function injectSectionLines(section: HTMLElement): HTMLElement[] {
   }
 
   const sectionRect = section.getBoundingClientRect();
-
-  // Stagger within section: normalize Y to 0-200ms, X to 0-200ms
   const yDelay = (y: number) => (y / sectionH) * 200;
   const xDelay = (x: number) => (x / vw) * 200;
 
-  // Section top boundary line
+  // Section top boundary
   lines.push(section.appendChild(createHLine(0, LINE_STRONG, 0)));
 
-  // Editable fields
+  // Editable fields (skip those inside buttons/links)
   const fields = section.querySelectorAll(".editable-field");
   for (const field of fields) {
     if (field.closest("a") || field.closest("button")) {
@@ -103,7 +101,7 @@ export function injectSectionLines(section: HTMLElement): HTMLElement[] {
     );
   }
 
-  // Buttons/links containing editable fields
+  // Buttons/links with editable fields
   const buttons = section.querySelectorAll(
     "a:has(.editable-field), button:has(.editable-field)"
   );
@@ -128,12 +126,15 @@ export function injectSectionLines(section: HTMLElement): HTMLElement[] {
     );
   }
 
-  // Hatching separator at section bottom — appended to main to avoid overflow clip
+  // Hatching at section bottom (in main, to avoid overflow clip)
   const mainEl = section.closest("main");
   if (mainEl) {
     const mainRect = mainEl.getBoundingClientRect();
     const bottomPos = sectionRect.bottom - mainRect.top + window.scrollY;
-
+    if (getComputedStyle(mainEl).position === "static") {
+      mainEl.style.position = "relative";
+      mainEl.setAttribute("data-arch-positioned", "true");
+    }
     const hatch = document.createElement("div");
     hatch.className = "arch-line";
     hatch.style.cssText = `
@@ -144,11 +145,6 @@ export function injectSectionLines(section: HTMLElement): HTMLElement[] {
         ${LINE_COLOR} 0px, ${LINE_COLOR} 1px, transparent 1px, transparent 4px);
       opacity: 0; transition: opacity ${ANIM_DURATION}ms ease;
     `;
-    // Ensure main is positioned
-    if (getComputedStyle(mainEl).position === "static") {
-      mainEl.style.position = "relative";
-      mainEl.setAttribute("data-arch-positioned", "true");
-    }
     requestAnimationFrame(() => {
       hatch.style.opacity = "1";
     });
@@ -159,119 +155,92 @@ export function injectSectionLines(section: HTMLElement): HTMLElement[] {
   return lines;
 }
 
-function createHatching(): HTMLDivElement[] {
-  const strips: HTMLDivElement[] = [];
-  for (const side of ["left", "right"] as const) {
-    const el = document.createElement("div");
-    el.className = "arch-hatch";
-    el.style.cssText = `
-      position: fixed; top: 0; ${side}: 0;
-      width: 20px; height: 100vh;
-      pointer-events: none; z-index: 41;
-      background-color: var(--background);
-      background-image: repeating-linear-gradient(45deg,
-        ${HATCH_COLOR} 0px, ${HATCH_COLOR} 1px, transparent 1px, transparent 4px);
-      opacity: 0; transition: opacity ${ANIM_DURATION}ms ease;
-    `;
-    requestAnimationFrame(() => {
-      el.style.opacity = "1";
-    });
-    strips.push(el);
-  }
-  return strips;
-}
-
-function cleanupAll() {
-  const existing = document.querySelectorAll(".arch-line, .arch-hatch");
-  for (const el of existing) {
-    // Animate out
-    if ((el as HTMLElement).style.transform?.includes("scaleX")) {
-      (el as HTMLElement).style.transform = "scaleX(0)";
-    } else if ((el as HTMLElement).style.transform?.includes("scaleY")) {
-      (el as HTMLElement).style.transform = "scaleY(0)";
-    } else {
-      (el as HTMLElement).style.opacity = "0";
-    }
-  }
-  setTimeout(() => {
-    const toRemove = document.querySelectorAll(".arch-line, .arch-hatch");
-    for (const el of toRemove) {
-      el.remove();
-    }
-    const positioned = document.querySelectorAll("[data-arch-positioned]");
-    for (const el of positioned) {
-      (el as HTMLElement).style.position = "";
-      el.removeAttribute("data-arch-positioned");
-    }
-  }, ANIM_DURATION);
-}
-
-function cleanupImmediate() {
-  const existing = document.querySelectorAll(".arch-line, .arch-hatch");
-  for (const el of existing) {
-    el.remove();
-  }
-  const positioned = document.querySelectorAll("[data-arch-positioned]");
-  for (const el of positioned) {
-    (el as HTMLElement).style.position = "";
-    el.removeAttribute("data-arch-positioned");
-  }
-}
-
 /**
- * Global component that manages hatching + cleanup.
- * Individual sections inject their own lines via injectSectionLines().
+ * Global component — manages viewport edge hatching + body class.
+ * Section lines are managed by useSectionLines() per-section.
  */
 export function EditModeLines() {
   const { isEditMode } = useEditMode();
   const pathname = usePathname();
   const hatchRef = useRef<HTMLElement[]>([]);
+  const prevPathRef = useRef(pathname);
 
   const injectHatching = useCallback(() => {
-    const hatches = createHatching();
-    for (const h of hatches) {
-      document.body.appendChild(h);
+    // Remove old hatches
+    for (const h of hatchRef.current) {
+      h.remove();
     }
-    hatchRef.current = hatches;
+    const strips: HTMLDivElement[] = [];
+    for (const side of ["left", "right"] as const) {
+      const el = document.createElement("div");
+      el.className = "arch-hatch";
+      el.style.cssText = `
+        position: fixed; top: 0; ${side}: 0;
+        width: 20px; height: 100vh;
+        pointer-events: none; z-index: 41;
+        background-color: var(--background);
+        background-image: repeating-linear-gradient(45deg,
+          ${HATCH_COLOR} 0px, ${HATCH_COLOR} 1px, transparent 1px, transparent 4px);
+        opacity: 0; transition: opacity ${ANIM_DURATION}ms ease;
+      `;
+      requestAnimationFrame(() => {
+        el.style.opacity = "1";
+      });
+      document.body.appendChild(el);
+      strips.push(el);
+    }
+    hatchRef.current = strips;
   }, []);
 
-  // Hatching on enter/exit
+  const removeHatching = useCallback(() => {
+    for (const h of hatchRef.current) {
+      h.style.opacity = "0";
+    }
+    setTimeout(() => {
+      for (const h of hatchRef.current) {
+        h.remove();
+      }
+      hatchRef.current = [];
+    }, ANIM_DURATION);
+  }, []);
+
+  // Hatching + body class on edit mode toggle
   useEffect(() => {
     if (isEditMode) {
+      document.body.classList.add("edit-mode");
       injectHatching();
     } else {
-      cleanupAll();
-      hatchRef.current = [];
+      document.body.classList.remove("edit-mode");
+      removeHatching();
     }
-  }, [isEditMode, injectHatching]);
+    return () => {
+      document.body.classList.remove("edit-mode");
+    };
+  }, [isEditMode, injectHatching, removeHatching]);
 
-  // Cleanup on page navigation
+  // On page navigation: clean up and re-inject hatching
   useEffect(() => {
-    const _route = pathname;
-    if (_route) {
-      cleanupImmediate();
+    if (pathname !== prevPathRef.current) {
+      prevPathRef.current = pathname;
+      // Section lines are cleaned up by useSectionLines unmounting
+      // Just refresh hatching
       if (isEditMode) {
         injectHatching();
       }
     }
   }, [pathname, isEditMode, injectHatching]);
 
-  // Body class
-  useEffect(() => {
-    if (isEditMode) {
-      document.body.classList.add("edit-mode");
-    } else {
-      document.body.classList.remove("edit-mode");
-    }
-    return () => {
-      document.body.classList.remove("edit-mode");
-    };
-  }, [isEditMode]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      cleanupImmediate();
+      for (const h of hatchRef.current) {
+        h.remove();
+      }
+      const positioned = document.querySelectorAll("[data-arch-positioned]");
+      for (const el of positioned) {
+        (el as HTMLElement).style.position = "";
+        el.removeAttribute("data-arch-positioned");
+      }
     };
   }, []);
 

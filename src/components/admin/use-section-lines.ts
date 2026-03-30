@@ -1,32 +1,64 @@
 "use client";
 
 import type { RefObject } from "react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useEditMode } from "./edit-mode-context";
 import { injectSectionLines } from "./edit-mode-lines";
 
 /**
- * Hook for sections to inject architectural lines when their
- * enter animations complete. Returns a callback to pass to
- * the last motion element's onAnimationComplete.
+ * Hook for sections to inject architectural lines.
+ * Lines appear when BOTH conditions are met:
+ *   1. isEditMode is true
+ *   2. The section's enter animations have completed (onSectionReady called)
  *
- * @param sectionRef - ref to the section element
+ * When isEditMode becomes false, lines are removed.
  */
 export function useSectionLines(sectionRef: RefObject<HTMLElement | null>) {
   const { isEditMode } = useEditMode();
-  const injectedRef = useRef(false);
+  const readyRef = useRef(false);
+  const linesRef = useRef<HTMLElement[]>([]);
 
-  const onAnimationComplete = useCallback(() => {
-    if (!isEditMode || injectedRef.current || !sectionRef.current) {
+  const inject = useCallback(() => {
+    if (!sectionRef.current || linesRef.current.length > 0) {
       return;
     }
-    injectedRef.current = true;
-    requestAnimationFrame(() => {
-      if (sectionRef.current) {
-        injectSectionLines(sectionRef.current);
-      }
-    });
-  }, [isEditMode, sectionRef]);
+    linesRef.current = injectSectionLines(sectionRef.current);
+  }, [sectionRef]);
 
-  return { onSectionReady: onAnimationComplete };
+  const cleanup = useCallback(() => {
+    for (const el of linesRef.current) {
+      if (el.style.transform?.includes("scaleX")) {
+        el.style.transform = "scaleX(0)";
+      } else if (el.style.transform?.includes("scaleY")) {
+        el.style.transform = "scaleY(0)";
+      } else {
+        el.style.opacity = "0";
+      }
+    }
+    setTimeout(() => {
+      for (const el of linesRef.current) {
+        el.remove();
+      }
+      linesRef.current = [];
+    }, 400);
+  }, []);
+
+  // When isEditMode changes: inject if ready, cleanup if exiting
+  useEffect(() => {
+    if (isEditMode && readyRef.current) {
+      requestAnimationFrame(() => inject());
+    } else if (!isEditMode && linesRef.current.length > 0) {
+      cleanup();
+    }
+  }, [isEditMode, inject, cleanup]);
+
+  // Callback for motion's onAnimationComplete
+  const onSectionReady = useCallback(() => {
+    readyRef.current = true;
+    if (isEditMode) {
+      requestAnimationFrame(() => inject());
+    }
+  }, [isEditMode, inject]);
+
+  return { onSectionReady };
 }

@@ -6,8 +6,7 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
-import { useEditMode } from "@/components/admin/edit-mode-context";
-import { injectSectionLines } from "@/components/admin/edit-mode-lines";
+import { useSectionLines } from "@/components/admin/use-section-lines";
 import { Link } from "@/i18n/routing";
 import { useLocalized, useProjects } from "@/lib/hooks";
 
@@ -87,19 +86,13 @@ export function FeaturedWork() {
   const t = useTranslations("common");
   const tf = useTranslations("home.featured");
   const { projects } = useProjects();
-  const { isEditMode } = useEditMode();
   const sectionRef = useRef<HTMLElement>(null);
+  const { onSectionReady } = useSectionLines(sectionRef);
 
-  // Inject lines immediately — this section uses whileInView (no enter anim on mount)
+  // This section uses whileInView — signal ready immediately on mount
   useEffect(() => {
-    if (isEditMode && sectionRef.current) {
-      requestAnimationFrame(() => {
-        if (sectionRef.current) {
-          injectSectionLines(sectionRef.current);
-        }
-      });
-    }
-  }, [isEditMode]);
+    onSectionReady();
+  }, [onSectionReady]);
 
   const featured = projects.slice(0, 5);
 
