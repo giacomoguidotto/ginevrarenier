@@ -14,7 +14,7 @@ export default async function SignInPage({ params }: Props) {
       <SignIn
         appearance={{
           variables: {
-            colorBackground: "transparent",
+            colorBackground: "var(--background)",
             colorPrimary: "var(--primary)",
             colorText: "var(--foreground)",
             colorTextSecondary: "var(--muted-foreground)",
@@ -26,10 +26,8 @@ export default async function SignInPage({ params }: Props) {
           },
           elements: {
             rootBox: "w-full max-w-md",
-            card: "!shadow-none !bg-transparent",
-            footer: "!bg-transparent",
-            footerAction: "!text-muted-foreground",
-            footerActionLink: "!text-foreground",
+            card: "!shadow-none !border-none",
+            footerAction: "!hidden",
             formFieldLabel:
               "!text-muted-foreground !text-xs !uppercase !tracking-widest",
             formButtonPrimary:
