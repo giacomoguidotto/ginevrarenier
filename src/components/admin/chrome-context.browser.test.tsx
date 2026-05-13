@@ -1,33 +1,36 @@
 // @vitest-environment jsdom
-//
-// Requires: bun add -D @testing-library/react @testing-library/jest-dom jsdom
 
-import { cleanup, render, act } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { useRef, useEffect, useState } from "react";
-import { ChromeProvider, useChromeRegister, useChromeRegistry } from "./chrome-context";
+import { useEffect, useRef, useState } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  ChromeProvider,
+  useChromeRegister,
+  useChromeRegistry,
+} from "./chrome-context";
 import { EditModeProvider, useEditMode } from "./edit-mode-context";
+import { Section } from "./section";
 
-// Stub next-intl's useLocale since we're outside Next.js
 vi.mock("next-intl", () => ({
   useLocale: () => "en",
 }));
 
-// Minimal Section context wrapper
 vi.mock("./section", () => {
-  const { createContext, useContext } = require("react");
-  const SectionContext = createContext({ name: "hero", data: undefined });
+  const React = require("react");
+  const SectionContext = React.createContext({ name: "hero", data: undefined });
   return {
-    Section: ({ name, children }: { name: string; children: ReactNode }) => (
-      <SectionContext.Provider value={{ name, data: undefined }}>
-        {children}
-      </SectionContext.Provider>
-    ),
-    useSection: () => useContext(SectionContext),
+    Section: ({ name, children }: { name: string; children: ReactNode }) =>
+      React.createElement(
+        SectionContext.Provider,
+        { value: { name, data: undefined } },
+        children
+      ),
+    useSection: () => React.useContext(SectionContext),
   };
 });
 
+beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
 function Providers({ children }: { children: ReactNode }) {
@@ -41,13 +44,17 @@ function Providers({ children }: { children: ReactNode }) {
 function FieldWithRegistration({ name }: { name: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useChromeRegister(name, ref);
-  return <div ref={ref} data-testid={`field-${name}`}>content</div>;
+  return (
+    <div data-testid={`field-${name}`} ref={ref}>
+      content
+    </div>
+  );
 }
 
 function EditModeToggle() {
   const { toggleEditMode, isEditMode } = useEditMode();
   return (
-    <button type="button" data-testid="toggle" onClick={toggleEditMode}>
+    <button data-testid="toggle" onClick={toggleEditMode} type="button">
       {isEditMode ? "on" : "off"}
     </button>
   );
@@ -65,9 +72,6 @@ function RegistryInspector({ onCount }: { onCount: (n: number) => void }) {
 }
 
 describe("Chrome Context", () => {
-  // Mock Section wrapper for field registration
-  const { Section } = vi.mocked(await import("./section"));
-
   function TestHarness({ fieldNames = ["title"] }: { fieldNames?: string[] }) {
     const [count, setCount] = useState(0);
     return (
@@ -88,7 +92,7 @@ describe("Chrome Context", () => {
     const { getByTestId } = render(<TestHarness />);
     expect(getByTestId("count").textContent).toBe("0");
 
-    await act(async () => {
+    await act(() => {
       getByTestId("toggle").click();
     });
 
@@ -98,12 +102,12 @@ describe("Chrome Context", () => {
   it("deregisters fields when edit mode is off", async () => {
     const { getByTestId } = render(<TestHarness />);
 
-    await act(async () => {
+    await act(() => {
       getByTestId("toggle").click();
     });
     expect(getByTestId("count").textContent).toBe("1");
 
-    await act(async () => {
+    await act(() => {
       getByTestId("toggle").click();
     });
     expect(getByTestId("count").textContent).toBe("0");
@@ -111,10 +115,10 @@ describe("Chrome Context", () => {
 
   it("registers multiple fields", async () => {
     const { getByTestId } = render(
-      <TestHarness fieldNames={["title", "subtitle", "cta"]} />,
+      <TestHarness fieldNames={["title", "subtitle", "cta"]} />
     );
 
-    await act(async () => {
+    await act(() => {
       getByTestId("toggle").click();
     });
 
@@ -132,9 +136,9 @@ describe("Chrome Context", () => {
             <EditModeToggle />
             {show && <FieldWithRegistration name="title" />}
             <button
-              type="button"
               data-testid="remove"
               onClick={() => setShow(false)}
+              type="button"
             >
               remove
             </button>
@@ -146,12 +150,12 @@ describe("Chrome Context", () => {
 
     const { getByTestId } = render(<Togglable />);
 
-    await act(async () => {
+    await act(() => {
       getByTestId("toggle").click();
     });
     expect(getByTestId("count").textContent).toBe("1");
 
-    await act(async () => {
+    await act(() => {
       getByTestId("remove").click();
     });
     expect(getByTestId("count").textContent).toBe("0");
