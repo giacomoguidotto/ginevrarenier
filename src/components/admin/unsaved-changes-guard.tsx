@@ -10,15 +10,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useDraftBufferState } from "./draft-buffer-context";
 import { usePageChanges } from "./page-changes-context";
 
-/**
- * Warns when navigating away with unsaved changes.
- * Shows a shadcn dialog for in-app navigation and a
- * beforeunload warning for browser navigation.
- */
 export function UnsavedChangesGuard() {
-  const { hasChanges, save, discard } = usePageChanges();
+  const pageChanges = usePageChanges();
+  const draftBuffer = useDraftBufferState();
+  const hasChanges = pageChanges.hasChanges || draftBuffer.hasChanges;
+
+  const save = async () => {
+    await pageChanges.save();
+    await draftBuffer.save();
+  };
+
+  const discard = () => {
+    pageChanges.discard();
+    draftBuffer.discard();
+  };
   const [showDialog, setShowDialog] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
