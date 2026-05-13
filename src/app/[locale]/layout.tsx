@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { DraftBufferProvider } from "@/components/admin/draft-buffer-context";
 import { EditFab } from "@/components/admin/edit-fab";
 import { EditModeProvider } from "@/components/admin/edit-mode-context";
 import { EditModeLines } from "@/components/admin/edit-mode-lines";
@@ -121,13 +122,15 @@ export default async function LocaleLayout({ children, params }: Props) {
           <TooltipProvider>
             <EditModeProvider>
               <PageChangesProvider>
-                <EditModeLines />
-                <Navbar />
-                <main className="min-h-screen">{children}</main>
-                <Footer />
-                <EditFab />
-                <EditToolbarWrapper />
-                <UnsavedChangesGuard />
+                <DraftBufferProvider>
+                  <EditModeLines />
+                  <Navbar />
+                  <main className="min-h-screen">{children}</main>
+                  <Footer />
+                  <EditFab />
+                  <EditToolbarWrapper />
+                  <UnsavedChangesGuard />
+                </DraftBufferProvider>
               </PageChangesProvider>
             </EditModeProvider>
           </TooltipProvider>
