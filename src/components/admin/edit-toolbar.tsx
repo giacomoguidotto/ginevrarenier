@@ -371,7 +371,7 @@ function SaveConfirmDialog({
             ))}
           </ul>
         ) : null}
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter>
           <Button onClick={onCancel} variant="outline">
             Cancel
           </Button>
@@ -428,7 +428,7 @@ function DiscardConfirmDialog({
             ))}
           </ul>
         ) : null}
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter>
           <Button onClick={onCancel} variant="outline">
             Cancel
           </Button>

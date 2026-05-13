@@ -36,6 +36,9 @@ export function Field({ name, as: Tag = "span", className }: FieldProps) {
 
   const handleInput = () => {
     const text = elRef.current?.textContent ?? "";
+    if (text === convexValue) {
+      return;
+    }
     write(section, name, locale, text);
   };
 
