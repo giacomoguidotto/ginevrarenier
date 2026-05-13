@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { ChangeSummary } from "./draft-buffer";
 import { createDraftBuffer } from "./draft-buffer";
 
 type Buffer = ReturnType<typeof createDraftBuffer>;
@@ -26,6 +27,7 @@ interface DraftBufferOps {
 }
 
 interface DraftBufferState {
+  changeSummary: () => ChangeSummary;
   discard: () => void;
   hasChanges: boolean;
   save: () => Promise<void>;
@@ -42,6 +44,7 @@ const OpsContext = createContext<DraftBufferOps>({
 const ResetContext = createContext(0);
 
 const StateContext = createContext<DraftBufferState>({
+  changeSummary: () => ({ textEdits: [] }),
   hasChanges: false,
   save: () => Promise.resolve(),
   discard: noop,
@@ -93,11 +96,20 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setResetSignal((v) => v + 1);
   }, []);
 
+  const changeSummary = useCallback((): ChangeSummary => {
+    const getOriginal = (section: string, field: string, locale: string) => {
+      const fieldContent = allContent?.find((c) => c.section === section)
+        ?.content[field];
+      return fieldContent?.[locale as "en" | "it"];
+    };
+    return bufferRef.current.changeSummary(getOriginal);
+  }, [allContent]);
+
   const ops = useMemo(() => ({ read, write }), [read, write]);
 
   const state = useMemo(
-    () => ({ hasChanges, save, discard }),
-    [hasChanges, save, discard]
+    () => ({ changeSummary, hasChanges, save, discard }),
+    [changeSummary, hasChanges, save, discard]
   );
 
   return (

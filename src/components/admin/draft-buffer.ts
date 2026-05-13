@@ -1,3 +1,15 @@
+export interface TextEdit {
+  field: string;
+  locale: string;
+  newValue: string;
+  oldValue: string | undefined;
+  section: string;
+}
+
+export interface ChangeSummary {
+  textEdits: TextEdit[];
+}
+
 export function createDraftBuffer() {
   const store = new Map<string, string>();
 
@@ -30,6 +42,26 @@ export function createDraftBuffer() {
         sectionMap[field][locale] = value;
       }
       return grouped;
+    },
+    changeSummary(
+      getOriginal?: (
+        section: string,
+        field: string,
+        locale: string
+      ) => string | undefined
+    ): ChangeSummary {
+      const textEdits: TextEdit[] = [];
+      for (const [k, value] of store) {
+        const [section, field, locale] = k.split("\0");
+        textEdits.push({
+          section,
+          field,
+          locale,
+          oldValue: getOriginal?.(section, field, locale),
+          newValue: value,
+        });
+      }
+      return { textEdits };
     },
     discard(): void {
       store.clear();
