@@ -158,6 +158,15 @@
   }
 }
 
+/* Hero title: first line foreground, rest faded */
+.hero-title::first-line {
+  color: var(--foreground);
+}
+
+.hero-title {
+  color: var(--muted-foreground);
+}
+
 /* Smooth image loading */
 img {
   opacity: 1;

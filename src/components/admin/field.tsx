@@ -6,16 +6,27 @@ import type { Locale } from "@/i18n/config";
 import { useDraftBufferOps, useDraftBufferReset } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
 import { useSection } from "./section";
+import { useFieldConstraints } from "./use-field-constraints";
 
 type FieldElement = "h1" | "h2" | "h3" | "p" | "span" | "blockquote";
 
 interface FieldProps {
   as?: FieldElement;
   className?: string;
+  maxHeight?: number;
+  maxWidth?: number;
+  multiline?: boolean;
   name: string;
 }
 
-export function Field({ name, as: Tag = "span", className }: FieldProps) {
+export function Field({
+  name,
+  as: Tag = "span",
+  className,
+  maxHeight,
+  maxWidth,
+  multiline,
+}: FieldProps) {
   const { name: section, data } = useSection();
   const { isEditMode, editingLocale } = useEditMode();
   const pageLocale = useLocale() as Locale;
@@ -23,6 +34,13 @@ export function Field({ name, as: Tag = "span", className }: FieldProps) {
   const { read, write } = useDraftBufferOps();
   useDraftBufferReset();
   const elRef = useRef<HTMLElement>(null);
+
+  const { style: constraintStyle } = useFieldConstraints(elRef, {
+    active: isEditMode,
+    maxHeight,
+    maxWidth,
+    multiline,
+  });
 
   const draftValue = read(section, name, locale);
   const convexValue = data?.[name]?.[locale] ?? "";
@@ -49,6 +67,7 @@ export function Field({ name, as: Tag = "span", className }: FieldProps) {
       onBlur={isEditMode ? handleInput : undefined}
       onInput={isEditMode ? handleInput : undefined}
       ref={elRef as React.RefObject<never>}
+      style={constraintStyle}
       suppressContentEditableWarning={isEditMode}
     />
   );
