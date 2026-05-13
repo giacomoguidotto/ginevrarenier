@@ -12,6 +12,6 @@ export default defineConfig({
   },
   test: {
     include: ["**/*.test.{ts,tsx}"],
-    exclude: ["e2e/**", "node_modules/**"],
+    exclude: ["e2e/**", "node_modules/**", "**/*.browser.test.{ts,tsx}"],
   },
 });

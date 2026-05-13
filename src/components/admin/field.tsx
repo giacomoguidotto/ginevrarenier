@@ -3,6 +3,7 @@
 import { useLocale } from "next-intl";
 import { useEffect, useRef } from "react";
 import type { Locale } from "@/i18n/config";
+import { useChromeRegister } from "./chrome-context";
 import { useDraftBufferOps, useDraftBufferReset } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
 import { useSection } from "./section";
@@ -23,6 +24,7 @@ export function Field({ name, as: Tag = "span", className }: FieldProps) {
   const { read, write } = useDraftBufferOps();
   useDraftBufferReset();
   const elRef = useRef<HTMLElement>(null);
+  useChromeRegister(name, elRef);
 
   const draftValue = read(section, name, locale);
   const convexValue = data?.[name]?.[locale] ?? "";
