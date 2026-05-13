@@ -3,7 +3,10 @@ import { createChromeRegistry } from "./chrome-registry";
 
 describe("Chrome Registry", () => {
   function makeElement(id = "el"): HTMLElement {
-    return { id, getBoundingClientRect: () => DOMRect.fromRect() } as unknown as HTMLElement;
+    return {
+      id,
+      getBoundingClientRect: () => DOMRect.fromRect(),
+    } as unknown as HTMLElement;
   }
 
   it("registers a field and lists it", () => {
@@ -67,13 +70,34 @@ describe("Chrome Registry", () => {
   it("snapshots geometry for all registered fields", () => {
     const registry = createChromeRegistry();
     const el = {
-      getBoundingClientRect: () => ({ x: 10, y: 20, width: 100, height: 30, top: 20, left: 10, right: 110, bottom: 50 }),
+      getBoundingClientRect: () => ({
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 30,
+        top: 20,
+        left: 10,
+        right: 110,
+        bottom: 50,
+      }),
     } as unknown as HTMLElement;
     registry.register("hero\0title", el);
 
     const geo = registry.getGeometry();
     expect(geo).toEqual([
-      { id: "hero\0title", rect: { x: 10, y: 20, width: 100, height: 30, top: 20, left: 10, right: 110, bottom: 50 } },
+      {
+        id: "hero\0title",
+        rect: {
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 30,
+          top: 20,
+          left: 10,
+          right: 110,
+          bottom: 50,
+        },
+      },
     ]);
   });
 
