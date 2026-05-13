@@ -3,11 +3,21 @@
 import { useClerk } from "@clerk/nextjs";
 import { GripVertical, LogOut, Power, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ChangeSummary } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
 
 const STORAGE_KEY = "edit-toolbar-position";
@@ -43,6 +53,7 @@ function getInitialPosition(): Position {
 }
 
 interface EditToolbarProps {
+  changeSummary: () => ChangeSummary;
   editedLocales: Set<string>;
   hasChanges: boolean;
   onDiscard: () => void | Promise<void>;
@@ -75,6 +86,7 @@ function ToolbarButton({
 }
 
 export function EditToolbar({
+  changeSummary,
   hasChanges,
   editedLocales,
   onSave,
@@ -85,6 +97,9 @@ export function EditToolbar({
   const { signOut } = useClerk();
 
   const [loading, setLoading] = useState<"save" | "discard" | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<"save" | "discard" | null>(
+    null
+  );
   const [position, setPosition] = useState<Position>(getInitialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{
@@ -238,11 +253,7 @@ export function EditToolbar({
           <ToolbarButton
             className="flex h-8 items-center gap-1.5 rounded-full bg-foreground/10 px-3 text-foreground text-xs transition-colors hover:bg-foreground/20"
             label="Save changes"
-            onClick={async () => {
-              setLoading("save");
-              await onSave();
-              setLoading(null);
-            }}
+            onClick={() => setConfirmDialog("save")}
           >
             {loading === "save" ? (
               <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
@@ -255,11 +266,7 @@ export function EditToolbar({
           <ToolbarButton
             className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 text-xs transition-colors hover:bg-foreground/10 hover:text-foreground"
             label="Discard changes"
-            onClick={async () => {
-              setLoading("discard");
-              await onDiscard();
-              setLoading(null);
-            }}
+            onClick={() => setConfirmDialog("discard")}
           >
             {loading === "discard" ? (
               <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
@@ -291,6 +298,145 @@ export function EditToolbar({
       >
         <Power className="h-3.5 w-3.5" />
       </ToolbarButton>
+
+      <SaveConfirmDialog
+        changeSummary={changeSummary}
+        loading={loading === "save"}
+        onCancel={() => setConfirmDialog(null)}
+        onConfirm={async () => {
+          setLoading("save");
+          setConfirmDialog(null);
+          await onSave();
+          setLoading(null);
+        }}
+        open={confirmDialog === "save"}
+      />
+
+      <DiscardConfirmDialog
+        changeSummary={changeSummary}
+        loading={loading === "discard"}
+        onCancel={() => setConfirmDialog(null)}
+        onConfirm={async () => {
+          setLoading("discard");
+          setConfirmDialog(null);
+          await onDiscard();
+          setLoading(null);
+        }}
+        open={confirmDialog === "discard"}
+      />
     </div>
+  );
+}
+
+function formatEditLabel(edit: { section: string; field: string }) {
+  return `${edit.section} / ${edit.field}`;
+}
+
+function SaveConfirmDialog({
+  open,
+  onConfirm,
+  onCancel,
+  changeSummary,
+  loading,
+}: {
+  open: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  changeSummary: () => ChangeSummary;
+  loading: boolean;
+}) {
+  const summary = open ? changeSummary() : null;
+
+  return (
+    <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Save changes</DialogTitle>
+          <DialogDescription>
+            The following changes will be saved.
+          </DialogDescription>
+        </DialogHeader>
+        {summary && summary.textEdits.length > 0 ? (
+          <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
+            {summary.textEdits.map((edit) => (
+              <li
+                className="flex items-baseline gap-2"
+                key={`${edit.section}\0${edit.field}\0${edit.locale}`}
+              >
+                <span className="font-mono text-muted-foreground text-xs">
+                  {edit.locale.toUpperCase()}
+                </span>
+                <span>{formatEditLabel(edit)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <DialogFooter>
+          <Button onClick={onCancel} variant="outline">
+            Cancel
+          </Button>
+          <Button disabled={loading} onClick={onConfirm}>
+            {loading ? "Saving..." : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DiscardConfirmDialog({
+  open,
+  onConfirm,
+  onCancel,
+  changeSummary,
+  loading,
+}: {
+  open: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  changeSummary: () => ChangeSummary;
+  loading: boolean;
+}) {
+  const summary = open ? changeSummary() : null;
+  const editCount = summary?.textEdits.length ?? 0;
+
+  return (
+    <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Discard changes</DialogTitle>
+          <DialogDescription>
+            {editCount > 0
+              ? `You have ${editCount} unsaved ${editCount === 1 ? "edit" : "edits"} that will be lost.`
+              : "All unsaved changes will be lost."}
+          </DialogDescription>
+        </DialogHeader>
+        {summary && summary.textEdits.length > 0 ? (
+          <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
+            {summary.textEdits.map((edit) => (
+              <li
+                className="flex items-baseline gap-2"
+                key={`${edit.section}\0${edit.field}\0${edit.locale}`}
+              >
+                <span className="font-mono text-muted-foreground text-xs">
+                  {edit.locale.toUpperCase()}
+                </span>
+                <span className="line-through opacity-60">
+                  {formatEditLabel(edit)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <DialogFooter>
+          <Button onClick={onCancel} variant="outline">
+            Cancel
+          </Button>
+          <Button disabled={loading} onClick={onConfirm} variant="destructive">
+            {loading ? "Discarding..." : "Discard"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

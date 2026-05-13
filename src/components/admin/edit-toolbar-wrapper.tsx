@@ -22,6 +22,7 @@ export function EditToolbarWrapper() {
 
   return (
     <EditToolbar
+      changeSummary={draftBuffer.changeSummary}
       editedLocales={pageChanges.editedLocales}
       hasChanges={hasChanges}
       onDiscard={onDiscard}
