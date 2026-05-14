@@ -356,7 +356,8 @@ function SaveConfirmDialog({
             The following changes will be saved.
           </DialogDescription>
         </DialogHeader>
-        {summary && summary.textEdits.length > 0 ? (
+        {summary &&
+        (summary.textEdits.length > 0 || summary.imageSwaps.length > 0) ? (
           <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
             {summary.textEdits.map((edit) => (
               <li
@@ -369,6 +370,17 @@ function SaveConfirmDialog({
                 <span>{formatEditLabel(edit)}</span>
               </li>
             ))}
+            {summary.imageSwaps.length > 0 ? (
+              <li className="flex items-baseline gap-2">
+                <span className="font-mono text-muted-foreground text-xs">
+                  IMG
+                </span>
+                <span>
+                  {summary.imageSwaps.length} image{" "}
+                  {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
+                </span>
+              </li>
+            ) : null}
           </ul>
         ) : null}
         <DialogFooter>
@@ -398,7 +410,8 @@ function DiscardConfirmDialog({
   loading: boolean;
 }) {
   const summary = open ? changeSummary() : null;
-  const editCount = summary?.textEdits.length ?? 0;
+  const editCount =
+    (summary?.textEdits.length ?? 0) + (summary?.imageSwaps.length ?? 0);
 
   return (
     <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
@@ -407,11 +420,12 @@ function DiscardConfirmDialog({
           <DialogTitle>Discard changes</DialogTitle>
           <DialogDescription>
             {editCount > 0
-              ? `You have ${editCount} unsaved ${editCount === 1 ? "edit" : "edits"} that will be lost.`
+              ? `You have ${editCount} unsaved ${editCount === 1 ? "change" : "changes"} that will be lost.`
               : "All unsaved changes will be lost."}
           </DialogDescription>
         </DialogHeader>
-        {summary && summary.textEdits.length > 0 ? (
+        {summary &&
+        (summary.textEdits.length > 0 || summary.imageSwaps.length > 0) ? (
           <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
             {summary.textEdits.map((edit) => (
               <li
@@ -426,6 +440,17 @@ function DiscardConfirmDialog({
                 </span>
               </li>
             ))}
+            {summary.imageSwaps.length > 0 ? (
+              <li className="flex items-baseline gap-2">
+                <span className="font-mono text-muted-foreground text-xs">
+                  IMG
+                </span>
+                <span className="line-through opacity-60">
+                  {summary.imageSwaps.length} image{" "}
+                  {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
+                </span>
+              </li>
+            ) : null}
           </ul>
         ) : null}
         <DialogFooter>

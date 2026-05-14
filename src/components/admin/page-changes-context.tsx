@@ -47,7 +47,6 @@ interface PageChangesContextValue {
     value: { en: string; it: string },
     editedLocale: string
   ) => void;
-  trackUploadedAsset: (publicId: string) => void;
 }
 
 // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
@@ -58,7 +57,6 @@ const PageChangesContext = createContext<PageChangesContextValue>({
   hasChanges: false,
   editedLocales: emptySet,
   trackSiteContent: noop,
-  trackUploadedAsset: noop,
   getSiteContentDraft: noop as () => undefined,
   getFieldEditedLocales: () => emptySet,
   save: () => Promise.resolve(),
@@ -72,8 +70,6 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
   const [fieldLocales, setFieldLocales] = useState<Map<string, Set<string>>>(
     new Map()
   );
-  // Cloudinary public IDs uploaded during this edit session
-  const [uploadedAssets, setUploadedAssets] = useState<string[]>([]);
   const upsertSiteContent = useMutation(api.siteContent.upsert);
 
   const trackSiteContent = useCallback(
@@ -144,10 +140,6 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
     [fieldLocales]
   );
 
-  const trackUploadedAsset = useCallback((publicId: string) => {
-    setUploadedAssets((prev) => [...prev, publicId]);
-  }, []);
-
   const save = useCallback(async () => {
     for (const change of changes) {
       if (change.type === "siteContent") {
@@ -160,30 +152,19 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
     setChanges([]);
     setEditedLocales(new Set());
     setFieldLocales(new Map());
-    setUploadedAssets([]);
   }, [changes, upsertSiteContent]);
 
-  const discard = useCallback(async () => {
-    // Delete uploaded Cloudinary assets that won't be saved
-    for (const publicId of uploadedAssets) {
-      await fetch("/api/cloudinary/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ publicId }),
-      });
-    }
+  const discard = useCallback(() => {
     setChanges([]);
     setEditedLocales(new Set());
     setFieldLocales(new Map());
-    setUploadedAssets([]);
-  }, [uploadedAssets]);
+  }, []);
 
   const value = useMemo(
     () => ({
-      hasChanges: changes.length > 0 || uploadedAssets.length > 0,
+      hasChanges: changes.length > 0,
       editedLocales,
       trackSiteContent,
-      trackUploadedAsset,
       getSiteContentDraft,
       getFieldEditedLocales,
       save,
@@ -191,10 +172,8 @@ export function PageChangesProvider({ children }: { children: ReactNode }) {
     }),
     [
       changes.length,
-      uploadedAssets.length,
       editedLocales,
       trackSiteContent,
-      trackUploadedAsset,
       getSiteContentDraft,
       getFieldEditedLocales,
       save,

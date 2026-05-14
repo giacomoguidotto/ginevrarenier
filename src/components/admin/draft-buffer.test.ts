@@ -58,7 +58,7 @@ describe("Draft Buffer", () => {
 
   it("changeSummary returns empty textEdits when no changes", () => {
     const buffer = createDraftBuffer();
-    expect(buffer.changeSummary()).toEqual({ textEdits: [] });
+    expect(buffer.changeSummary()).toEqual({ imageSwaps: [], textEdits: [] });
   });
 
   it("changeSummary returns text edits with section, field, locale, and newValue", () => {
@@ -131,7 +131,7 @@ describe("Draft Buffer", () => {
     const buffer = createDraftBuffer();
     buffer.write("hero", "title", "en", "Hello");
     buffer.discard();
-    expect(buffer.changeSummary()).toEqual({ textEdits: [] });
+    expect(buffer.changeSummary()).toEqual({ imageSwaps: [], textEdits: [] });
   });
 
   it("save extracts changes and clears state", () => {
