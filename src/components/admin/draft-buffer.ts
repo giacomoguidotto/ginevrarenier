@@ -6,7 +6,12 @@ export interface TextEdit {
   section: string;
 }
 
+export interface ImageSwap {
+  publicId: string;
+}
+
 export interface ChangeSummary {
+  imageSwaps: ImageSwap[];
   textEdits: TextEdit[];
 }
 
@@ -61,7 +66,7 @@ export function createDraftBuffer() {
           newValue: value,
         });
       }
-      return { textEdits };
+      return { imageSwaps: [], textEdits };
     },
     discard(): void {
       store.clear();

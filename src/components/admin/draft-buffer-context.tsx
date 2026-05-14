@@ -13,8 +13,11 @@ import {
 } from "react";
 import type { ChangeSummary } from "./draft-buffer";
 import { createDraftBuffer } from "./draft-buffer";
+import { createImageAssets } from "./image-assets";
+import { deleteCloudinaryImage, uploadImage } from "./image-upload";
 
 type Buffer = ReturnType<typeof createDraftBuffer>;
+type Assets = ReturnType<typeof createImageAssets>;
 
 interface DraftBufferOps {
   read: Buffer["read"];
@@ -26,9 +29,17 @@ interface DraftBufferOps {
   ) => void;
 }
 
+interface ImageAssetsOps {
+  trackAsset: (publicId: string) => void;
+  upload: (
+    file: File,
+    folder: string
+  ) => Promise<{ url: string; publicId: string }>;
+}
+
 interface DraftBufferState {
   changeSummary: () => ChangeSummary;
-  discard: () => void;
+  discard: () => void | Promise<void>;
   hasChanges: boolean;
   save: () => Promise<void>;
 }
@@ -41,10 +52,15 @@ const OpsContext = createContext<DraftBufferOps>({
   write: noop,
 });
 
+const ImageAssetsContext = createContext<ImageAssetsOps>({
+  trackAsset: noop,
+  upload: () => Promise.resolve({ url: "", publicId: "" }),
+});
+
 const ResetContext = createContext(0);
 
 const StateContext = createContext<DraftBufferState>({
-  changeSummary: () => ({ textEdits: [] }),
+  changeSummary: () => ({ imageSwaps: [], textEdits: [] }),
   hasChanges: false,
   save: () => Promise.resolve(),
   discard: noop,
@@ -52,6 +68,12 @@ const StateContext = createContext<DraftBufferState>({
 
 export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const bufferRef = useRef<Buffer>(createDraftBuffer());
+  const imageAssetsRef = useRef<Assets>(
+    createImageAssets({
+      upload: uploadImage,
+      deleteAsset: deleteCloudinaryImage,
+    })
+  );
   const [hasChanges, setHasChanges] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const allContent = useQuery(api.siteContent.listAll);
@@ -70,6 +92,17 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const trackAsset = useCallback((publicId: string) => {
+    imageAssetsRef.current.trackAsset(publicId);
+    setHasChanges(true);
+  }, []);
+
+  const uploadAsset = useCallback(async (file: File, folder: string) => {
+    const result = await imageAssetsRef.current.upload(file, folder);
+    setHasChanges(true);
+    return result;
+  }, []);
+
   const save = useCallback(async () => {
     const grouped = bufferRef.current.changes();
     for (const [section, fields] of grouped) {
@@ -86,11 +119,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       });
     }
     bufferRef.current.discard();
+    imageAssetsRef.current.clearTracked();
     setHasChanges(false);
     setResetSignal((v) => v + 1);
   }, [allContent, upsertSiteContent]);
 
-  const discard = useCallback(() => {
+  const discard = useCallback(async () => {
+    await imageAssetsRef.current.cleanup();
     bufferRef.current.discard();
     setHasChanges(false);
     setResetSignal((v) => v + 1);
@@ -102,10 +137,20 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         ?.content[field];
       return fieldContent?.[locale as "en" | "it"];
     };
-    return bufferRef.current.changeSummary(getOriginal);
+    const textSummary = bufferRef.current.changeSummary(getOriginal);
+    const imageSummary = imageAssetsRef.current.changeSummary();
+    return {
+      textEdits: textSummary.textEdits,
+      imageSwaps: imageSummary.imageSwaps,
+    };
   }, [allContent]);
 
   const ops = useMemo(() => ({ read, write }), [read, write]);
+
+  const imageOps = useMemo(
+    () => ({ trackAsset, upload: uploadAsset }),
+    [trackAsset, uploadAsset]
+  );
 
   const state = useMemo(
     () => ({ changeSummary, hasChanges, save, discard }),
@@ -114,9 +159,11 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
   return (
     <OpsContext value={ops}>
-      <ResetContext value={resetSignal}>
-        <StateContext value={state}>{children}</StateContext>
-      </ResetContext>
+      <ImageAssetsContext value={imageOps}>
+        <ResetContext value={resetSignal}>
+          <StateContext value={state}>{children}</StateContext>
+        </ResetContext>
+      </ImageAssetsContext>
     </OpsContext>
   );
 }
@@ -131,4 +178,8 @@ export function useDraftBufferReset() {
 
 export function useDraftBufferState() {
   return useContext(StateContext);
+}
+
+export function useImageAssets() {
+  return useContext(ImageAssetsContext);
 }

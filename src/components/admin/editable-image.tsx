@@ -3,9 +3,8 @@
 import { Camera } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
+import { useImageAssets } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
-import { uploadImage } from "./image-upload";
-import { usePageChanges } from "./page-changes-context";
 
 interface EditableImageProps {
   alt: string;
@@ -33,19 +32,18 @@ export function EditableImage({
   priority = false,
 }: EditableImageProps) {
   const { isEditMode } = useEditMode();
-  const { trackUploadedAsset } = usePageChanges();
+  const { upload } = useImageAssets();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = useCallback(
     async (file: File) => {
       setUploading(true);
-      const result = await uploadImage(file, folder);
-      trackUploadedAsset(result.publicId);
+      const result = await upload(file, folder);
       onUpload(result.url, result.publicId);
       setUploading(false);
     },
-    [folder, onUpload, trackUploadedAsset]
+    [folder, onUpload, upload]
   );
 
   return (
