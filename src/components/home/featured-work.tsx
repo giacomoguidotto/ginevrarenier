@@ -5,8 +5,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
-import { useSectionLines } from "@/components/admin/use-section-lines";
+import { useRef } from "react";
+import { Field } from "@/components/admin/field";
+import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { useLocalized, useProjects } from "@/lib/hooks";
 
@@ -84,74 +85,70 @@ function ProjectCard({
 export function FeaturedWork() {
   const containerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("common");
-  const tf = useTranslations("home.featured");
   const { projects } = useProjects();
-  const sectionRef = useRef<HTMLElement>(null);
-  const { onSectionReady } = useSectionLines(sectionRef);
-
-  // This section uses whileInView — signal ready immediately on mount
-  useEffect(() => {
-    onSectionReady();
-  }, [onSectionReady]);
 
   const featured = projects.slice(0, 5);
 
   return (
-    <section className="relative bg-background py-32" ref={sectionRef}>
-      {/* Section Header */}
-      <div className="mx-auto mb-16 max-w-7xl px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          whileInView={{ opacity: 1, y: 0 }}
+    <Section name="home.featured">
+      <section className="relative bg-background py-32">
+        {/* Section Header */}
+        <div className="mx-auto mb-16 max-w-7xl px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <Field
+              as="p"
+              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+              name="label"
+            />
+            <div className="flex items-end justify-between">
+              <Field as="h2" className="text-foreground" name="title" />
+              <Link
+                className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
+                href="/vision"
+              >
+                <span>{t("viewAll")}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Horizontal Scroll Container */}
+        <div
+          className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-8"
+          ref={containerRef}
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
         >
-          <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
-            {tf("label")}
-          </p>
-          <div className="flex items-end justify-between">
-            <h2 className="text-foreground">{tf("title")}</h2>
-            <Link
-              className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
-              href="/vision"
-            >
-              <span>{t("viewAll")}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </motion.div>
-      </div>
+          {/* Spacer for centering first item */}
+          <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
 
-      {/* Horizontal Scroll Container */}
-      <div
-        className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-8"
-        ref={containerRef}
-        style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        {/* Spacer for centering first item */}
-        <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
+          {featured.map((project, index) => (
+            <ProjectCard index={index} key={project._id} project={project} />
+          ))}
 
-        {featured.map((project, index) => (
-          <ProjectCard index={index} key={project._id} project={project} />
-        ))}
+          {/* Spacer for centering last item */}
+          <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
+        </div>
 
-        {/* Spacer for centering last item */}
-        <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
-      </div>
-
-      {/* Mobile View All Link */}
-      <div className="mt-8 text-center md:hidden">
-        <Link
-          className="inline-flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
-          href="/vision"
-        >
-          <span>{t("viewAllProjects")}</span>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </section>
+        {/* Mobile View All Link */}
+        <div className="mt-8 text-center md:hidden">
+          <Link
+            className="inline-flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
+            href="/vision"
+          >
+            <span>{t("viewAllProjects")}</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+    </Section>
   );
 }

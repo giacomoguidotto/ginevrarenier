@@ -11,22 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDraftBufferState } from "./draft-buffer-context";
-import { usePageChanges } from "./page-changes-context";
 
 export function UnsavedChangesGuard() {
-  const pageChanges = usePageChanges();
-  const draftBuffer = useDraftBufferState();
-  const hasChanges = pageChanges.hasChanges || draftBuffer.hasChanges;
+  const { hasChanges, save, discard } = useDraftBufferState();
 
-  const save = async () => {
-    await pageChanges.save();
-    await draftBuffer.save();
-  };
-
-  const discard = () => {
-    pageChanges.discard();
-    draftBuffer.discard();
-  };
   const [showDialog, setShowDialog] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
