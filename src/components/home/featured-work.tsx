@@ -5,8 +5,13 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
-import { useSectionLines } from "@/components/admin/use-section-lines";
+import { useRef } from "react";
+import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
+import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { useLocalized, useProjects } from "@/lib/hooks";
 
@@ -82,35 +87,41 @@ function ProjectCard({
 }
 
 export function FeaturedWork() {
+  return (
+    <Section name="home.featured">
+      <FieldVisibilityProvider>
+        <FeaturedWorkContent />
+      </FieldVisibilityProvider>
+    </Section>
+  );
+}
+
+function FeaturedWorkContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("common");
-  const tf = useTranslations("home.featured");
   const { projects } = useProjects();
-  const sectionRef = useRef<HTMLElement>(null);
-  const { onSectionReady } = useSectionLines(sectionRef);
-
-  // This section uses whileInView — signal ready immediately on mount
-  useEffect(() => {
-    onSectionReady();
-  }, [onSectionReady]);
+  const { markVisible } = useFieldVisibility();
 
   const featured = projects.slice(0, 5);
 
   return (
-    <section className="relative bg-background py-32" ref={sectionRef}>
+    <section className="relative bg-background py-32">
       {/* Section Header */}
       <div className="mx-auto mb-16 max-w-7xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
+          onAnimationComplete={markVisible}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
         >
-          <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
-            {tf("label")}
-          </p>
+          <Field
+            as="p"
+            className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+            name="label"
+          />
           <div className="flex items-end justify-between">
-            <h2 className="text-foreground">{tf("title")}</h2>
+            <Field as="h2" className="text-foreground" name="title" />
             <Link
               className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
               href="/vision"

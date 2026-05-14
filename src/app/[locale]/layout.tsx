@@ -8,9 +8,7 @@ import { ChromeOverlay } from "@/components/admin/chrome-overlay";
 import { DraftBufferProvider } from "@/components/admin/draft-buffer-context";
 import { EditFab } from "@/components/admin/edit-fab";
 import { EditModeProvider } from "@/components/admin/edit-mode-context";
-import { EditModeLines } from "@/components/admin/edit-mode-lines";
 import { EditToolbarWrapper } from "@/components/admin/edit-toolbar-wrapper";
-import { PageChangesProvider } from "@/components/admin/page-changes-context";
 import { UnsavedChangesGuard } from "@/components/admin/unsaved-changes-guard";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -124,21 +122,19 @@ export default async function LocaleLayout({ children, params }: Props) {
         <NextIntlClientProvider messages={messages}>
           <TooltipProvider>
             <EditModeProvider>
-              <PageChangesProvider>
-                <DraftBufferProvider>
-                  <ChromeProvider>
-                    <ChromeDismountOnNavigate />
-                    <EditModeLines />
-                    <ChromeOverlay />
-                    <Navbar />
-                    <main className="min-h-screen">{children}</main>
-                    <Footer />
+              <DraftBufferProvider>
+                <ChromeProvider>
+                  <ChromeDismountOnNavigate />
+                  <ChromeOverlay />
+                  <Navbar />
+                  <main className="min-h-screen">{children}</main>
+                  <Footer />
+                  <UnsavedChangesGuard>
                     <EditFab />
                     <EditToolbarWrapper />
-                    <UnsavedChangesGuard />
-                  </ChromeProvider>
-                </DraftBufferProvider>
-              </PageChangesProvider>
+                  </UnsavedChangesGuard>
+                </ChromeProvider>
+              </DraftBufferProvider>
             </EditModeProvider>
           </TooltipProvider>
         </NextIntlClientProvider>

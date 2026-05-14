@@ -158,6 +158,13 @@
   }
 }
 
+/* Prevent browser contentEditable defaults from altering field layout */
+.editable-field {
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* Hero title: first line foreground, rest faded */
 .hero-title::first-line {
   color: var(--foreground);

@@ -161,6 +161,36 @@ export const seed = internalMutation({
           },
         },
       },
+      {
+        section: "home.featured",
+        content: {
+          label: {
+            en: "Featured Projects",
+            it: "Progetti in Evidenza",
+          },
+          title: {
+            en: "Selected Works",
+            it: "Opere Selezionate",
+          },
+        },
+      },
+      {
+        section: "connect.header",
+        content: {
+          label: {
+            en: "Let's Talk",
+            it: "Parliamo",
+          },
+          title: {
+            en: "Connect",
+            it: "Contatti",
+          },
+          description: {
+            en: "Whether you're envisioning a collaboration, seeking a commission, or simply want to say hello—I'd love to hear from you.",
+            it: "Che tu stia immaginando una collaborazione, cercando una commissione, o semplicemente voglia salutare—mi piacerebbe sentirti.",
+          },
+        },
+      },
     ];
 
     for (const { section, content } of sections) {

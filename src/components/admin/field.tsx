@@ -18,6 +18,8 @@ interface FieldProps {
   maxWidth?: number;
   multiline?: boolean;
   name: string;
+  onChange?: (value: { en: string; it: string }) => void;
+  value?: { en: string; it: string };
 }
 
 export function Field({
@@ -27,6 +29,8 @@ export function Field({
   maxHeight,
   maxWidth,
   multiline,
+  value: entityValue,
+  onChange,
 }: FieldProps) {
   const { name: section, data } = useSection();
   const { isEditMode, editingLocale } = useEditMode();
@@ -36,6 +40,8 @@ export function Field({
   useDraftBufferReset();
   const elRef = useRef<HTMLElement>(null);
   useChromeRegister(name, elRef);
+
+  const entityMode = entityValue !== undefined;
 
   const { style: constraintStyle } = useFieldConstraints(elRef, {
     active: isEditMode,
@@ -50,17 +56,46 @@ export function Field({
     if (prevLocaleRef.current !== locale && isEditMode && elRef.current) {
       const currentText = elRef.current.textContent ?? "";
       const oldLocale = prevLocaleRef.current;
-      const oldConvexValue = data?.[name]?.[oldLocale] ?? "";
-      if (currentText !== oldConvexValue) {
-        write(section, name, oldLocale, currentText);
+
+      if (entityMode) {
+        if (currentText !== entityValue[oldLocale as Locale]) {
+          onChange?.({
+            ...entityValue,
+            [oldLocale]: currentText,
+          });
+        }
+      } else {
+        const oldConvexValue = data?.[name]?.[oldLocale] ?? "";
+        if (currentText !== oldConvexValue) {
+          write(section, name, oldLocale, currentText);
+        }
       }
       prevLocaleRef.current = locale;
     }
-  }, [locale, isEditMode, section, name, write, data]);
+  }, [
+    locale,
+    isEditMode,
+    section,
+    name,
+    write,
+    data,
+    entityMode,
+    entityValue,
+    onChange,
+  ]);
 
-  const draftValue = read(section, name, locale);
-  const convexValue = data?.[name]?.[locale] ?? "";
-  const displayValue = draftValue ?? convexValue;
+  let displayValue: string;
+  if (entityMode) {
+    displayValue = entityValue[locale] ?? "";
+  } else {
+    const draftValue = read(section, name, locale);
+    const convexValue = data?.[name]?.[locale] ?? "";
+    displayValue = draftValue ?? convexValue;
+  }
+
+  const sourceValue = entityMode
+    ? (entityValue[locale] ?? "")
+    : (data?.[name]?.[locale] ?? "");
 
   useEffect(() => {
     if (elRef.current && elRef.current.textContent !== displayValue) {
@@ -70,10 +105,13 @@ export function Field({
 
   const handleInput = () => {
     const text = elRef.current?.textContent ?? "";
-    if (text === convexValue) {
-      return;
+    if (entityMode) {
+      if (text !== sourceValue) {
+        onChange?.({ ...entityValue, [locale]: text });
+      }
+    } else if (text !== sourceValue) {
+      write(section, name, locale, text);
     }
-    write(section, name, locale, text);
   };
 
   return (

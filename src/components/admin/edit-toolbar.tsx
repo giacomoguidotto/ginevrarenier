@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { ChangeSummary } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
+import { useExitGuard } from "./unsaved-changes-guard";
 
 const STORAGE_KEY = "edit-toolbar-position";
 
@@ -100,9 +101,9 @@ export function EditToolbar({
   onSave,
   onDiscard,
 }: EditToolbarProps) {
-  const { isEditMode, editingLocale, exitEditMode, setEditingLocale } =
-    useEditMode();
+  const { isEditMode, editingLocale, setEditingLocale } = useEditMode();
   const { signOut } = useClerk();
+  const { requestExit } = useExitGuard();
 
   const [loading, setLoading] = useState<"save" | "discard" | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<"save" | "discard" | null>(
@@ -290,7 +291,7 @@ export function EditToolbar({
       <ToolbarButton
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground"
         label="Exit edit mode"
-        onClick={exitEditMode}
+        onClick={() => requestExit()}
       >
         <LogOut className="h-3.5 w-3.5" />
       </ToolbarButton>
@@ -299,10 +300,7 @@ export function EditToolbar({
       <ToolbarButton
         className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
         label="Sign out"
-        onClick={async () => {
-          exitEditMode();
-          await signOut();
-        }}
+        onClick={() => requestExit(() => signOut())}
       >
         <Power className="h-3.5 w-3.5" />
       </ToolbarButton>

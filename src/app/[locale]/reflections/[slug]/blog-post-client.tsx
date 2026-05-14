@@ -10,7 +10,7 @@ import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 import { useEditMode } from "@/components/admin/edit-mode-context";
-import { EditableText } from "@/components/admin/editable-text";
+import { Field } from "@/components/admin/field";
 import { ScrollProgress } from "@/components/blog/scroll-progress";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
@@ -49,6 +49,26 @@ export function BlogPostClient() {
     [post, editingLocale, updatePost]
   );
 
+  const handleTitleChange = useCallback(
+    (v: { en: string; it: string }) => {
+      if (!post) {
+        return;
+      }
+      updatePost({ id: post._id, title: v });
+    },
+    [post, updatePost]
+  );
+
+  const handleExcerptChange = useCallback(
+    (v: { en: string; it: string }) => {
+      if (!post) {
+        return;
+      }
+      updatePost({ id: post._id, excerpt: v });
+    },
+    [post, updatePost]
+  );
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -62,7 +82,6 @@ export function BlogPostClient() {
   }
 
   const title = localized(post.title);
-  const _excerpt = localized(post.excerpt);
   const content = isEditMode
     ? post.content[editingLocale]
     : localized(post.content);
@@ -111,10 +130,11 @@ export function BlogPostClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <EditableText
+              <Field
                 as="h1"
                 className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
-                onChange={(v) => updatePost({ id: post._id, title: v })}
+                name="title"
+                onChange={handleTitleChange}
                 value={post.title}
               />
             </motion.div>
@@ -124,11 +144,12 @@ export function BlogPostClient() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <EditableText
+              <Field
                 as="p"
                 className="text-muted-foreground text-xl"
                 multiline
-                onChange={(v) => updatePost({ id: post._id, excerpt: v })}
+                name="excerpt"
+                onChange={handleExcerptChange}
                 value={post.excerpt}
               />
             </motion.div>

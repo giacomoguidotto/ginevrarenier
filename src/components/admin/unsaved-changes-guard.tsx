@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,26 +19,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDraftBufferState } from "./draft-buffer-context";
-import { usePageChanges } from "./page-changes-context";
+import { useEditMode } from "./edit-mode-context";
 
-export function UnsavedChangesGuard() {
-  const pageChanges = usePageChanges();
-  const draftBuffer = useDraftBufferState();
-  const hasChanges = pageChanges.hasChanges || draftBuffer.hasChanges;
+interface ExitGuard {
+  requestExit: (onExit?: () => void) => void;
+}
 
-  const save = async () => {
-    await pageChanges.save();
-    await draftBuffer.save();
-  };
+// biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op for default context
+function noop() {}
 
-  const discard = () => {
-    pageChanges.discard();
-    draftBuffer.discard();
-  };
+const ExitGuardContext = createContext<ExitGuard>({
+  requestExit: noop,
+});
+
+export function useExitGuard() {
+  return useContext(ExitGuardContext);
+}
+
+export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
+  const { hasChanges, save, discard } = useDraftBufferState();
+  const { exitEditMode } = useEditMode();
   const [showDialog, setShowDialog] = useState(false);
-  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const pendingCallbackRef = useRef<(() => void) | undefined>(undefined);
 
-  // Browser beforeunload warning
   useEffect(() => {
     if (!hasChanges) {
       return;
@@ -44,75 +55,63 @@ export function UnsavedChangesGuard() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [hasChanges]);
 
-  // Intercept link clicks for in-app navigation
-  useEffect(() => {
-    if (!hasChanges) {
-      return;
-    }
-
-    const handler = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement).closest("a");
-      if (!anchor) {
-        return;
+  const requestExit = useCallback(
+    (onExit?: () => void) => {
+      if (hasChanges) {
+        pendingCallbackRef.current = onExit;
+        setShowDialog(true);
+      } else {
+        exitEditMode();
+        onExit?.();
       }
-
-      const href = anchor.getAttribute("href");
-      if (!href || href.startsWith("http") || href.startsWith("#")) {
-        return;
-      }
-
-      // Internal navigation — intercept
-      e.preventDefault();
-      e.stopPropagation();
-      setPendingHref(href);
-      setShowDialog(true);
-    };
-
-    document.addEventListener("click", handler, true);
-    return () => document.removeEventListener("click", handler, true);
-  }, [hasChanges]);
+    },
+    [hasChanges, exitEditMode]
+  );
 
   const handleSave = async () => {
     await save();
     setShowDialog(false);
-    if (pendingHref) {
-      window.location.href = pendingHref;
-    }
+    exitEditMode();
+    pendingCallbackRef.current?.();
+    pendingCallbackRef.current = undefined;
   };
 
   const handleDiscard = () => {
     discard();
     setShowDialog(false);
-    if (pendingHref) {
-      window.location.href = pendingHref;
-    }
+    exitEditMode();
+    pendingCallbackRef.current?.();
+    pendingCallbackRef.current = undefined;
   };
 
   const handleStay = () => {
     setShowDialog(false);
-    setPendingHref(null);
+    pendingCallbackRef.current = undefined;
   };
 
   return (
-    <Dialog onOpenChange={handleStay} open={showDialog}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Unsaved changes</DialogTitle>
-          <DialogDescription>
-            You have unsaved changes. Would you like to save them before
-            leaving?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button onClick={handleStay} variant="outline">
-            Stay
-          </Button>
-          <Button onClick={handleDiscard} variant="ghost">
-            Discard
-          </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ExitGuardContext value={{ requestExit }}>
+      {children}
+      <Dialog onOpenChange={handleStay} open={showDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unsaved changes</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes. Would you like to save them before
+              leaving?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button onClick={handleStay} variant="outline">
+              Stay
+            </Button>
+            <Button onClick={handleDiscard} variant="ghost">
+              Discard
+            </Button>
+            <Button onClick={handleSave}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </ExitGuardContext>
   );
 }

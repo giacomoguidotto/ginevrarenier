@@ -9,7 +9,6 @@ import {
   useFieldVisibility,
 } from "@/components/admin/field-visibility";
 import { Section } from "@/components/admin/section";
-import { useSectionLines } from "@/components/admin/use-section-lines";
 import { Link } from "@/i18n/routing";
 
 export function Hero() {
@@ -31,13 +30,11 @@ function HeroContent() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  const { onSectionReady } = useSectionLines(containerRef);
   const { markVisible } = useFieldVisibility();
 
   const handleAnimationComplete = useCallback(() => {
-    onSectionReady();
     markVisible();
-  }, [onSectionReady, markVisible]);
+  }, [markVisible]);
 
   return (
     <Section name="hero">

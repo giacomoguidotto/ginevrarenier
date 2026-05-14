@@ -3,13 +3,27 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useCallback, useRef } from "react";
+import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { EditableImage } from "@/components/admin/editable-image";
-import { EditableText } from "@/components/admin/editable-text";
-import { useSectionLines } from "@/components/admin/use-section-lines";
+import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
+import { Section, useSection } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
-import { useEditableSiteContent } from "@/lib/use-editable-content";
 
 export function IntroSection() {
+  return (
+    <Section name="intro">
+      <FieldVisibilityProvider>
+        <IntroSectionContent />
+      </FieldVisibilityProvider>
+    </Section>
+  );
+}
+
+function IntroSectionContent() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -18,15 +32,17 @@ export function IntroSection() {
 
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-  const { bind, get, set } = useEditableSiteContent("intro");
-  const { onSectionReady } = useSectionLines(sectionRef);
+  const { data } = useSection();
+  const { write } = useDraftBufferOps();
+  const { markVisible } = useFieldVisibility();
 
-  const portraitUrl = get("portraitImage").en || undefined;
+  const portraitUrl = data?.portraitImage?.en || undefined;
   const handlePortraitUpload = useCallback(
     (url: string) => {
-      set("portraitImage", { en: url, it: url });
+      write("intro", "portraitImage", "en", url);
+      write("intro", "portraitImage", "it", url);
     },
-    [set]
+    [write]
   );
 
   return (
@@ -41,53 +57,24 @@ export function IntroSection() {
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}
           >
-            <EditableText
+            <Field
               as="p"
               className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
-              {...bind("label")}
+              name="label"
             />
-            <EditableText
-              as="h2"
-              className="mb-8 text-cream"
-              multiline
-              {...bind("title")}
-              renderDisplay={(text) => {
-                const lines = text.split("\n");
-                return (
-                  <>
-                    {lines.map((line) => (
-                      <span className="block" key={line}>
-                        {line}
-                      </span>
-                    ))}
-                  </>
-                );
-              }}
-            />
-            <EditableText
+            <Field as="h2" className="mb-8 text-cream" multiline name="title" />
+            <Field
               as="p"
               className="text-cream/70 text-lg"
               multiline
-              {...bind("bio")}
-              renderDisplay={(text) => (
-                <>
-                  {text.split("\n\n").map((para) => (
-                    <span
-                      className="mb-6 block last:mb-0"
-                      key={para.slice(0, 30)}
-                    >
-                      {para}
-                    </span>
-                  ))}
-                </>
-              )}
+              name="bio"
             />
             <div className="mt-10">
               <Link
                 className="group inline-flex items-center gap-2 text-cream text-sm uppercase tracking-widest transition-colors hover:text-cream/70"
                 href="/essence"
               >
-                <EditableText as="span" {...bind("cta")} />
+                <Field as="span" name="cta" />
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -97,7 +84,7 @@ export function IntroSection() {
           <motion.div
             className="relative z-[1] aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[600px]"
             initial={{ opacity: 0, x: 50 }}
-            onAnimationComplete={onSectionReady}
+            onAnimationComplete={markVisible}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}
