@@ -21,9 +21,9 @@ export function EditToolbarWrapper() {
     await draftBuffer.save();
   };
 
-  const onDiscard = () => {
-    pageChanges.discard();
-    draftBuffer.discard();
+  const onDiscard = async () => {
+    await pageChanges.discard();
+    await draftBuffer.discard();
   };
 
   return (

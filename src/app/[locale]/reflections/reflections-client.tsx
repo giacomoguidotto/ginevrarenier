@@ -1,11 +1,13 @@
 "use client";
 
 import { api } from "convex/_generated/api";
+import type { Doc } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
+import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { PostCard } from "@/components/blog/post-card";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -17,6 +19,107 @@ import {
 } from "@/components/ui/context-menu";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
+function PostCardWrapper({
+  post,
+  index,
+  isEditMode,
+}: {
+  post: Doc<"blogPosts">;
+  index: number;
+  isEditMode: boolean;
+}) {
+  const { trackDeletion, cancelDeletion, isPendingDeletion } =
+    useDraftBufferOps();
+  const updatePost = useMutation(api.blogPosts.update);
+  const pendingDeletion = isPendingDeletion("post", post._id);
+
+  let stateClass = "";
+  if (pendingDeletion) {
+    stateClass = "opacity-30 grayscale";
+  } else if (!post.published) {
+    stateClass = "opacity-50";
+  }
+
+  if (!isEditMode) {
+    return (
+      <motion.div variants={fadeUp}>
+        <PostCard index={index} post={post} />
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div variants={fadeUp}>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div className={`relative ${stateClass}`}>
+            <PostCard index={index} post={post} />
+            <EntityBadge
+              pendingDeletion={pendingDeletion}
+              published={post.published}
+            />
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            onClick={() =>
+              updatePost({ id: post._id, published: !post.published })
+            }
+          >
+            {post.published ? (
+              <>
+                <EyeOff className="mr-2 h-4 w-4" /> Unpublish
+              </>
+            ) : (
+              <>
+                <Eye className="mr-2 h-4 w-4" /> Publish
+              </>
+            )}
+          </ContextMenuItem>
+          {pendingDeletion ? (
+            <ContextMenuItem onClick={() => cancelDeletion("post", post._id)}>
+              <Undo2 className="mr-2 h-4 w-4" />
+              Cancel deletion
+            </ContextMenuItem>
+          ) : (
+            <ContextMenuItem
+              className="text-red-400 focus:text-red-400"
+              onClick={() => trackDeletion("post", post._id)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </ContextMenuItem>
+          )}
+        </ContextMenuContent>
+      </ContextMenu>
+    </motion.div>
+  );
+}
+
+function EntityBadge({
+  pendingDeletion,
+  published,
+}: {
+  pendingDeletion: boolean;
+  published: boolean;
+}) {
+  if (pendingDeletion) {
+    return (
+      <div className="absolute top-2 left-2 rounded bg-red-500/20 px-2 py-0.5 font-mono text-[10px] text-red-400 uppercase backdrop-blur-sm">
+        Pending deletion
+      </div>
+    );
+  }
+  if (!published) {
+    return (
+      <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+        Draft
+      </div>
+    );
+  }
+  return null;
+}
+
 export function ReflectionsClient() {
   const t = useTranslations("reflections");
   const { isEditMode } = useEditMode();
@@ -25,9 +128,8 @@ export function ReflectionsClient() {
   const publishedPosts = useQuery(api.blogPosts.listPublished);
   const posts = isEditMode ? (allPosts ?? []) : (publishedPosts ?? []);
 
+  const { trackCreation } = useDraftBufferOps();
   const createPost = useMutation(api.blogPosts.create);
-  const removePost = useMutation(api.blogPosts.remove);
-  const updatePost = useMutation(api.blogPosts.update);
 
   const [creating, setCreating] = useState(false);
   const [newSlug, setNewSlug] = useState("");
@@ -37,14 +139,15 @@ export function ReflectionsClient() {
       return;
     }
     const slug = newSlug.trim().toLowerCase().replace(/\s+/g, "-");
-    await createPost({
+    const id = await createPost({
       slug,
       title: { en: slug, it: slug },
       excerpt: { en: "", it: "" },
     });
+    trackCreation("post", id);
     setNewSlug("");
     setCreating(false);
-  }, [newSlug, createPost]);
+  }, [newSlug, createPost, trackCreation]);
 
   return (
     <PageTransition>
@@ -86,53 +189,12 @@ export function ReflectionsClient() {
             variants={staggerContainer}
           >
             {posts.map((post, index) => (
-              <motion.div key={post._id} variants={fadeUp}>
-                {isEditMode ? (
-                  <ContextMenu>
-                    <ContextMenuTrigger asChild>
-                      <div
-                        className={`relative ${post.published ? "" : "opacity-50"}`}
-                      >
-                        <PostCard index={index} post={post} />
-                        {post.published ? null : (
-                          <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-                            Draft
-                          </div>
-                        )}
-                      </div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() =>
-                          updatePost({
-                            id: post._id,
-                            published: !post.published,
-                          })
-                        }
-                      >
-                        {post.published ? (
-                          <>
-                            <EyeOff className="mr-2 h-4 w-4" /> Unpublish
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="mr-2 h-4 w-4" /> Publish
-                          </>
-                        )}
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        className="text-red-400 focus:text-red-400"
-                        onClick={() => removePost({ id: post._id })}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
-                ) : (
-                  <PostCard index={index} post={post} />
-                )}
-              </motion.div>
+              <PostCardWrapper
+                index={index}
+                isEditMode={isEditMode}
+                key={post._id}
+                post={post}
+              />
             ))}
 
             {/* Create new post */}

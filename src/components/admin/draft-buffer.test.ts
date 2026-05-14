@@ -56,9 +56,14 @@ describe("Draft Buffer", () => {
     );
   });
 
-  it("changeSummary returns empty textEdits when no changes", () => {
+  it("changeSummary returns empty arrays when no changes", () => {
     const buffer = createDraftBuffer();
-    expect(buffer.changeSummary()).toEqual({ imageSwaps: [], textEdits: [] });
+    expect(buffer.changeSummary()).toEqual({
+      createdEntities: [],
+      imageSwaps: [],
+      pendingDeletions: [],
+      textEdits: [],
+    });
   });
 
   it("changeSummary returns text edits with section, field, locale, and newValue", () => {
@@ -131,7 +136,12 @@ describe("Draft Buffer", () => {
     const buffer = createDraftBuffer();
     buffer.write("hero", "title", "en", "Hello");
     buffer.discard();
-    expect(buffer.changeSummary()).toEqual({ imageSwaps: [], textEdits: [] });
+    expect(buffer.changeSummary()).toEqual({
+      createdEntities: [],
+      imageSwaps: [],
+      pendingDeletions: [],
+      textEdits: [],
+    });
   });
 
   it("save extracts changes and clears state", () => {
@@ -179,6 +189,157 @@ describe("Draft Buffer", () => {
       buffer.write("hero", "title", "it", "Ciao");
       buffer.discard();
       expect(buffer.editedLocales("hero", "title")).toEqual(new Set());
+    });
+  });
+
+  describe("Session-Created Entities", () => {
+    it("tracks a creation and reports it via isSessionCreated", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.isSessionCreated("project", "abc123")).toBe(false);
+      buffer.trackCreation("project", "abc123");
+      expect(buffer.isSessionCreated("project", "abc123")).toBe(true);
+    });
+  });
+
+  describe("Pending Deletions", () => {
+    it("tracks a deletion and reports it via isPendingDeletion", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.isPendingDeletion("project", "xyz789")).toBe(false);
+      buffer.trackDeletion("project", "xyz789");
+      expect(buffer.isPendingDeletion("project", "xyz789")).toBe(true);
+    });
+
+    it("cancelDeletion removes the pending deletion mark", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackDeletion("project", "xyz789");
+      buffer.cancelDeletion("project", "xyz789");
+      expect(buffer.isPendingDeletion("project", "xyz789")).toBe(false);
+    });
+  });
+
+  describe("hasChanges with entity lifecycle", () => {
+    it("reports changes when a creation is tracked", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "abc123");
+      expect(buffer.hasChanges()).toBe(true);
+    });
+
+    it("reports changes when a deletion is tracked", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackDeletion("post", "xyz789");
+      expect(buffer.hasChanges()).toBe(true);
+    });
+  });
+
+  describe("changeSummary with entity lifecycle", () => {
+    it("includes created entities in summary", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.trackCreation("post", "b1");
+
+      const summary = buffer.changeSummary();
+      expect(summary.createdEntities).toEqual(
+        expect.arrayContaining([
+          { entityType: "project", id: "p1" },
+          { entityType: "post", id: "b1" },
+        ])
+      );
+      expect(summary.createdEntities).toHaveLength(2);
+    });
+
+    it("includes pending deletions in summary", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackDeletion("project", "p2");
+
+      const summary = buffer.changeSummary();
+      expect(summary.pendingDeletions).toEqual([
+        { entityType: "project", id: "p2" },
+      ]);
+    });
+
+    it("returns empty arrays when no entity lifecycle changes exist", () => {
+      const buffer = createDraftBuffer();
+      const summary = buffer.changeSummary();
+      expect(summary.createdEntities).toEqual([]);
+      expect(summary.pendingDeletions).toEqual([]);
+    });
+  });
+
+  describe("discard clears entity lifecycle", () => {
+    it("clears creations and deletions on discard", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.trackDeletion("post", "b1");
+      buffer.discard();
+
+      expect(buffer.isSessionCreated("project", "p1")).toBe(false);
+      expect(buffer.isPendingDeletion("post", "b1")).toBe(false);
+      expect(buffer.hasChanges()).toBe(false);
+    });
+  });
+
+  describe("creations() and deletions() accessors", () => {
+    it("creations() returns all tracked session-created entity refs", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.trackCreation("post", "b1");
+
+      expect(buffer.creations()).toEqual(
+        expect.arrayContaining([
+          { entityType: "project", id: "p1" },
+          { entityType: "post", id: "b1" },
+        ])
+      );
+      expect(buffer.creations()).toHaveLength(2);
+    });
+
+    it("deletions() returns all pending deletion refs", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackDeletion("project", "p2");
+      buffer.trackDeletion("post", "b2");
+
+      expect(buffer.deletions()).toEqual(
+        expect.arrayContaining([
+          { entityType: "project", id: "p2" },
+          { entityType: "post", id: "b2" },
+        ])
+      );
+      expect(buffer.deletions()).toHaveLength(2);
+    });
+  });
+
+  describe("interactions", () => {
+    it("a session-created entity can be pending-deleted in the same session", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.trackDeletion("project", "p1");
+
+      expect(buffer.isSessionCreated("project", "p1")).toBe(true);
+      expect(buffer.isPendingDeletion("project", "p1")).toBe(true);
+    });
+
+    it("cancelling deletion on a session-created entity preserves the creation tracking", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.trackDeletion("project", "p1");
+      buffer.cancelDeletion("project", "p1");
+
+      expect(buffer.isSessionCreated("project", "p1")).toBe(true);
+      expect(buffer.isPendingDeletion("project", "p1")).toBe(false);
+    });
+
+    it("duplicate trackCreation calls are idempotent", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.trackCreation("project", "p1");
+      expect(buffer.creations()).toHaveLength(1);
+    });
+
+    it("duplicate trackDeletion calls are idempotent", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackDeletion("project", "p1");
+      buffer.trackDeletion("project", "p1");
+      expect(buffer.deletions()).toHaveLength(1);
     });
   });
 });

@@ -11,7 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ChangeSummary } from "./draft-buffer";
+import type { ChangeSummary, EntityRef } from "./draft-buffer";
 import { createDraftBuffer } from "./draft-buffer";
 import { createImageAssets } from "./image-assets";
 import { deleteCloudinaryImage, uploadImage } from "./image-upload";
@@ -20,8 +20,13 @@ type Buffer = ReturnType<typeof createDraftBuffer>;
 type Assets = ReturnType<typeof createImageAssets>;
 
 interface DraftBufferOps {
+  cancelDeletion: (entityType: string, id: string) => void;
   editedLocales: Buffer["editedLocales"];
+  isPendingDeletion: (entityType: string, id: string) => boolean;
+  isSessionCreated: (entityType: string, id: string) => boolean;
   read: Buffer["read"];
+  trackCreation: (entityType: string, id: string) => void;
+  trackDeletion: (entityType: string, id: string) => void;
   write: (
     section: string,
     field: string,
@@ -49,8 +54,13 @@ interface DraftBufferState {
 const noop = () => {};
 
 const OpsContext = createContext<DraftBufferOps>({
+  cancelDeletion: noop,
   editedLocales: () => new Set<string>(),
+  isPendingDeletion: () => false,
+  isSessionCreated: () => false,
   read: () => undefined,
+  trackCreation: noop,
+  trackDeletion: noop,
   write: noop,
 });
 
@@ -62,7 +72,12 @@ const ImageAssetsContext = createContext<ImageAssetsOps>({
 const ResetContext = createContext(0);
 
 const StateContext = createContext<DraftBufferState>({
-  changeSummary: () => ({ imageSwaps: [], textEdits: [] }),
+  changeSummary: () => ({
+    createdEntities: [],
+    imageSwaps: [],
+    pendingDeletions: [],
+    textEdits: [],
+  }),
   hasChanges: false,
   save: () => Promise.resolve(),
   discard: noop,
@@ -80,6 +95,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const [resetSignal, setResetSignal] = useState(0);
   const allContent = useQuery(api.siteContent.listAll);
   const upsertSiteContent = useMutation(api.siteContent.upsert);
+  const removeProject = useMutation(api.projects.remove);
+  const removeBlogPost = useMutation(api.blogPosts.remove);
 
   const read: Buffer["read"] = useCallback(
     (section, field, locale) => bufferRef.current.read(section, field, locale),
@@ -110,6 +127,44 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
+  const trackCreation = useCallback((entityType: string, id: string) => {
+    bufferRef.current.trackCreation(entityType, id);
+    setHasChanges(true);
+  }, []);
+
+  const trackDeletion = useCallback((entityType: string, id: string) => {
+    bufferRef.current.trackDeletion(entityType, id);
+    setHasChanges(true);
+  }, []);
+
+  const cancelDeletion = useCallback((entityType: string, id: string) => {
+    bufferRef.current.cancelDeletion(entityType, id);
+    setHasChanges(bufferRef.current.hasChanges());
+  }, []);
+
+  const isPendingDeletion = useCallback(
+    (entityType: string, id: string) =>
+      bufferRef.current.isPendingDeletion(entityType, id),
+    []
+  );
+
+  const isSessionCreated = useCallback(
+    (entityType: string, id: string) =>
+      bufferRef.current.isSessionCreated(entityType, id),
+    []
+  );
+
+  const removeEntity = useCallback(
+    async (ref: EntityRef) => {
+      if (ref.entityType === "project") {
+        await removeProject({ id: ref.id as never });
+      } else if (ref.entityType === "post") {
+        await removeBlogPost({ id: ref.id as never });
+      }
+    },
+    [removeProject, removeBlogPost]
+  );
+
   const save = useCallback(async () => {
     const grouped = bufferRef.current.changes();
     for (const [section, fields] of grouped) {
@@ -125,18 +180,28 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         content: JSON.stringify(merged),
       });
     }
+
+    for (const ref of bufferRef.current.deletions()) {
+      await removeEntity(ref);
+    }
+
     bufferRef.current.discard();
     imageAssetsRef.current.clearTracked();
     setHasChanges(false);
     setResetSignal((v) => v + 1);
-  }, [allContent, upsertSiteContent]);
+  }, [allContent, upsertSiteContent, removeEntity]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
+
+    for (const ref of bufferRef.current.creations()) {
+      await removeEntity(ref);
+    }
+
     bufferRef.current.discard();
     setHasChanges(false);
     setResetSignal((v) => v + 1);
-  }, []);
+  }, [removeEntity]);
 
   const changeSummary = useCallback((): ChangeSummary => {
     const getOriginal = (section: string, field: string, locale: string) => {
@@ -149,12 +214,32 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     return {
       textEdits: textSummary.textEdits,
       imageSwaps: imageSummary.imageSwaps,
+      createdEntities: textSummary.createdEntities,
+      pendingDeletions: textSummary.pendingDeletions,
     };
   }, [allContent]);
 
   const ops = useMemo(
-    () => ({ editedLocales, read, write }),
-    [editedLocales, read, write]
+    () => ({
+      cancelDeletion,
+      editedLocales,
+      isPendingDeletion,
+      isSessionCreated,
+      read,
+      trackCreation,
+      trackDeletion,
+      write,
+    }),
+    [
+      cancelDeletion,
+      editedLocales,
+      isPendingDeletion,
+      isSessionCreated,
+      read,
+      trackCreation,
+      trackDeletion,
+      write,
+    ]
   );
 
   const imageOps = useMemo(
