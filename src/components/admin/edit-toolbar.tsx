@@ -1,7 +1,15 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
-import { GripVertical, LogOut, Power, RotateCcw, Save } from "lucide-react";
+import {
+  GripVertical,
+  LogOut,
+  Plus,
+  Power,
+  RotateCcw,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -332,6 +340,10 @@ function formatEditLabel(edit: { section: string; field: string }) {
   return `${edit.section} / ${edit.field}`;
 }
 
+function formatEntityType(entityType: string) {
+  return entityType === "post" ? "Post" : "Project";
+}
+
 function SaveConfirmDialog({
   open,
   onConfirm,
@@ -346,6 +358,9 @@ function SaveConfirmDialog({
   loading: boolean;
 }) {
   const summary = open ? changeSummary() : null;
+  const hasTextEdits = summary && summary.textEdits.length > 0;
+  const hasCreations = summary && summary.createdEntities.length > 0;
+  const hasDeletions = summary && summary.pendingDeletions.length > 0;
 
   return (
     <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
@@ -356,33 +371,54 @@ function SaveConfirmDialog({
             The following changes will be saved.
           </DialogDescription>
         </DialogHeader>
-        {summary &&
-        (summary.textEdits.length > 0 || summary.imageSwaps.length > 0) ? (
-          <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
-            {summary.textEdits.map((edit) => (
-              <li
-                className="flex items-baseline gap-2"
-                key={`${edit.section}\0${edit.field}\0${edit.locale}`}
-              >
-                <span className="font-mono text-muted-foreground text-xs">
-                  {edit.locale.toUpperCase()}
-                </span>
-                <span>{formatEditLabel(edit)}</span>
-              </li>
-            ))}
-            {summary.imageSwaps.length > 0 ? (
-              <li className="flex items-baseline gap-2">
-                <span className="font-mono text-muted-foreground text-xs">
-                  IMG
-                </span>
-                <span>
-                  {summary.imageSwaps.length} image{" "}
-                  {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
-                </span>
-              </li>
-            ) : null}
-          </ul>
-        ) : null}
+        <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
+          {hasTextEdits
+            ? summary.textEdits.map((edit) => (
+                <li
+                  className="flex items-baseline gap-2"
+                  key={`${edit.section}\0${edit.field}\0${edit.locale}`}
+                >
+                  <span className="font-mono text-muted-foreground text-xs">
+                    {edit.locale.toUpperCase()}
+                  </span>
+                  <span>{formatEditLabel(edit)}</span>
+                </li>
+              ))
+            : null}
+          {summary && summary.imageSwaps.length > 0 ? (
+            <li className="flex items-baseline gap-2">
+              <span className="font-mono text-muted-foreground text-xs">
+                IMG
+              </span>
+              <span>
+                {summary.imageSwaps.length} image{" "}
+                {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
+              </span>
+            </li>
+          ) : null}
+          {hasCreations
+            ? summary?.createdEntities.map((ref) => (
+                <li
+                  className="flex items-baseline gap-2 text-emerald-500"
+                  key={`create\0${ref.entityType}\0${ref.id}`}
+                >
+                  <Plus className="h-3 w-3 shrink-0" />
+                  <span>New {formatEntityType(ref.entityType)}</span>
+                </li>
+              ))
+            : null}
+          {hasDeletions
+            ? summary?.pendingDeletions.map((ref) => (
+                <li
+                  className="flex items-baseline gap-2 text-destructive"
+                  key={`delete\0${ref.entityType}\0${ref.id}`}
+                >
+                  <Trash2 className="h-3 w-3 shrink-0" />
+                  <span>Delete {formatEntityType(ref.entityType)}</span>
+                </li>
+              ))
+            : null}
+        </ul>
         <DialogFooter>
           <Button onClick={onCancel} variant="outline">
             Cancel
@@ -412,6 +448,8 @@ function DiscardConfirmDialog({
   const summary = open ? changeSummary() : null;
   const editCount =
     (summary?.textEdits.length ?? 0) + (summary?.imageSwaps.length ?? 0);
+  const creationCount = summary?.createdEntities.length ?? 0;
+  const hasCreations = creationCount > 0;
 
   return (
     <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
@@ -424,34 +462,53 @@ function DiscardConfirmDialog({
               : "All unsaved changes will be lost."}
           </DialogDescription>
         </DialogHeader>
-        {summary &&
-        (summary.textEdits.length > 0 || summary.imageSwaps.length > 0) ? (
-          <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
-            {summary.textEdits.map((edit) => (
-              <li
-                className="flex items-baseline gap-2"
-                key={`${edit.section}\0${edit.field}\0${edit.locale}`}
-              >
-                <span className="font-mono text-muted-foreground text-xs">
-                  {edit.locale.toUpperCase()}
-                </span>
-                <span className="line-through opacity-60">
-                  {formatEditLabel(edit)}
-                </span>
-              </li>
-            ))}
-            {summary.imageSwaps.length > 0 ? (
-              <li className="flex items-baseline gap-2">
-                <span className="font-mono text-muted-foreground text-xs">
-                  IMG
-                </span>
-                <span className="line-through opacity-60">
-                  {summary.imageSwaps.length} image{" "}
-                  {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
-                </span>
-              </li>
-            ) : null}
-          </ul>
+        <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
+          {summary && summary.textEdits.length > 0
+            ? summary.textEdits.map((edit) => (
+                <li
+                  className="flex items-baseline gap-2"
+                  key={`${edit.section}\0${edit.field}\0${edit.locale}`}
+                >
+                  <span className="font-mono text-muted-foreground text-xs">
+                    {edit.locale.toUpperCase()}
+                  </span>
+                  <span className="line-through opacity-60">
+                    {formatEditLabel(edit)}
+                  </span>
+                </li>
+              ))
+            : null}
+          {summary && summary.imageSwaps.length > 0 ? (
+            <li className="flex items-baseline gap-2">
+              <span className="font-mono text-muted-foreground text-xs">
+                IMG
+              </span>
+              <span className="line-through opacity-60">
+                {summary.imageSwaps.length} image{" "}
+                {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
+              </span>
+            </li>
+          ) : null}
+          {hasCreations
+            ? summary?.createdEntities.map((ref) => (
+                <li
+                  className="flex items-baseline gap-2 text-destructive"
+                  key={`create\0${ref.entityType}\0${ref.id}`}
+                >
+                  <Trash2 className="h-3 w-3 shrink-0" />
+                  <span>
+                    New {formatEntityType(ref.entityType)} will be deleted
+                  </span>
+                </li>
+              ))
+            : null}
+        </ul>
+        {hasCreations ? (
+          <p className="text-destructive text-xs">
+            {creationCount} newly created{" "}
+            {creationCount === 1 ? "entity" : "entities"} will be permanently
+            deleted from the database.
+          </p>
         ) : null}
         <DialogFooter>
           <Button onClick={onCancel} variant="outline">

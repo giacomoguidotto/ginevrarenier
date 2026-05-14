@@ -19,10 +19,11 @@ import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
+import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { PageTransition } from "@/components/layout/page-transition";
 import {
@@ -35,6 +36,30 @@ import { Link } from "@/i18n/routing";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useLocalized } from "@/lib/hooks";
 
+function EntityBadge({
+  pendingDeletion,
+  published,
+}: {
+  pendingDeletion: boolean;
+  published: boolean;
+}) {
+  if (pendingDeletion) {
+    return (
+      <div className="absolute top-2 left-2 rounded bg-red-500/20 px-2 py-0.5 font-mono text-[10px] text-red-400 uppercase backdrop-blur-sm">
+        Pending deletion
+      </div>
+    );
+  }
+  if (!published) {
+    return (
+      <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+        Draft
+      </div>
+    );
+  }
+  return null;
+}
+
 function SortableProjectCard({
   project,
   index,
@@ -43,10 +68,13 @@ function SortableProjectCard({
   index: number;
 }) {
   const { isEditMode } = useEditMode();
+  const { isPendingDeletion, trackDeletion, cancelDeletion } =
+    useDraftBufferOps();
   const localized = useLocalized();
   const _t = useTranslations("common");
   const updateProject = useMutation(api.projects.update);
-  const removeProject = useMutation(api.projects.remove);
+
+  const pendingDeletion = isPendingDeletion("project", project._id);
 
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: project._id, disabled: !isEditMode });
@@ -58,9 +86,16 @@ function SortableProjectCard({
 
   const coverSrc = project.coverImageUrl || "/images/placeholder.svg";
 
+  let stateClass = "";
+  if (pendingDeletion) {
+    stateClass = "opacity-30 grayscale";
+  } else if (!project.published && isEditMode) {
+    stateClass = "opacity-50";
+  }
+
   const card = (
     <motion.div
-      className={`group relative ${!project.published && isEditMode ? "opacity-50" : ""}`}
+      className={`group relative ${stateClass}`}
       custom={index}
       ref={setNodeRef}
       style={style}
@@ -91,12 +126,10 @@ function SortableProjectCard({
         </div>
       </Link>
 
-      {/* Unpublished badge */}
-      {!project.published && isEditMode ? (
-        <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-          Draft
-        </div>
-      ) : null}
+      <EntityBadge
+        pendingDeletion={pendingDeletion}
+        published={project.published}
+      />
     </motion.div>
   );
 
@@ -126,13 +159,22 @@ function SortableProjectCard({
             </>
           )}
         </ContextMenuItem>
-        <ContextMenuItem
-          className="text-red-400 focus:text-red-400"
-          onClick={() => removeProject({ id: project._id })}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete
-        </ContextMenuItem>
+        {pendingDeletion ? (
+          <ContextMenuItem
+            onClick={() => cancelDeletion("project", project._id)}
+          >
+            <Undo2 className="mr-2 h-4 w-4" />
+            Cancel deletion
+          </ContextMenuItem>
+        ) : (
+          <ContextMenuItem
+            className="text-red-400 focus:text-red-400"
+            onClick={() => trackDeletion("project", project._id)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </ContextMenuItem>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -147,6 +189,7 @@ export function VisionClient() {
   const publishedProjects = useQuery(api.projects.listPublished);
   const projects = isEditMode ? (allProjects ?? []) : (publishedProjects ?? []);
 
+  const { trackCreation } = useDraftBufferOps();
   const createProject = useMutation(api.projects.create);
   const reorderProjects = useMutation(api.projects.reorder);
 
@@ -184,16 +227,17 @@ export function VisionClient() {
       return;
     }
     const slug = newSlug.trim().toLowerCase().replace(/\s+/g, "-");
-    await createProject({
+    const id = await createProject({
       slug,
       title: { en: slug, it: slug },
       subtitle: { en: "", it: "" },
       description: { en: "", it: "" },
       category: { en: "", it: "" },
     });
+    trackCreation("project", id);
     setNewSlug("");
     setCreating(false);
-  }, [newSlug, createProject]);
+  }, [newSlug, createProject, trackCreation]);
 
   return (
     <PageTransition>
