@@ -143,4 +143,42 @@ describe("Draft Buffer", () => {
     expect(buffer.hasChanges()).toBe(false);
     expect(buffer.changes().size).toBe(0);
   });
+
+  describe("editedLocales", () => {
+    it("returns empty set for unedited field", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.editedLocales("hero", "title")).toEqual(new Set());
+    });
+
+    it("returns locale after writing to it", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      expect(buffer.editedLocales("hero", "title")).toEqual(new Set(["en"]));
+    });
+
+    it("returns both locales after writing to both", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.write("hero", "title", "it", "Ciao");
+      expect(buffer.editedLocales("hero", "title")).toEqual(
+        new Set(["en", "it"])
+      );
+    });
+
+    it("does not leak locales across fields", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.write("hero", "subtitle", "it", "Mondo");
+      expect(buffer.editedLocales("hero", "title")).toEqual(new Set(["en"]));
+      expect(buffer.editedLocales("hero", "subtitle")).toEqual(new Set(["it"]));
+    });
+
+    it("returns empty set after discard", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.write("hero", "title", "it", "Ciao");
+      buffer.discard();
+      expect(buffer.editedLocales("hero", "title")).toEqual(new Set());
+    });
+  });
 });

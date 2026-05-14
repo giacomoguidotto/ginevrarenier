@@ -68,6 +68,16 @@ export function createDraftBuffer() {
       }
       return { imageSwaps: [], textEdits };
     },
+    editedLocales(section: string, field: string): Set<string> {
+      const prefix = `${section}\0${field}\0`;
+      const locales = new Set<string>();
+      for (const k of store.keys()) {
+        if (k.startsWith(prefix)) {
+          locales.add(k.slice(prefix.length));
+        }
+      }
+      return locales;
+    },
     discard(): void {
       store.clear();
     },

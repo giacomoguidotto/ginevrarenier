@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useChromeRegistry } from "./chrome-context";
 import type { FieldGeometry } from "./chrome-registry";
+import { useDraftBufferOps } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
 
 const SPRING = { type: "spring" as const, stiffness: 200, damping: 25 };
@@ -27,18 +28,27 @@ function toOverlayRects(geometry: FieldGeometry[]): OverlayRect[] {
   }));
 }
 
+function StaleLocaleDot({ rect }: { rect: OverlayRect }) {
+  const r = 4;
+  return (
+    <motion.circle
+      animate={{ opacity: 1, scale: 1 }}
+      cx={rect.x + rect.width - r - 2}
+      cy={rect.y + r + 2}
+      exit={{ opacity: 0, scale: 0 }}
+      fill="oklch(0.82 0.17 80)" // amber-400
+      initial={{ opacity: 0, scale: 0 }}
+      r={r}
+      transition={SPRING}
+    />
+  );
+}
+
 function FieldOutline({ rect }: { rect: OverlayRect }) {
   const perimeter = 2 * (rect.width + rect.height);
 
   return (
-    <motion.g
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      initial={{ opacity: 0 }}
-      key={rect.id}
-      transition={SPRING}
-    >
-      {/* Animated outline — draws from top-left to bottom-right */}
+    <>
       <motion.rect
         animate={{ strokeDashoffset: 0 }}
         exit={{ strokeDashoffset: perimeter }}
@@ -53,8 +63,6 @@ function FieldOutline({ rect }: { rect: OverlayRect }) {
         x={rect.x}
         y={rect.y}
       />
-
-      {/* Hatching pattern fill — fades in */}
       <motion.rect
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -66,13 +74,14 @@ function FieldOutline({ rect }: { rect: OverlayRect }) {
         x={rect.x}
         y={rect.y}
       />
-    </motion.g>
+    </>
   );
 }
 
 export function ChromeOverlay() {
   const { isEditMode } = useEditMode();
   const registry = useChromeRegistry();
+  const { editedLocales } = useDraftBufferOps();
   const [rects, setRects] = useState<OverlayRect[]>([]);
   const observerRef = useRef<ResizeObserver | null>(null);
   const rafRef = useRef<number>(0);
@@ -172,7 +181,23 @@ export function ChromeOverlay() {
 
       <AnimatePresence>
         {isEditMode &&
-          rects.map((rect) => <FieldOutline key={rect.id} rect={rect} />)}
+          rects.map((rect) => {
+            const [section, field] = rect.id.split("\0");
+            const edited = editedLocales(section, field);
+            const isStale = edited.size === 1;
+            return (
+              <motion.g
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+                key={rect.id}
+                transition={SPRING}
+              >
+                <FieldOutline rect={rect} />
+                {isStale && <StaleLocaleDot rect={rect} />}
+              </motion.g>
+            );
+          })}
       </AnimatePresence>
     </svg>,
     document.body
