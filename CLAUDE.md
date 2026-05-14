@@ -1,3 +1,5 @@
+When implementing UI changes, start the dev server and use Playwright to take a screenshot of the result, then read the screenshot image to visually verify correctness before reporting the task as complete. Also run lint and type checking.
+
 ## Agent skills
 
 ### Issue tracker
