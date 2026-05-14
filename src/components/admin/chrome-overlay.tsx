@@ -80,7 +80,7 @@ export function ChromeOverlay() {
   const refresh = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
-      setRects(toOverlayRects(registry.getGeometry()));
+      setRects(toOverlayRects(registry.getActiveGeometry()));
     });
   }, [registry]);
 

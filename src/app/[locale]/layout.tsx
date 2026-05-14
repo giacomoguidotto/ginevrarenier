@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { ChromeProvider } from "@/components/admin/chrome-context";
+import { ChromeDismountOnNavigate } from "@/components/admin/chrome-dismount-on-navigate";
 import { ChromeOverlay } from "@/components/admin/chrome-overlay";
 import { DraftBufferProvider } from "@/components/admin/draft-buffer-context";
 import { EditFab } from "@/components/admin/edit-fab";
@@ -126,6 +127,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               <PageChangesProvider>
                 <DraftBufferProvider>
                   <ChromeProvider>
+                    <ChromeDismountOnNavigate />
                     <EditModeLines />
                     <ChromeOverlay />
                     <Navbar />

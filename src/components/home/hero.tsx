@@ -2,13 +2,25 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
 import { Section } from "@/components/admin/section";
 import { useSectionLines } from "@/components/admin/use-section-lines";
 import { Link } from "@/i18n/routing";
 
 export function Hero() {
+  return (
+    <FieldVisibilityProvider>
+      <HeroContent />
+    </FieldVisibilityProvider>
+  );
+}
+
+function HeroContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -20,6 +32,12 @@ export function Hero() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   const { onSectionReady } = useSectionLines(containerRef);
+  const { markVisible } = useFieldVisibility();
+
+  const handleAnimationComplete = useCallback(() => {
+    onSectionReady();
+    markVisible();
+  }, [onSectionReady, markVisible]);
 
   return (
     <Section name="hero">
@@ -91,7 +109,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
               initial={{ opacity: 0, y: 20 }}
-              onAnimationComplete={onSectionReady}
+              onAnimationComplete={handleAnimationComplete}
               transition={{ duration: 0.8, delay: 1 }}
             >
               <Link
