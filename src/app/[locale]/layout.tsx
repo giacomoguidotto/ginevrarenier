@@ -129,9 +129,10 @@ export default async function LocaleLayout({ children, params }: Props) {
                   <Navbar />
                   <main className="min-h-screen">{children}</main>
                   <Footer />
-                  <EditFab />
-                  <EditToolbarWrapper />
-                  <UnsavedChangesGuard />
+                  <UnsavedChangesGuard>
+                    <EditFab />
+                    <EditToolbarWrapper />
+                  </UnsavedChangesGuard>
                 </ChromeProvider>
               </DraftBufferProvider>
             </EditModeProvider>
