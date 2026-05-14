@@ -44,6 +44,20 @@ export function Field({
     multiline,
   });
 
+  const prevLocaleRef = useRef(locale);
+
+  useEffect(() => {
+    if (prevLocaleRef.current !== locale && isEditMode && elRef.current) {
+      const currentText = elRef.current.textContent ?? "";
+      const oldLocale = prevLocaleRef.current;
+      const oldConvexValue = data?.[name]?.[oldLocale] ?? "";
+      if (currentText !== oldConvexValue) {
+        write(section, name, oldLocale, currentText);
+      }
+      prevLocaleRef.current = locale;
+    }
+  }, [locale, isEditMode, section, name, write, data]);
+
   const draftValue = read(section, name, locale);
   const convexValue = data?.[name]?.[locale] ?? "";
   const displayValue = draftValue ?? convexValue;

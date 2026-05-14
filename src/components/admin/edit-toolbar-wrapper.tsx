@@ -7,8 +7,14 @@ import { usePageChanges } from "./page-changes-context";
 export function EditToolbarWrapper() {
   const pageChanges = usePageChanges();
   const draftBuffer = useDraftBufferState();
+  const { changeSummary } = draftBuffer;
 
   const hasChanges = pageChanges.hasChanges || draftBuffer.hasChanges;
+
+  const editedLocales = new Set(pageChanges.editedLocales);
+  for (const edit of changeSummary().textEdits) {
+    editedLocales.add(edit.locale);
+  }
 
   const onSave = async () => {
     await pageChanges.save();
@@ -22,8 +28,8 @@ export function EditToolbarWrapper() {
 
   return (
     <EditToolbar
-      changeSummary={draftBuffer.changeSummary}
-      editedLocales={pageChanges.editedLocales}
+      changeSummary={changeSummary}
+      editedLocales={editedLocales}
       hasChanges={hasChanges}
       onDiscard={onDiscard}
       onSave={onSave}

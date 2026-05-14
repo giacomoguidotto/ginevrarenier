@@ -17,6 +17,7 @@ import { createDraftBuffer } from "./draft-buffer";
 type Buffer = ReturnType<typeof createDraftBuffer>;
 
 interface DraftBufferOps {
+  editedLocales: Buffer["editedLocales"];
   read: Buffer["read"];
   write: (
     section: string,
@@ -37,6 +38,7 @@ interface DraftBufferState {
 const noop = () => {};
 
 const OpsContext = createContext<DraftBufferOps>({
+  editedLocales: () => new Set<string>(),
   read: () => undefined,
   write: noop,
 });
@@ -59,6 +61,11 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
   const read: Buffer["read"] = useCallback(
     (section, field, locale) => bufferRef.current.read(section, field, locale),
+    []
+  );
+
+  const editedLocales: Buffer["editedLocales"] = useCallback(
+    (section, field) => bufferRef.current.editedLocales(section, field),
     []
   );
 
@@ -105,7 +112,10 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     return bufferRef.current.changeSummary(getOriginal);
   }, [allContent]);
 
-  const ops = useMemo(() => ({ read, write }), [read, write]);
+  const ops = useMemo(
+    () => ({ editedLocales, read, write }),
+    [editedLocales, read, write]
+  );
 
   const state = useMemo(
     () => ({ changeSummary, hasChanges, save, discard }),
