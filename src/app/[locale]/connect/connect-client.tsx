@@ -5,6 +5,10 @@ import { Check, MapPin, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
 import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
 import { Section } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { useSocialLinks } from "@/lib/hooks";
@@ -49,37 +53,9 @@ export function ConnectClient() {
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
           <Section name="connect.header">
-            <div className="mb-16 max-w-3xl">
-              <motion.div
-                animate={{ opacity: 1, y: 0 }}
-                initial={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Field
-                  as="p"
-                  className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-                  name="label"
-                />
-              </motion.div>
-              <motion.div
-                animate={{ opacity: 1, y: 0 }}
-                initial={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-              >
-                <Field as="h1" className="mb-6 text-foreground" name="title" />
-              </motion.div>
-              <motion.div
-                animate={{ opacity: 1, y: 0 }}
-                initial={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Field
-                  as="p"
-                  className="text-lg text-muted-foreground"
-                  name="description"
-                />
-              </motion.div>
-            </div>
+            <FieldVisibilityProvider>
+              <ConnectHeader />
+            </FieldVisibilityProvider>
           </Section>
 
           <div className="grid gap-16 lg:grid-cols-2">
@@ -341,5 +317,44 @@ export function ConnectClient() {
         </div>
       </div>
     </PageTransition>
+  );
+}
+
+function ConnectHeader() {
+  const { markVisible } = useFieldVisibility();
+
+  return (
+    <div className="mb-16 max-w-3xl">
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Field
+          as="p"
+          className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+          name="label"
+        />
+      </motion.div>
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <Field as="h1" className="mb-6 text-foreground" name="title" />
+      </motion.div>
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        onAnimationComplete={markVisible}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Field
+          as="p"
+          className="text-lg text-muted-foreground"
+          name="description"
+        />
+      </motion.div>
+    </div>
   );
 }

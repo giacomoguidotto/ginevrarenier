@@ -6,6 +6,10 @@ import { useCallback, useRef } from "react";
 import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
@@ -19,19 +23,27 @@ export function EssenceClient() {
   return (
     <PageTransition>
       <Section name="essence.hero">
-        <EssenceHero />
+        <FieldVisibilityProvider>
+          <EssenceHero />
+        </FieldVisibilityProvider>
       </Section>
 
       <Section name="essence.achievements">
-        <EssenceAchievements />
+        <FieldVisibilityProvider>
+          <EssenceAchievements />
+        </FieldVisibilityProvider>
       </Section>
 
       <Section name="essence.timeline">
-        <EssenceTimeline />
+        <FieldVisibilityProvider>
+          <EssenceTimeline />
+        </FieldVisibilityProvider>
       </Section>
 
       <Section name="essence.cta">
-        <EssenceCTA />
+        <FieldVisibilityProvider>
+          <EssenceCTA />
+        </FieldVisibilityProvider>
       </Section>
     </PageTransition>
   );
@@ -49,6 +61,7 @@ function EssenceHero() {
 
   const { data } = useSection();
   const { write } = useDraftBufferOps();
+  const { markVisible } = useFieldVisibility();
 
   const portraitUrl = data?.portraitImage?.en || undefined;
   const handlePortraitUpload = useCallback(
@@ -111,6 +124,7 @@ function EssenceHero() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 text-lg text-muted-foreground"
               initial={{ opacity: 0, y: 20 }}
+              onAnimationComplete={markVisible}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
               <Field as="p" multiline name="bio" />
@@ -123,6 +137,8 @@ function EssenceHero() {
 }
 
 function EssenceAchievements() {
+  const { markVisible } = useFieldVisibility();
+
   return (
     <section className="bg-charcoal py-24">
       <div className="mx-auto max-w-7xl px-6">
@@ -134,6 +150,9 @@ function EssenceAchievements() {
                 className="text-center"
                 initial={{ opacity: 0, y: 40 }}
                 key={key}
+                onAnimationComplete={
+                  index === achievementKeys.length - 1 ? markVisible : undefined
+                }
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -159,12 +178,15 @@ function EssenceAchievements() {
 }
 
 function EssenceTimeline() {
+  const { markVisible } = useFieldVisibility();
+
   return (
     <section className="bg-charcoal py-24">
       <div className="mx-auto max-w-4xl px-6">
         <motion.div
           className="mb-16 text-center"
           initial={{ opacity: 0, y: 20 }}
+          onAnimationComplete={markVisible}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
         >
@@ -225,6 +247,8 @@ function EssenceTimeline() {
 }
 
 function EssenceCTA() {
+  const { markVisible } = useFieldVisibility();
+
   return (
     <section className="py-24">
       <div className="mx-auto max-w-4xl px-6 text-center">
@@ -250,6 +274,7 @@ function EssenceCTA() {
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
+          onAnimationComplete={markVisible}
           transition={{ delay: 0.2 }}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
