@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useChromeRegistry } from "./chrome-context";
 import type { FieldGeometry } from "./chrome-registry";
-import { useDraftBufferOps } from "./draft-buffer-context";
+import { useDraftBufferOps, useEditVersion } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
 
 const SPRING = { type: "spring" as const, stiffness: 200, damping: 25 };
@@ -79,10 +79,13 @@ function FieldOutline({ rect }: { rect: OverlayRect }) {
 }
 
 export function ChromeOverlay() {
+  "use no memo";
   const { isEditMode } = useEditMode();
   const registry = useChromeRegistry();
   const { editedLocales } = useDraftBufferOps();
+  useEditVersion();
   const [rects, setRects] = useState<OverlayRect[]>([]);
+  const [generation, setGeneration] = useState(0);
   const observerRef = useRef<ResizeObserver | null>(null);
   const rafRef = useRef<number>(0);
 
@@ -90,6 +93,7 @@ export function ChromeOverlay() {
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       setRects(toOverlayRects(registry.getActiveGeometry()));
+      setGeneration(registry.getDismountGeneration());
     });
   }, [registry]);
 
@@ -179,7 +183,7 @@ export function ChromeOverlay() {
         </pattern>
       </defs>
 
-      <AnimatePresence>
+      <AnimatePresence key={`${isEditMode}-${generation}`}>
         {isEditMode &&
           rects.map((rect) => {
             const [section, field] = rect.id.split("\0");

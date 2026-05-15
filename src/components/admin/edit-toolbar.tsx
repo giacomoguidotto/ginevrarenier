@@ -70,20 +70,29 @@ interface EditToolbarProps {
 }
 
 function ToolbarButton({
+  "aria-label": ariaLabel,
   children,
   label,
   onClick,
   className,
 }: {
+  "aria-label"?: string;
   children: React.ReactNode;
   label: React.ReactNode;
   onClick: () => void;
   className: string;
 }) {
+  const resolvedAriaLabel =
+    ariaLabel ?? (typeof label === "string" ? label : undefined);
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button className={className} onClick={onClick} type="button">
+        <button
+          aria-label={resolvedAriaLabel}
+          className={className}
+          onClick={onClick}
+          type="button"
+        >
           {children}
         </button>
       </TooltipTrigger>
@@ -214,6 +223,7 @@ export function EditToolbar({
 
       {/* Language toggle */}
       <ToolbarButton
+        aria-label="Switch language"
         className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
         label={
           enNeedsAttention || itNeedsAttention ? (

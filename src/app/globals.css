@@ -104,10 +104,12 @@
   }
 
   html {
+    position: relative;
     scroll-behavior: smooth;
   }
 
   body {
+    position: relative;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;

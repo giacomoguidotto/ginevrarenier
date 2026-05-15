@@ -7,6 +7,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
@@ -52,8 +53,8 @@ export function EditModeProvider({ children }: { children: ReactNode }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingLocale, setEditingLocale] = useState<Locale>(pageLocale);
 
-  // Restore persisted state after hydration
-  useEffect(() => {
+  // Restore persisted state synchronously after hydration (before paint)
+  useLayoutEffect(() => {
     const persisted = getPersistedEditMode();
     if (persisted) {
       setIsEditMode(true);

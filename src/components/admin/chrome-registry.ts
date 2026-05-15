@@ -40,6 +40,7 @@ function snapshotRect(element: HTMLElement) {
 export function createChromeRegistry() {
   const store = new Map<string, FieldEntry>();
   const listeners = new Set<() => void>();
+  let dismountGeneration = 0;
 
   function notify() {
     for (const fn of listeners) {
@@ -72,7 +73,11 @@ export function createChromeRegistry() {
     },
     dismountAll(): void {
       store.clear();
+      dismountGeneration++;
       notify();
+    },
+    getDismountGeneration(): number {
+      return dismountGeneration;
     },
     getAll(): FieldRegistration[] {
       return Array.from(store, ([id, { element, visible }]) => ({

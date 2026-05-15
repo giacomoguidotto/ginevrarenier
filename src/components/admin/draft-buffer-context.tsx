@@ -70,6 +70,7 @@ const ImageAssetsContext = createContext<ImageAssetsOps>({
 });
 
 const ResetContext = createContext(0);
+const EditVersionContext = createContext(0);
 
 const StateContext = createContext<DraftBufferState>({
   changeSummary: () => ({
@@ -93,6 +94,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   );
   const [hasChanges, setHasChanges] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
+  const [editVersion, setEditVersion] = useState(0);
   const allContent = useQuery(api.siteContent.listAll);
   const upsertSiteContent = useMutation(api.siteContent.upsert);
   const removeProject = useMutation(api.projects.remove);
@@ -112,6 +114,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (section: string, field: string, locale: string, value: string) => {
       bufferRef.current.write(section, field, locale, value);
       setHasChanges(true);
+      setEditVersion((v) => v + 1);
     },
     []
   );
@@ -188,6 +191,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     bufferRef.current.discard();
     imageAssetsRef.current.clearTracked();
     setHasChanges(false);
+    setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
   }, [allContent, upsertSiteContent, removeEntity]);
 
@@ -200,6 +204,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
     bufferRef.current.discard();
     setHasChanges(false);
+    setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
   }, [removeEntity]);
 
@@ -255,9 +260,11 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   return (
     <OpsContext value={ops}>
       <ImageAssetsContext value={imageOps}>
-        <ResetContext value={resetSignal}>
-          <StateContext value={state}>{children}</StateContext>
-        </ResetContext>
+        <EditVersionContext value={editVersion}>
+          <ResetContext value={resetSignal}>
+            <StateContext value={state}>{children}</StateContext>
+          </ResetContext>
+        </EditVersionContext>
       </ImageAssetsContext>
     </OpsContext>
   );
@@ -269,6 +276,10 @@ export function useDraftBufferOps() {
 
 export function useDraftBufferReset() {
   return useContext(ResetContext);
+}
+
+export function useEditVersion() {
+  return useContext(EditVersionContext);
 }
 
 export function useDraftBufferState() {
