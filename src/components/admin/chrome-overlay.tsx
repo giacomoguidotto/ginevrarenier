@@ -60,7 +60,7 @@ function FieldOutline({
           strokeDashoffset: 0,
           stroke: focused
             ? "oklch(from var(--foreground) l c h / 0.45)"
-            : "oklch(from var(--foreground) l c h / 0.15)",
+            : "oklch(from var(--foreground) l c h / 0.25)",
         }}
         exit={{ strokeDashoffset: perimeter }}
         fill="none"
@@ -202,7 +202,7 @@ export function ChromeOverlay() {
           width="4"
         >
           <line
-            stroke="oklch(from var(--foreground) l c h / 0.05)"
+            stroke="oklch(from var(--foreground) l c h / 0.08)"
             strokeWidth="1"
             x1="0"
             x2="0"
