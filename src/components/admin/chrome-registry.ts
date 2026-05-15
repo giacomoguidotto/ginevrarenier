@@ -105,5 +105,13 @@ export function createChromeRegistry() {
       }
       return result;
     },
+    findIdByElement(el: Element): string | null {
+      for (const [id, entry] of store) {
+        if (entry.element === el) {
+          return id;
+        }
+      }
+      return null;
+    },
   };
 }

@@ -165,6 +165,7 @@
   padding: 0;
   -webkit-appearance: none;
   appearance: none;
+  outline: none;
 }
 
 /* Hero title: first line foreground, rest faded */

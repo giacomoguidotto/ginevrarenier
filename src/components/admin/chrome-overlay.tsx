@@ -44,18 +44,28 @@ function StaleLocaleDot({ rect }: { rect: OverlayRect }) {
   );
 }
 
-function FieldOutline({ rect }: { rect: OverlayRect }) {
+function FieldOutline({
+  focused,
+  rect,
+}: {
+  focused: boolean;
+  rect: OverlayRect;
+}) {
   const perimeter = 2 * (rect.width + rect.height);
 
   return (
     <>
       <motion.rect
-        animate={{ strokeDashoffset: 0 }}
+        animate={{
+          strokeDashoffset: 0,
+          stroke: focused
+            ? "oklch(from var(--foreground) l c h / 0.45)"
+            : "oklch(from var(--foreground) l c h / 0.15)",
+        }}
         exit={{ strokeDashoffset: perimeter }}
         fill="none"
         height={rect.height}
         initial={{ strokeDashoffset: perimeter }}
-        stroke="oklch(from var(--foreground) l c h / 0.15)"
         strokeDasharray={perimeter}
         strokeWidth={1}
         transition={SPRING}
@@ -64,7 +74,7 @@ function FieldOutline({ rect }: { rect: OverlayRect }) {
         y={rect.y}
       />
       <motion.rect
-        animate={{ opacity: 1 }}
+        animate={{ opacity: focused ? 0 : 1 }}
         exit={{ opacity: 0 }}
         fill="url(#chrome-hatching)"
         height={rect.height}
@@ -86,6 +96,7 @@ export function ChromeOverlay() {
   useEditVersion();
   const [rects, setRects] = useState<OverlayRect[]>([]);
   const [generation, setGeneration] = useState(0);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const rafRef = useRef<number>(0);
 
@@ -96,6 +107,24 @@ export function ChromeOverlay() {
       setGeneration(registry.getDismountGeneration());
     });
   }, [registry]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      setFocusedId(null);
+      return;
+    }
+    const onFocusIn = () => {
+      const active = document.activeElement;
+      setFocusedId(active ? registry.findIdByElement(active) : null);
+    };
+    const onFocusOut = () => setFocusedId(null);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, [isEditMode, registry]);
 
   useEffect(() => {
     if (!isEditMode) {
@@ -197,7 +226,7 @@ export function ChromeOverlay() {
                 key={rect.id}
                 transition={SPRING}
               >
-                <FieldOutline rect={rect} />
+                <FieldOutline focused={focusedId === rect.id} rect={rect} />
                 {isStale && <StaleLocaleDot rect={rect} />}
               </motion.g>
             );
