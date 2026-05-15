@@ -191,6 +191,40 @@ export const seed = internalMutation({
           },
         },
       },
+      {
+        section: "vision.header",
+        content: {
+          label: {
+            en: "Portfolio",
+            it: "Portfolio",
+          },
+          title: {
+            en: "Vision",
+            it: "Visione",
+          },
+          description: {
+            en: "A curated collection of works spanning portraits, landscapes, urban explorations, and abstract expressions. Each project is a chapter in an ongoing visual narrative.",
+            it: "Una collezione curata di opere che spaziano da ritratti, paesaggi, esplorazioni urbane ed espressioni astratte. Ogni progetto è un capitolo di una narrazione visiva in continua evoluzione.",
+          },
+        },
+      },
+      {
+        section: "reflections.header",
+        content: {
+          label: {
+            en: "Journal",
+            it: "Diario",
+          },
+          title: {
+            en: "Reflections",
+            it: "Riflessioni",
+          },
+          description: {
+            en: "Musings on light, shadow, and the ephemeral nature of moments. Essays on creativity, the craft of photography, and the stories behind the images.",
+            it: "Pensieri su luce, ombra e la natura effimera dei momenti. Saggi sulla creatività, l'arte della fotografia e le storie dietro le immagini.",
+          },
+        },
+      },
     ];
 
     for (const { section, content } of sections) {
@@ -201,6 +235,11 @@ export const seed = internalMutation({
     }
 
     // --- Social Links ---
+    const existingSocial = await ctx.db.query("socialLinks").first();
+    if (existingSocial) {
+      return;
+    }
+
     await ctx.db.insert("socialLinks", {
       platform: "instagram",
       href: "https://www.instagram.com/ginevra.renier/",

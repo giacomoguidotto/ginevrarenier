@@ -3,8 +3,20 @@ import { mutation, query } from "./_generated/server";
 
 export const list = query({
   args: {},
-  handler: async (ctx) =>
-    ctx.db.query("socialLinks").withIndex("by_order").collect(),
+  handler: async (ctx) => {
+    const all = await ctx.db
+      .query("socialLinks")
+      .withIndex("by_order")
+      .collect();
+    const seen = new Set<string>();
+    return all.filter((link) => {
+      if (seen.has(link.platform)) {
+        return false;
+      }
+      seen.add(link.platform);
+      return true;
+    });
+  },
 });
 
 export const create = mutation({
