@@ -8,7 +8,7 @@
     "dev:be": "convex dev",
     "build": "next build",
     "start": "next start",
-    "lint": "biome check",
+    "lint": "ultracite check",
     "format": "biome format --write",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
