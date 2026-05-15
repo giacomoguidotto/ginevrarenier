@@ -1,4 +1,7 @@
 When implementing UI changes, start the dev server and use Playwright to take a screenshot of the result, then read the screenshot image to visually verify correctness before reporting the task as complete. Also run lint and type checking.
+When working on Convex code, always read
+`convex/_generated/ai/guidelines.md` first for important guidelines on
+how to correctly use Convex APIs and patterns
 
 ## Agent skills
 

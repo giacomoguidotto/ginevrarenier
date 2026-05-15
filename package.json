@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun run dev:fe & bun run dev:be",
+    "dev": "concurrently -n fe,be -c blue,green \"bun run dev:fe\" \"bun run dev:be\"",
     "dev:fe": "next dev",
     "dev:be": "convex dev",
     "build": "next build",
@@ -12,7 +12,12 @@
     "format": "biome format --write",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:ui": "bunx playwright test --ui",
+    "test:all": "bun run test && bun run test:e2e",
+    "ci": "bun run lint && bun run typecheck && bun run test && bun run build",
     "prepare": "husky"
   },
   "dependencies": {
@@ -52,6 +57,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "tailwindcss": "^4.3.0",
