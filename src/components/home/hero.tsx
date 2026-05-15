@@ -31,6 +31,8 @@ function HeroContent() {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   const { markVisible } = useFieldVisibility();
+  const ctaRef = useRef<HTMLAnchorElement>(null);
+  const ctaSecondaryRef = useRef<HTMLAnchorElement>(null);
 
   const handleAnimationComplete = useCallback(() => {
     markVisible();
@@ -117,14 +119,25 @@ function HeroContent() {
               <Link
                 className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
                 href="/vision"
+                ref={ctaRef}
               >
-                <Field as="span" className="relative z-10" name="cta" />
+                <Field
+                  as="span"
+                  className="relative z-10"
+                  containerRef={ctaRef}
+                  name="cta"
+                />
               </Link>
               <Link
                 className="inline-flex items-center gap-2 rounded-full border border-foreground/30 px-8 py-4 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:border-foreground hover:bg-foreground/10"
                 href="/connect"
+                ref={ctaSecondaryRef}
               >
-                <Field as="span" name="ctaSecondary" />
+                <Field
+                  as="span"
+                  containerRef={ctaSecondaryRef}
+                  name="ctaSecondary"
+                />
               </Link>
             </motion.div>
           </div>

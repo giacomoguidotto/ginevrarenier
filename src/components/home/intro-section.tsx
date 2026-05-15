@@ -35,6 +35,7 @@ function IntroSectionContent() {
   const { data } = useSection();
   const { write } = useDraftBufferOps();
   const { markVisible } = useFieldVisibility();
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
   const portraitUrl = data?.portraitImage?.en || undefined;
   const handlePortraitUpload = useCallback(
@@ -73,8 +74,9 @@ function IntroSectionContent() {
               <Link
                 className="group inline-flex items-center gap-2 text-cream text-sm uppercase tracking-widest transition-colors hover:text-cream/70"
                 href="/essence"
+                ref={ctaRef}
               >
-                <Field as="span" name="cta" />
+                <Field as="span" containerRef={ctaRef} name="cta" />
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

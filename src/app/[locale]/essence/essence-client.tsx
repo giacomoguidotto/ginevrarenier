@@ -248,6 +248,7 @@ function EssenceTimeline() {
 
 function EssenceCTA() {
   const { markVisible } = useFieldVisibility();
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
   return (
     <section className="py-24">
@@ -282,8 +283,9 @@ function EssenceCTA() {
           <Link
             className="group inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground"
             href="/connect"
+            ref={ctaRef}
           >
-            <Field as="span" name="button" />
+            <Field as="span" containerRef={ctaRef} name="button" />
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>

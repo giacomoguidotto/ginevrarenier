@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
+import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
 import type { Locale } from "@/i18n/config";
 import { useChromeRegister } from "./chrome-context";
@@ -14,6 +15,7 @@ type FieldElement = "h1" | "h2" | "h3" | "p" | "span" | "blockquote";
 interface FieldProps {
   as?: FieldElement;
   className?: string;
+  containerRef?: RefObject<HTMLElement | null>;
   maxHeight?: number;
   maxLines?: number;
   maxWidth?: number;
@@ -27,6 +29,7 @@ export function Field({
   name,
   as: Tag = "span",
   className,
+  containerRef,
   maxHeight,
   maxLines,
   maxWidth,
@@ -41,7 +44,32 @@ export function Field({
   const { read, write } = useDraftBufferOps();
   useDraftBufferReset();
   const elRef = useRef<HTMLElement>(null);
-  useChromeRegister(name, elRef);
+  useChromeRegister(name, containerRef ?? elRef);
+
+  useEffect(() => {
+    const container = containerRef?.current;
+    if (!(isEditMode && container)) {
+      return;
+    }
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (elRef.current && !elRef.current.contains(e.target as Node)) {
+        e.preventDefault();
+        elRef.current.focus();
+      }
+    };
+
+    const onClick = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    container.addEventListener("mousedown", onMouseDown);
+    container.addEventListener("click", onClick);
+    return () => {
+      container.removeEventListener("mousedown", onMouseDown);
+      container.removeEventListener("click", onClick);
+    };
+  }, [isEditMode, containerRef]);
 
   const entityMode = entityValue !== undefined;
 
@@ -125,6 +153,9 @@ export function Field({
       }
       contentEditable={isEditMode ? ("plaintext-only" as const) : undefined}
       onBlur={isEditMode ? handleInput : undefined}
+      onClick={
+        isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined
+      }
       onInput={isEditMode ? handleInput : undefined}
       ref={elRef as React.RefObject<never>}
       style={constraintStyle}
