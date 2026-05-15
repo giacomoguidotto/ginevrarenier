@@ -228,9 +228,11 @@ function EssenceTimeline() {
                 }`}
               />
 
-              <span className="mb-2 block text-cream/60 text-sm uppercase tracking-widest">
-                {year}
-              </span>
+              <Field
+                as="span"
+                className="mb-2 block text-cream/60 text-sm uppercase tracking-widest"
+                name={`${year}.year`}
+              />
               <Field
                 as="h3"
                 className="mb-2 font-light text-cream text-xl"

@@ -118,6 +118,7 @@ export const seed = internalMutation({
             en: "A Path Immersed in Light",
             it: "Un Cammino Immersa nella Luce",
           },
+          "2022.year": { en: "2022", it: "2022" },
           "2022.title": {
             en: "First Camera",
             it: "Prima Fotocamera",
@@ -126,6 +127,7 @@ export const seed = internalMutation({
             en: "I inherited my first DSLR camera from my grandmother, passing down a passion that will last a lifetime.",
             it: "Ho ereditato la mia prima reflex digitale da mia nonna, tramandandomi una passione che durerà per tutta la mia vita.",
           },
+          "2024.year": { en: "2024", it: "2024" },
           "2024.title": {
             en: "Beyond Borders",
             it: "Oltre i Confini",
@@ -134,6 +136,7 @@ export const seed = internalMutation({
             en: "Immersed in landscapes never seen before, I began capturing horizons that spoke a new language. Each shot a discovery, each light a revelation.",
             it: "Immerso in paesaggi mai visti prima, ho iniziato a catturare orizzonti che parlavano una lingua nuova. Ogni scatto una scoperta, ogni luce una rivelazione.",
           },
+          "2025.year": { en: "2025", it: "2025" },
           "2025.title": {
             en: "At CPF Bauer",
             it: "Alla CPF Bauer",
