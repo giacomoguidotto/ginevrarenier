@@ -1,5 +1,7 @@
 "use client";
 
+import { api } from "convex/_generated/api";
+import { useQuery } from "convex/react";
 import {
   motion,
   useMotionValue,
@@ -7,8 +9,14 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
+import { useEditMode } from "@/components/admin/edit-mode-context";
+import type { Locale } from "@/i18n/config";
 import { Link, usePathname } from "@/i18n/routing";
 
 const navLinkKeys = [
@@ -18,6 +26,38 @@ const navLinkKeys = [
   { href: "/essence", key: "essence" },
   { href: "/connect", key: "connect" },
 ] as const;
+
+const navSectionMap: Partial<
+  Record<(typeof navLinkKeys)[number]["key"], string>
+> = {
+  vision: "vision.header",
+  reflections: "reflections.header",
+  essence: "essence.hero",
+  connect: "connect.header",
+};
+
+function useNavLabel(key: string, fallback: string): string {
+  const sectionName = navSectionMap[key as keyof typeof navSectionMap];
+  const pageLocale = useLocale() as Locale;
+  const { isEditMode, editingLocale } = useEditMode();
+  const { read } = useDraftBufferOps();
+  useEditVersion();
+
+  const sectionData = useQuery(
+    api.siteContent.getBySection,
+    sectionName ? { section: sectionName } : "skip"
+  );
+
+  if (!sectionName) {
+    return fallback;
+  }
+
+  const locale = isEditMode ? editingLocale : pageLocale;
+  const draftValue = read(sectionName, "title", locale);
+  const convexValue = sectionData?.content?.title?.[locale];
+
+  return draftValue ?? convexValue ?? fallback;
+}
 
 function MagneticLink({
   href,
@@ -80,6 +120,57 @@ function MagneticLink({
   );
 }
 
+function DesktopNavItem({
+  link,
+  isActive,
+  fallback,
+}: {
+  link: (typeof navLinkKeys)[number];
+  isActive: boolean;
+  fallback: string;
+}) {
+  const label = useNavLabel(link.key, fallback);
+  return <MagneticLink href={link.href} isActive={isActive} label={label} />;
+}
+
+function MobileNavItem({
+  link,
+  isActive,
+  fallback,
+  index,
+  isMenuOpen,
+  onClose,
+}: {
+  link: (typeof navLinkKeys)[number];
+  isActive: boolean;
+  fallback: string;
+  index: number;
+  isMenuOpen: boolean;
+  onClose: () => void;
+}) {
+  const label = useNavLabel(link.key, fallback);
+  return (
+    <motion.div
+      animate={{
+        opacity: isMenuOpen ? 1 : 0,
+        y: isMenuOpen ? 0 : 20,
+      }}
+      initial={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+    >
+      <Link
+        className={`font-light text-3xl uppercase tracking-widest ${
+          isActive ? "text-foreground" : "text-muted-foreground"
+        }`}
+        href={link.href}
+        onClick={onClose}
+      >
+        {label}
+      </Link>
+    </motion.div>
+  );
+}
+
 export function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -115,11 +206,11 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-2 md:flex">
             {navLinkKeys.map((link) => (
-              <MagneticLink
-                href={link.href}
+              <DesktopNavItem
+                fallback={t(link.key)}
                 isActive={pathname === link.href}
                 key={link.href}
-                label={t(link.key)}
+                link={link}
               />
             ))}
           </div>
@@ -169,27 +260,15 @@ export function Navbar() {
       >
         <nav className="flex h-full flex-col items-center justify-center gap-8">
           {navLinkKeys.map((link, index) => (
-            <motion.div
-              animate={{
-                opacity: isMenuOpen ? 1 : 0,
-                y: isMenuOpen ? 0 : 20,
-              }}
-              initial={{ opacity: 0, y: 20 }}
+            <MobileNavItem
+              fallback={t(link.key)}
+              index={index}
+              isActive={pathname === link.href}
+              isMenuOpen={isMenuOpen}
               key={link.href}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <Link
-                className={`font-light text-3xl uppercase tracking-widest ${
-                  pathname === link.href
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                }`}
-                href={link.href}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t(link.key)}
-              </Link>
-            </motion.div>
+              link={link}
+              onClose={() => setIsMenuOpen(false)}
+            />
           ))}
         </nav>
       </motion.div>

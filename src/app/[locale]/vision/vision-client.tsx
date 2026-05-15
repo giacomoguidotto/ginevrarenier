@@ -21,10 +21,15 @@ import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
+import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
+import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import {
   ContextMenu,
@@ -71,7 +76,6 @@ function SortableProjectCard({
   const { isPendingDeletion, trackDeletion, cancelDeletion } =
     useDraftBufferOps();
   const localized = useLocalized();
-  const _t = useTranslations("common");
   const updateProject = useMutation(api.projects.update);
 
   const pendingDeletion = isPendingDeletion("project", project._id);
@@ -181,7 +185,6 @@ function SortableProjectCard({
 }
 
 export function VisionClient() {
-  const t = useTranslations("vision");
   const { isEditMode } = useEditMode();
 
   // In edit mode, show all projects (including unpublished). Otherwise published only.
@@ -244,13 +247,11 @@ export function VisionClient() {
       <div className="min-h-screen pt-32 pb-20">
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
-          <div className="mb-16 max-w-3xl">
-            <p className="mb-4 text-foreground/60 text-sm uppercase tracking-widest">
-              {t("label")}
-            </p>
-            <h1 className="mb-6 text-foreground">{t("title")}</h1>
-            <p className="text-lg text-muted-foreground">{t("description")}</p>
-          </div>
+          <Section name="vision.header">
+            <FieldVisibilityProvider>
+              <VisionHeader />
+            </FieldVisibilityProvider>
+          </Section>
 
           {/* Projects Grid */}
           <DndContext
@@ -334,5 +335,47 @@ export function VisionClient() {
         </div>
       </div>
     </PageTransition>
+  );
+}
+
+function VisionHeader() {
+  const { markVisible } = useFieldVisibility();
+  const { data } = useSection();
+  const localized = useLocalized();
+
+  return (
+    <div className="mb-16 max-w-3xl">
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Field
+          as="p"
+          className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+          name="label"
+        />
+      </motion.div>
+      <motion.h1
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 text-foreground"
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        {data?.title && localized(data.title)}
+      </motion.h1>
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        onAnimationComplete={markVisible}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Field
+          as="p"
+          className="text-lg text-muted-foreground"
+          name="description"
+        />
+      </motion.div>
+    </div>
   );
 }

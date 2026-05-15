@@ -9,6 +9,12 @@ import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
+import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
+import { Section, useSection } from "@/components/admin/section";
 import { PostCard } from "@/components/blog/post-card";
 import { PageTransition } from "@/components/layout/page-transition";
 import {
@@ -18,6 +24,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { fadeUp, staggerContainer } from "@/lib/animations";
+import { useLocalized } from "@/lib/hooks";
 
 function PostCardWrapper({
   post,
@@ -154,32 +161,11 @@ export function ReflectionsClient() {
       <div className="min-h-screen pt-32 pb-20">
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
-          <div className="mb-16 max-w-3xl">
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5 }}
-            >
-              {t("label")}
-            </motion.p>
-            <motion.h1
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-foreground"
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {t("title")}
-            </motion.h1>
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="text-lg text-muted-foreground"
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              {t("description")}
-            </motion.p>
-          </div>
+          <Section name="reflections.header">
+            <FieldVisibilityProvider>
+              <ReflectionsHeader />
+            </FieldVisibilityProvider>
+          </Section>
 
           {/* Posts Grid */}
           <motion.div
@@ -264,5 +250,47 @@ export function ReflectionsClient() {
         </div>
       </div>
     </PageTransition>
+  );
+}
+
+function ReflectionsHeader() {
+  const { markVisible } = useFieldVisibility();
+  const { data } = useSection();
+  const localized = useLocalized();
+
+  return (
+    <div className="mb-16 max-w-3xl">
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Field
+          as="p"
+          className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+          name="label"
+        />
+      </motion.div>
+      <motion.h1
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 text-foreground"
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        {data?.title && localized(data.title)}
+      </motion.h1>
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        onAnimationComplete={markVisible}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Field
+          as="p"
+          className="text-lg text-muted-foreground"
+          name="description"
+        />
+      </motion.div>
+    </div>
   );
 }

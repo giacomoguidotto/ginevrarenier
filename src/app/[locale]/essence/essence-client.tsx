@@ -13,6 +13,7 @@ import {
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
+import { useLocalized } from "@/lib/hooks";
 
 const achievementIcons = [Camera, Award, Globe];
 const achievementKeys = ["years", "recognition", "countries"] as const;
@@ -62,6 +63,7 @@ function EssenceHero() {
   const { data } = useSection();
   const { write } = useDraftBufferOps();
   const { markVisible } = useFieldVisibility();
+  const localized = useLocalized();
 
   const portraitUrl = data?.portraitImage?.en || undefined;
   const handlePortraitUpload = useCallback(
@@ -118,7 +120,9 @@ function EssenceHero() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Field as="h1" className="mb-8 text-foreground" name="title" />
+              <h1 className="mb-8 text-foreground">
+                {data?.title && localized(data.title)}
+              </h1>
             </motion.div>
             <motion.div
               animate={{ opacity: 1, y: 0 }}

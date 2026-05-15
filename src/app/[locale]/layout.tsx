@@ -126,9 +126,11 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <ChromeProvider>
                   <ChromeDismountOnNavigate />
                   <ChromeOverlay />
-                  <Navbar />
-                  <main className="min-h-screen">{children}</main>
-                  <Footer />
+                  <div className="flex min-h-screen flex-col">
+                    <Navbar />
+                    <main className="flex-1">{children}</main>
+                    <Footer />
+                  </div>
                   <UnsavedChangesGuard>
                     <EditFab />
                     <EditToolbarWrapper />
