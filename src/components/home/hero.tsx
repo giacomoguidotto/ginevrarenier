@@ -84,7 +84,12 @@ function HeroContent() {
                   ease: [0.16, 1, 0.3, 1],
                 }}
               >
-                <Field as="span" className="hero-title block" name="title" />
+                <Field
+                  as="span"
+                  className="hero-title block"
+                  maxLines={2}
+                  name="title"
+                />
               </motion.h1>
             </div>
 

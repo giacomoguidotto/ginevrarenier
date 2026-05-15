@@ -15,6 +15,7 @@ interface FieldProps {
   as?: FieldElement;
   className?: string;
   maxHeight?: number;
+  maxLines?: number;
   maxWidth?: number;
   multiline?: boolean;
   name: string;
@@ -27,6 +28,7 @@ export function Field({
   as: Tag = "span",
   className,
   maxHeight,
+  maxLines,
   maxWidth,
   multiline,
   value: entityValue,
@@ -46,6 +48,7 @@ export function Field({
   const { style: constraintStyle } = useFieldConstraints(elRef, {
     active: isEditMode,
     maxHeight,
+    maxLines,
     maxWidth,
     multiline,
   });

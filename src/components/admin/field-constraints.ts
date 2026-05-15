@@ -3,6 +3,8 @@ export function isNewlineInput(inputType: string): boolean {
 }
 
 interface ConstraintOptions {
+  currentText?: string;
+  maxLines?: number;
   multiline?: boolean;
 }
 
@@ -10,9 +12,24 @@ export function shouldPreventInput(
   inputType: string,
   options: ConstraintOptions
 ): boolean {
-  if (!options.multiline && isNewlineInput(inputType)) {
+  const effectiveMultiline =
+    options.multiline || (options.maxLines != null && options.maxLines > 1);
+
+  if (!effectiveMultiline && isNewlineInput(inputType)) {
     return true;
   }
+
+  if (
+    options.maxLines != null &&
+    isNewlineInput(inputType) &&
+    options.currentText != null
+  ) {
+    const newlineCount = (options.currentText.match(/\n/g) ?? []).length;
+    if (newlineCount >= options.maxLines - 1) {
+      return true;
+    }
+  }
+
   return false;
 }
 

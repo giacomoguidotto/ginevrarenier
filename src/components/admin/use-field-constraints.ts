@@ -7,6 +7,7 @@ import { exceedsThreshold, shouldPreventInput } from "./field-constraints";
 interface UseFieldConstraintsOptions {
   active: boolean;
   maxHeight?: number;
+  maxLines?: number;
   maxWidth?: number;
   multiline?: boolean;
 }
@@ -15,12 +16,21 @@ export function useFieldConstraints(
   ref: RefObject<HTMLElement | null>,
   options: UseFieldConstraintsOptions
 ) {
-  const { active, maxHeight, maxWidth, multiline } = options;
-  const hasThreshold = maxHeight != null || maxWidth != null;
+  const { active, maxHeight, maxLines, maxWidth, multiline } = options;
+  const effectiveMultiline = multiline || (maxLines != null && maxLines > 1);
+  const hasThreshold =
+    maxHeight != null || maxWidth != null || maxLines != null;
 
   const handleBeforeInput = useCallback(
     (e: InputEvent) => {
-      if (shouldPreventInput(e.inputType, { multiline })) {
+      const el = ref.current;
+      if (
+        shouldPreventInput(e.inputType, {
+          multiline: effectiveMultiline,
+          maxLines,
+          currentText: el?.textContent ?? "",
+        })
+      ) {
         e.preventDefault();
         return;
       }
@@ -32,7 +42,6 @@ export function useFieldConstraints(
         return;
       }
 
-      const el = ref.current;
       if (!(el && e.data)) {
         return;
       }
@@ -48,9 +57,18 @@ export function useFieldConstraints(
       clone.textContent = (el.textContent ?? "") + e.data;
       document.body.appendChild(clone);
 
+      let effectiveMaxHeight = maxHeight;
+      if (maxLines != null) {
+        let lineHeight = Number.parseFloat(cs.lineHeight);
+        if (Number.isNaN(lineHeight)) {
+          lineHeight = Number.parseFloat(cs.fontSize) * 1.2;
+        }
+        effectiveMaxHeight = lineHeight * maxLines + 1;
+      }
+
       const exceeds = exceedsThreshold(
         { scrollHeight: clone.scrollHeight, scrollWidth: clone.scrollWidth },
-        { maxHeight, maxWidth }
+        { maxHeight: effectiveMaxHeight, maxWidth }
       );
 
       clone.remove();
@@ -59,7 +77,7 @@ export function useFieldConstraints(
         e.preventDefault();
       }
     },
-    [ref, multiline, hasThreshold, maxHeight, maxWidth]
+    [ref, effectiveMultiline, maxLines, hasThreshold, maxHeight, maxWidth]
   );
 
   useEffect(() => {
@@ -72,7 +90,7 @@ export function useFieldConstraints(
     return () => el.removeEventListener("beforeinput", handleBeforeInput);
   }, [ref, active, handleBeforeInput]);
 
-  const style: React.CSSProperties | undefined = multiline
+  const style: React.CSSProperties | undefined = effectiveMultiline
     ? { whiteSpace: "pre-wrap" }
     : undefined;
 

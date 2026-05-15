@@ -42,6 +42,42 @@ describe("Field constraints", () => {
         false
       );
     });
+
+    it("allows newline when maxLines implies multiline", () => {
+      expect(
+        shouldPreventInput("insertParagraph", {
+          maxLines: 2,
+          currentText: "one line",
+        })
+      ).toBe(false);
+    });
+
+    it("prevents newline when maxLines reached", () => {
+      expect(
+        shouldPreventInput("insertParagraph", {
+          maxLines: 2,
+          currentText: "line one\nline two",
+        })
+      ).toBe(true);
+    });
+
+    it("allows newline when below maxLines limit", () => {
+      expect(
+        shouldPreventInput("insertLineBreak", {
+          maxLines: 3,
+          currentText: "line one\nline two",
+        })
+      ).toBe(false);
+    });
+
+    it("prevents newline at maxLines boundary for insertLineBreak", () => {
+      expect(
+        shouldPreventInput("insertLineBreak", {
+          maxLines: 2,
+          currentText: "a\nb",
+        })
+      ).toBe(true);
+    });
   });
 
   describe("exceedsThreshold", () => {
