@@ -26,6 +26,10 @@ _Avoid_: Block, region, zone
 A single editable content element within a Section. Renders as a native DOM element (`h1`, `p`, `span`) that becomes `contentEditable="plaintext-only"` during an Edit Session.
 _Avoid_: Input, slot, cell
 
+**Derived Entry**:
+A group of related Fields within a Section, identified by a shared key prefix (e.g., `abc123.year`, `abc123.title`, `abc123.description`). Not a database entity — the entry list is derived at runtime by scanning siteContent keys for a pattern (e.g., `*.title`). Sorted by a data value (e.g., year) rather than an explicit order field. Can be added by writing new prefixed keys to the Draft Buffer and removed via Field Deletion.
+_Avoid_: Row, record, sub-entity, nested object
+
 **Published / Unpublished**:
 Visibility state of a Project or Post. Unpublished entities exist in the database but are hidden from the public site. Newly created entities start as Unpublished.
 _Avoid_: Draft (overloaded — see Draft Buffer), hidden, archived
@@ -37,12 +41,16 @@ The period between entering and exiting edit mode. All uncommitted changes live 
 _Avoid_: Edit mode (use for the boolean toggle only, not the session concept)
 
 **Draft Buffer**:
-In-memory accumulator for all uncommitted operations within an Edit Session: text edits, image swaps, reorder changes, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. Global save commits all operations; global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
+In-memory accumulator for all uncommitted operations within an Edit Session: text edits, image swaps, reorder changes, Field Deletions, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. Global save commits all operations; global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
 _Avoid_: Change tracker, command buffer, undo stack
 
 **Session-Created Entity**:
 A Project or Post created during the current Edit Session. Exists in the database as Unpublished. If the session is discarded, the entity is automatically deleted from the database.
 _Avoid_: Temporary entity, draft entity
+
+**Field Deletion**:
+A Draft Buffer operation that marks a key prefix within a Section for removal on save. Targets a group of related Fields in the siteContent blob (e.g., all keys starting with `abc123.`). Unlike Pending Deletion, which removes top-level entities, Field Deletion removes sub-structure within a Section. Cancellable during the Edit Session. On save, the prefix's keys are stripped from the siteContent document before upserting.
+_Avoid_: Key removal, field removal, delete operation
 
 **Pending Deletion**:
 A Draft Buffer command marking an existing entity for deletion on save. Cancellable at any point during the Edit Session. The entity remains in the database until save is confirmed. Visually indicated by the Chrome layer.
@@ -73,7 +81,8 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 - A **Field** displays one **Localized Text** value, resolved to the active locale
 - A **Project** has a gallery of images and bilingual metadata; each metadata field is a **Field**
 - A **Post** has bilingual content edited via BlockNote, distinct from the **Field** primitive
-- The **Draft Buffer** accumulates changes from **Fields**, **Pending Deletions**, and **Session-Created Entities**
+- The **Draft Buffer** accumulates changes from **Fields**, **Field Deletions**, **Pending Deletions**, and **Session-Created Entities**
+- A **Section** may contain **Derived Entries** — groups of **Fields** sharing a key prefix, discovered at runtime rather than declared in code
 - The **Chrome** layer observes **Field** geometry and reads **Draft Buffer** state — it owns no state of its own
 - **Image Assets** are tracked by the **Draft Buffer** and cleaned up on discard
 
