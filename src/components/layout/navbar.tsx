@@ -188,7 +188,7 @@ export function Navbar() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <motion.div
-          className="absolute inset-0 border-border border-b bg-background/80 backdrop-blur-md"
+          className="absolute inset-0 border-border border-b bg-background/80 backdrop-blur-xl"
           style={{ opacity: navBackground }}
         />
         <nav className="relative mx-auto flex h-20 max-w-7xl items-center justify-between px-6">

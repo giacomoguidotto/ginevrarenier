@@ -189,7 +189,7 @@ export function ChromeOverlay() {
         width: "100%",
         height: document.documentElement.scrollHeight,
         pointerEvents: "none",
-        zIndex: 50,
+        zIndex: 40,
         overflow: "visible",
       }}
     >
