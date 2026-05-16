@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Save,
   Trash2,
+  TriangleAlert,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,25 @@ function getInitialPosition(): Position {
     // ignore
   }
   return { x: 20, y: window.innerHeight - 80 };
+}
+
+function buildLangTooltip(
+  enNeedsAttention: boolean,
+  itNeedsAttention: boolean
+): React.ReactNode {
+  if (!(enNeedsAttention || itNeedsAttention)) {
+    return "Switch language";
+  }
+  const hint =
+    enNeedsAttention && itNeedsAttention
+      ? "EN & IT are missing some changes"
+      : `${enNeedsAttention ? "EN" : "IT"} is missing some changes`;
+  return (
+    <span className="flex flex-col items-center">
+      <span>Switch language</span>
+      <span className="text-[10px] opacity-60">{hint}</span>
+    </span>
+  );
 }
 
 interface EditToolbarProps {
@@ -199,6 +219,8 @@ export function EditToolbar({
     return null;
   }
 
+  const langTooltip = buildLangTooltip(enNeedsAttention, itNeedsAttention);
+
   return (
     <div
       className="fixed z-50 flex items-center gap-1 rounded-full border border-foreground/20 bg-background/80 px-2 py-1.5 shadow-lg backdrop-blur-md"
@@ -225,18 +247,7 @@ export function EditToolbar({
       <ToolbarButton
         aria-label="Switch language"
         className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
-        label={
-          enNeedsAttention || itNeedsAttention ? (
-            <span className="flex flex-col items-center">
-              <span>Switch language</span>
-              <span className="text-[10px] opacity-60">
-                {enNeedsAttention ? "EN" : "IT"} has untranslated changes
-              </span>
-            </span>
-          ) : (
-            "Switch language"
-          )
-        }
+        label={langTooltip}
         onClick={switchLocale}
       >
         <span className="relative">
@@ -348,6 +359,38 @@ function formatEditLabel(edit: { section: string; field: string }) {
   return `${edit.section} / ${edit.field}`;
 }
 
+interface SingleLocaleWarning {
+  field: string;
+  key: string;
+  missingLocale: string;
+  section: string;
+}
+
+function detectSingleLocaleEdits(
+  textEdits: ChangeSummary["textEdits"]
+): SingleLocaleWarning[] {
+  const localesByField = new Map<string, Set<string>>();
+  for (const edit of textEdits) {
+    const k = `${edit.section}\0${edit.field}`;
+    let set = localesByField.get(k);
+    if (!set) {
+      set = new Set();
+      localesByField.set(k, set);
+    }
+    set.add(edit.locale);
+  }
+  const warnings: SingleLocaleWarning[] = [];
+  for (const [k, locales] of localesByField) {
+    const [section, field] = k.split("\0");
+    if (locales.has("en") && !locales.has("it")) {
+      warnings.push({ key: k, section, field, missingLocale: "it" });
+    } else if (locales.has("it") && !locales.has("en")) {
+      warnings.push({ key: k, section, field, missingLocale: "en" });
+    }
+  }
+  return warnings;
+}
+
 function formatEntityType(entityType: string) {
   return entityType === "post" ? "Post" : "Project";
 }
@@ -369,6 +412,10 @@ function SaveConfirmDialog({
   const hasTextEdits = summary && summary.textEdits.length > 0;
   const hasCreations = summary && summary.createdEntities.length > 0;
   const hasDeletions = summary && summary.pendingDeletions.length > 0;
+
+  const singleLocaleWarnings = hasTextEdits
+    ? detectSingleLocaleEdits(summary.textEdits)
+    : [];
 
   return (
     <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
@@ -427,6 +474,28 @@ function SaveConfirmDialog({
               ))
             : null}
         </ul>
+        {singleLocaleWarnings.length > 0 ? (
+          <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-amber-400 text-xs">
+            <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <div>
+              <p className="font-medium">
+                {singleLocaleWarnings.length === 1
+                  ? "1 field was edited in only one language:"
+                  : `${singleLocaleWarnings.length} fields were edited in only one language:`}
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {singleLocaleWarnings.map((w) => (
+                  <li key={w.key}>
+                    <span className="font-mono">
+                      {w.missingLocale.toUpperCase()}
+                    </span>{" "}
+                    missing for {w.section} / {w.field}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ) : null}
         <DialogFooter>
           <Button onClick={onCancel} variant="outline">
             Cancel

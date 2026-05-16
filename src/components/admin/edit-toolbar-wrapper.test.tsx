@@ -16,13 +16,7 @@ vi.mock("next-intl", () => ({
 const saveMock = vi.fn(async () => {});
 const discardMock = vi.fn();
 let mockHasChanges = false;
-let mockTextEdits: Array<{
-  section: string;
-  field: string;
-  locale: string;
-  newValue: string;
-  oldValue: string | undefined;
-}> = [];
+let mockEditedLocales = new Set<string>();
 
 vi.mock("./draft-buffer-context", () => ({
   DraftBufferProvider: ({ children }: { children: ReactNode }) => children,
@@ -34,10 +28,11 @@ vi.mock("./draft-buffer-context", () => ({
   useDraftBufferReset: () => 0,
   useDraftBufferState: () => ({
     hasChanges: mockHasChanges,
+    editedLocales: mockEditedLocales,
     save: saveMock,
     discard: discardMock,
     changeSummary: () => ({
-      textEdits: mockTextEdits,
+      textEdits: [],
       imageSwaps: [],
       createdEntities: [],
       pendingDeletions: [],
@@ -64,7 +59,7 @@ import { EditToolbarWrapper } from "./edit-toolbar-wrapper";
 beforeEach(() => {
   localStorage.clear();
   mockHasChanges = false;
-  mockTextEdits = [];
+  mockEditedLocales = new Set<string>();
   saveMock.mockClear();
   discardMock.mockClear();
 });
@@ -90,15 +85,7 @@ function Providers({ children }: { children: ReactNode }) {
 describe("EditToolbarWrapper without PageChanges", () => {
   it("reports hasChanges from DraftBuffer only", async () => {
     mockHasChanges = true;
-    mockTextEdits = [
-      {
-        section: "hero",
-        field: "title",
-        locale: "en",
-        newValue: "New",
-        oldValue: "Old",
-      },
-    ];
+    mockEditedLocales = new Set(["en"]);
 
     const { getByTestId, getByText } = render(
       <Providers>

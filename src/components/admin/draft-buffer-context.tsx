@@ -50,6 +50,7 @@ interface ImageAssetsOps {
 interface DraftBufferState {
   changeSummary: () => ChangeSummary;
   discard: () => void | Promise<void>;
+  editedLocales: Set<string>;
   hasChanges: boolean;
   save: () => Promise<void>;
 }
@@ -88,6 +89,7 @@ const StateContext = createContext<DraftBufferState>({
     pendingDeletions: [],
     textEdits: [],
   }),
+  editedLocales: new Set<string>(),
   hasChanges: false,
   save: () => Promise.resolve(),
   discard: noop,
@@ -102,6 +104,9 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     })
   );
   const [hasChanges, setHasChanges] = useState(false);
+  const [globalEditedLocales, setGlobalEditedLocales] = useState(
+    () => new Set<string>()
+  );
   const [resetSignal, setResetSignal] = useState(0);
   const [editVersion, setEditVersion] = useState(0);
   const allContent = useQuery(api.siteContent.listAll);
@@ -123,6 +128,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (section: string, field: string, locale: string, value: string) => {
       bufferRef.current.write(section, field, locale, value);
       setHasChanges(true);
+      setGlobalEditedLocales((prev) => {
+        if (prev.has(locale)) {
+          return prev;
+        }
+        return new Set(prev).add(locale);
+      });
       setEditVersion((v) => v + 1);
     },
     []
@@ -244,6 +255,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     bufferRef.current.discard();
     imageAssetsRef.current.clearTracked();
     setHasChanges(false);
+    setGlobalEditedLocales(new Set());
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
   }, [allContent, upsertSiteContent, removeEntity]);
@@ -257,6 +269,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
     bufferRef.current.discard();
     setHasChanges(false);
+    setGlobalEditedLocales(new Set());
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
   }, [removeEntity]);
@@ -315,8 +328,14 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   );
 
   const state = useMemo(
-    () => ({ changeSummary, hasChanges, save, discard }),
-    [changeSummary, hasChanges, save, discard]
+    () => ({
+      changeSummary,
+      editedLocales: globalEditedLocales,
+      hasChanges,
+      save,
+      discard,
+    }),
+    [changeSummary, globalEditedLocales, hasChanges, save, discard]
   );
 
   return (
