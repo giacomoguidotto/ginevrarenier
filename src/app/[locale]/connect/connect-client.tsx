@@ -9,9 +9,9 @@ import {
   FieldVisibilityProvider,
   useFieldVisibility,
 } from "@/components/admin/field-visibility";
-import { Section } from "@/components/admin/section";
+import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
-import { useSocialLinks } from "@/lib/hooks";
+import { useLocalized, useSocialLinks } from "@/lib/hooks";
 import { getSocialIcon } from "@/lib/social-icons";
 
 const inquiryTypeKeys = [
@@ -322,6 +322,8 @@ export function ConnectClient() {
 
 function ConnectHeader() {
   const { markVisible } = useFieldVisibility();
+  const { data } = useSection();
+  const localized = useLocalized();
 
   return (
     <div className="mb-16 max-w-3xl">
@@ -341,7 +343,9 @@ function ConnectHeader() {
         initial={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Field as="h1" className="mb-6 text-foreground" name="title" />
+        <h1 className="mb-6 text-foreground">
+          {data?.title && localized(data.title)}
+        </h1>
       </motion.div>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
