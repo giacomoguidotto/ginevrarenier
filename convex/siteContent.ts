@@ -1,5 +1,14 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+
+type LocalizedRecord = Record<string, { en: string; it: string }>;
+
+function parseContent(content: string | LocalizedRecord): LocalizedRecord {
+  if (typeof content === "string") {
+    return JSON.parse(content) as LocalizedRecord;
+  }
+  return content;
+}
 
 export const getBySection = query({
   args: { section: v.string() },
@@ -14,10 +23,7 @@ export const getBySection = query({
     }
     return {
       ...doc,
-      content: JSON.parse(doc.content) as Record<
-        string,
-        { en: string; it: string }
-      >,
+      content: parseContent(doc.content),
     };
   },
 });
@@ -28,18 +34,17 @@ export const listAll = query({
     const docs = await ctx.db.query("siteContent").collect();
     return docs.map((doc) => ({
       ...doc,
-      content: JSON.parse(doc.content) as Record<
-        string,
-        { en: string; it: string }
-      >,
+      content: parseContent(doc.content),
     }));
   },
 });
 
+const localizedText = v.object({ en: v.string(), it: v.string() });
+
 export const upsert = mutation({
   args: {
     section: v.string(),
-    content: v.string(),
+    content: v.record(v.string(), localizedText),
     deleteKeyPrefixes: v.optional(v.array(v.string())),
   },
   handler: async (ctx, { section, content, deleteKeyPrefixes }) => {
@@ -49,9 +54,8 @@ export const upsert = mutation({
       .unique();
 
     if (existing) {
-      const existingContent = JSON.parse(existing.content);
-      const newContent = JSON.parse(content);
-      const merged = { ...existingContent, ...newContent };
+      const existingContent = parseContent(existing.content);
+      const merged = { ...existingContent, ...content };
 
       if (deleteKeyPrefixes?.length) {
         for (const key of Object.keys(merged)) {
@@ -61,11 +65,25 @@ export const upsert = mutation({
         }
       }
 
-      await ctx.db.patch(existing._id, {
-        content: JSON.stringify(merged),
-      });
+      await ctx.db.patch(existing._id, { content: merged });
     } else {
       await ctx.db.insert("siteContent", { section, content });
     }
+  },
+});
+
+export const migrateToRecord = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const docs = await ctx.db.query("siteContent").collect();
+    let migrated = 0;
+    for (const doc of docs) {
+      if (typeof doc.content === "string") {
+        const parsed = JSON.parse(doc.content) as LocalizedRecord;
+        await ctx.db.patch(doc._id, { content: parsed });
+        migrated++;
+      }
+    }
+    return { total: docs.length, migrated };
   },
 });

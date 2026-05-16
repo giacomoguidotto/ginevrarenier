@@ -73,8 +73,7 @@ export default defineSchema({
    */
   siteContent: defineTable({
     section: v.string(),
-    // Stored as JSON string to allow flexible nested structures
-    content: v.string(),
+    content: v.union(v.string(), v.record(v.string(), localizedText)),
   }).index("by_section", ["section"]),
 
   /**
