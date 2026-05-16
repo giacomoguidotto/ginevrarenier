@@ -23,11 +23,11 @@ A bilingual value `{ en: string, it: string }` — the atomic unit of translatab
 _Avoid_: Translation, i18n field, bilingual field
 
 **Section**:
-A named content area of a page (e.g., `"hero"`, `"essence.achievements"`). Contains one or more Fields. Stored as a single document in the `siteContent` table.
+A named content area of a page (e.g., `"hero"`, `"essence.achievements"`) or a virtual section representing an entity (e.g., `"project:{id}"`, `"post:{id}"`). Contains one or more Fields. Real sections are stored as documents in the `siteContent` table; virtual sections map to entity tables. Accepts an optional `label` for human-readable display in the change summary.
 _Avoid_: Block, region, zone
 
 **Field**:
-A single editable content element within a Section. Renders as a native DOM element (`h1`, `p`, `span`) that becomes `contentEditable="plaintext-only"` during an Edit Session.
+A single editable content element within a Section. Renders as a native DOM element (`h1`, `p`, `span`) that becomes `contentEditable="plaintext-only"` during an Edit Session. Always writes to the Draft Buffer — there is no immediate-commit path.
 _Avoid_: Input, slot, cell
 
 **Derived Entry**:
@@ -51,7 +51,7 @@ The period between entering and exiting edit mode. All uncommitted changes live 
 _Avoid_: Edit mode (use for the boolean toggle only, not the session concept)
 
 **Draft Buffer**:
-In-memory accumulator for all uncommitted operations within an Edit Session: text edits, image swaps, reorder changes, Field Deletions, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. Global save commits all operations; global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
+In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, reorder changes, Field Deletions, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`). Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
 _Avoid_: Change tracker, command buffer, undo stack
 
 **Session-Created Entity**:
