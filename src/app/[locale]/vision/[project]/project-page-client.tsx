@@ -10,6 +10,10 @@ import { useCallback, useState } from "react";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { Field } from "@/components/admin/field";
+import {
+  FieldVisibilityProvider,
+  useFieldVisibility,
+} from "@/components/admin/field-visibility";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
@@ -109,56 +113,17 @@ export function ProjectPageClient() {
           </motion.div>
 
           {/* Project Header */}
-          <div className="mb-16 max-w-3xl">
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <Field
-                as="p"
-                className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-                name="category"
-                onChange={handleCategoryChange}
-                value={project.category}
-              />
-            </motion.div>
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Field
-                as="h1"
-                className="mb-6 text-foreground"
-                name="title"
-                onChange={handleTitleChange}
-                value={project.title}
-              />
-            </motion.div>
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <Field
-                as="p"
-                className="text-lg text-muted-foreground"
-                multiline
-                name="description"
-                onChange={handleDescriptionChange}
-                value={project.description}
-              />
-            </motion.div>
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-muted-foreground text-sm"
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              {t("photographs", { count: images.length })}
-            </motion.p>
-          </div>
+          <FieldVisibilityProvider>
+            <ProjectHeader
+              category={project.category}
+              description={project.description}
+              imageCount={images.length}
+              onCategoryChange={handleCategoryChange}
+              onDescriptionChange={handleDescriptionChange}
+              onTitleChange={handleTitleChange}
+              title={project.title}
+            />
+          </FieldVisibilityProvider>
 
           {/* Image Grid — edit mode shows sortable grid with upload */}
           {isEditMode ? (
@@ -198,5 +163,80 @@ export function ProjectPageClient() {
         />
       )}
     </PageTransition>
+  );
+}
+
+function ProjectHeader({
+  category,
+  title,
+  description,
+  imageCount,
+  onCategoryChange,
+  onTitleChange,
+  onDescriptionChange,
+}: {
+  category: { en: string; it: string };
+  description: { en: string; it: string };
+  imageCount: number;
+  onCategoryChange: (v: { en: string; it: string }) => void;
+  onDescriptionChange: (v: { en: string; it: string }) => void;
+  onTitleChange: (v: { en: string; it: string }) => void;
+  title: { en: string; it: string };
+}) {
+  const { markVisible } = useFieldVisibility();
+  const t = useTranslations("common");
+
+  return (
+    <div className="mb-16 max-w-3xl">
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <Field
+          as="p"
+          className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+          name="category"
+          onChange={onCategoryChange}
+          value={category}
+        />
+      </motion.div>
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Field
+          as="h1"
+          className="mb-6 text-foreground"
+          name="title"
+          onChange={onTitleChange}
+          value={title}
+        />
+      </motion.div>
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Field
+          as="p"
+          className="text-lg text-muted-foreground"
+          multiline
+          name="description"
+          onChange={onDescriptionChange}
+          value={description}
+        />
+      </motion.div>
+      <motion.p
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-4 text-muted-foreground text-sm"
+        initial={{ opacity: 0, y: 20 }}
+        onAnimationComplete={markVisible}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        {t("photographs", { count: imageCount })}
+      </motion.p>
+    </div>
   );
 }
