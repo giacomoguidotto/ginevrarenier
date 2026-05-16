@@ -38,6 +38,12 @@ _Avoid_: Row, record, sub-entity, nested object
 Visibility state of a Project or Post. Unpublished entities exist in the database but are hidden from the public site. Newly created entities start as Unpublished.
 _Avoid_: Draft (overloaded — see Draft Buffer), hidden, archived
 
+### Access Control
+
+**Admin**:
+The single authenticated user — the site owner. Clerk sign-ups are disabled at the dashboard level, so authentication and admin authorization are equivalent: if identity is present, the caller is the Admin.
+_Avoid_: User, author, editor (no other roles exist)
+
 ### Editing
 
 **Edit Session**:
