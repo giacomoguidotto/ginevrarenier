@@ -40,18 +40,27 @@ export const upsert = mutation({
   args: {
     section: v.string(),
     content: v.string(),
+    deleteKeyPrefixes: v.optional(v.array(v.string())),
   },
-  handler: async (ctx, { section, content }) => {
+  handler: async (ctx, { section, content, deleteKeyPrefixes }) => {
     const existing = await ctx.db
       .query("siteContent")
       .withIndex("by_section", (q) => q.eq("section", section))
       .unique();
 
     if (existing) {
-      // Merge incoming fields with existing content
       const existingContent = JSON.parse(existing.content);
       const newContent = JSON.parse(content);
       const merged = { ...existingContent, ...newContent };
+
+      if (deleteKeyPrefixes?.length) {
+        for (const key of Object.keys(merged)) {
+          if (deleteKeyPrefixes.some((p) => key.startsWith(`${p}.`))) {
+            delete merged[key];
+          }
+        }
+      }
+
       await ctx.db.patch(existing._id, {
         content: JSON.stringify(merged),
       });

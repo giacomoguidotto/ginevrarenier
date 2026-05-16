@@ -21,10 +21,14 @@ type Assets = ReturnType<typeof createImageAssets>;
 
 interface DraftBufferOps {
   cancelDeletion: (entityType: string, id: string) => void;
+  cancelFieldDeletion: (section: string, keyPrefix: string) => void;
+  deleteField: (section: string, keyPrefix: string) => void;
   editedLocales: Buffer["editedLocales"];
+  isFieldDeleted: (section: string, keyPrefix: string) => boolean;
   isPendingDeletion: (entityType: string, id: string) => boolean;
   isSessionCreated: (entityType: string, id: string) => boolean;
   read: Buffer["read"];
+  sectionChanges: Buffer["sectionChanges"];
   trackCreation: (entityType: string, id: string) => void;
   trackDeletion: (entityType: string, id: string) => void;
   write: (
@@ -55,10 +59,14 @@ const noop = () => {};
 
 const OpsContext = createContext<DraftBufferOps>({
   cancelDeletion: noop,
+  cancelFieldDeletion: noop,
+  deleteField: noop,
   editedLocales: () => new Set<string>(),
+  isFieldDeleted: () => false,
   isPendingDeletion: () => false,
   isSessionCreated: () => false,
   read: () => undefined,
+  sectionChanges: () => ({}),
   trackCreation: noop,
   trackDeletion: noop,
   write: noop,
@@ -75,6 +83,7 @@ const EditVersionContext = createContext(0);
 const StateContext = createContext<DraftBufferState>({
   changeSummary: () => ({
     createdEntities: [],
+    fieldDeletions: [],
     imageSwaps: [],
     pendingDeletions: [],
     textEdits: [],
@@ -145,6 +154,32 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setHasChanges(bufferRef.current.hasChanges());
   }, []);
 
+  const deleteField = useCallback((section: string, keyPrefix: string) => {
+    bufferRef.current.deleteField(section, keyPrefix);
+    setHasChanges(true);
+    setEditVersion((v) => v + 1);
+  }, []);
+
+  const cancelFieldDeletion = useCallback(
+    (section: string, keyPrefix: string) => {
+      bufferRef.current.cancelFieldDeletion(section, keyPrefix);
+      setHasChanges(bufferRef.current.hasChanges());
+      setEditVersion((v) => v + 1);
+    },
+    []
+  );
+
+  const sectionChanges: Buffer["sectionChanges"] = useCallback(
+    (section) => bufferRef.current.sectionChanges(section),
+    []
+  );
+
+  const isFieldDeleted = useCallback(
+    (section: string, keyPrefix: string) =>
+      bufferRef.current.isFieldDeleted(section, keyPrefix),
+    []
+  );
+
   const isPendingDeletion = useCallback(
     (entityType: string, id: string) =>
       bufferRef.current.isPendingDeletion(entityType, id),
@@ -170,7 +205,24 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
   const save = useCallback(async () => {
     const grouped = bufferRef.current.changes();
-    for (const [section, fields] of grouped) {
+    const fds = bufferRef.current.fieldDeletions();
+    const deletionsBySection = new Map<string, string[]>();
+    for (const { section, keyPrefix } of fds) {
+      let list = deletionsBySection.get(section);
+      if (!list) {
+        list = [];
+        deletionsBySection.set(section, list);
+      }
+      list.push(keyPrefix);
+    }
+
+    const touchedSections = new Set([
+      ...grouped.keys(),
+      ...deletionsBySection.keys(),
+    ]);
+
+    for (const section of touchedSections) {
+      const fields = grouped.get(section) ?? {};
       const existing =
         allContent?.find((c) => c.section === section)?.content ?? {};
       const merged: Record<string, { en: string; it: string }> = {};
@@ -181,6 +233,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       await upsertSiteContent({
         section,
         content: JSON.stringify(merged),
+        deleteKeyPrefixes: deletionsBySection.get(section),
       });
     }
 
@@ -221,26 +274,35 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       imageSwaps: imageSummary.imageSwaps,
       createdEntities: textSummary.createdEntities,
       pendingDeletions: textSummary.pendingDeletions,
+      fieldDeletions: textSummary.fieldDeletions,
     };
   }, [allContent]);
 
   const ops = useMemo(
     () => ({
       cancelDeletion,
+      cancelFieldDeletion,
+      deleteField,
       editedLocales,
+      isFieldDeleted,
       isPendingDeletion,
       isSessionCreated,
       read,
+      sectionChanges,
       trackCreation,
       trackDeletion,
       write,
     }),
     [
       cancelDeletion,
+      cancelFieldDeletion,
+      deleteField,
       editedLocales,
+      isFieldDeleted,
       isPendingDeletion,
       isSessionCreated,
       read,
+      sectionChanges,
       trackCreation,
       trackDeletion,
       write,
