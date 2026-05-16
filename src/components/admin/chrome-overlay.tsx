@@ -3,6 +3,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useChromeRegistry } from "./chrome-context";
 import type { FieldGeometry } from "./chrome-registry";
 import { useDraftBufferOps, useEditVersion } from "./draft-buffer-context";
@@ -179,60 +184,99 @@ export function ChromeOverlay() {
     return null;
   }
 
-  return createPortal(
-    <svg
-      aria-hidden="true"
-      data-chrome-overlay
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: document.documentElement.scrollHeight,
-        pointerEvents: "none",
-        zIndex: 40,
-        overflow: "visible",
-      }}
-    >
-      <defs>
-        <pattern
-          height="4"
-          id="chrome-hatching"
-          patternTransform="rotate(45)"
-          patternUnits="userSpaceOnUse"
-          width="4"
-        >
-          <line
-            stroke="oklch(from var(--foreground) l c h / 0.10)"
-            strokeWidth="1"
-            x1="0"
-            x2="0"
-            y1="0"
-            y2="4"
-          />
-        </pattern>
-      </defs>
+  const staleEntries: { rect: OverlayRect; staleLocale: string }[] = [];
+  if (isEditMode) {
+    for (const rect of rects) {
+      const [section, field] = rect.id.split("\0");
+      const edited = editedLocales(section, field);
+      if (edited.size === 1) {
+        staleEntries.push({
+          rect,
+          staleLocale: edited.has("en") ? "it" : "en",
+        });
+      }
+    }
+  }
 
-      <AnimatePresence key={`${isEditMode}-${generation}`}>
-        {isEditMode &&
-          rects.map((rect) => {
-            const [section, field] = rect.id.split("\0");
-            const edited = editedLocales(section, field);
-            const isStale = edited.size === 1;
-            return (
-              <motion.g
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                initial={{ opacity: 0 }}
-                key={rect.id}
-                transition={SPRING}
-              >
-                <FieldOutline focused={focusedId === rect.id} rect={rect} />
-                {isStale && <StaleLocaleDot rect={rect} />}
-              </motion.g>
-            );
-          })}
-      </AnimatePresence>
-    </svg>,
+  const r = 4;
+
+  return createPortal(
+    <>
+      <svg
+        aria-hidden="true"
+        data-chrome-overlay
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: document.documentElement.scrollHeight,
+          pointerEvents: "none",
+          zIndex: 40,
+          overflow: "visible",
+        }}
+      >
+        <defs>
+          <pattern
+            height="4"
+            id="chrome-hatching"
+            patternTransform="rotate(45)"
+            patternUnits="userSpaceOnUse"
+            width="4"
+          >
+            <line
+              stroke="oklch(from var(--foreground) l c h / 0.10)"
+              strokeWidth="1"
+              x1="0"
+              x2="0"
+              y1="0"
+              y2="4"
+            />
+          </pattern>
+        </defs>
+
+        <AnimatePresence key={`${isEditMode}-${generation}`}>
+          {isEditMode &&
+            rects.map((rect) => {
+              const [section, field] = rect.id.split("\0");
+              const edited = editedLocales(section, field);
+              const isStale = edited.size === 1;
+              return (
+                <motion.g
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  key={rect.id}
+                  transition={SPRING}
+                >
+                  <FieldOutline focused={focusedId === rect.id} rect={rect} />
+                  {isStale && <StaleLocaleDot rect={rect} />}
+                </motion.g>
+              );
+            })}
+        </AnimatePresence>
+      </svg>
+
+      {staleEntries.map(({ rect, staleLocale }) => (
+        <Tooltip key={rect.id}>
+          <TooltipTrigger asChild>
+            <span
+              style={{
+                position: "absolute",
+                left: rect.x + rect.width - r * 2 - 2,
+                top: rect.y + 2,
+                width: r * 2,
+                height: r * 2,
+                zIndex: 41,
+                borderRadius: "50%",
+              }}
+            />
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={4}>
+            {staleLocale.toUpperCase()} was not modified
+          </TooltipContent>
+        </Tooltip>
+      ))}
+    </>,
     document.body
   );
 }
