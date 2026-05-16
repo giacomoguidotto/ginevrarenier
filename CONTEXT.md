@@ -14,6 +14,10 @@ _Avoid_: Album, collection, gallery (gallery refers to the UI grid, not the data
 A blog/journal entry with bilingual content stored as BlockNote JSON.
 _Avoid_: Article, blog post (in code — "Reflections" is the UI-facing name for the blog section)
 
+**Tagline**:
+A short creative label for a Project, displayed on the card hover overlay and as the small-caps label on the project page. Repurposed from the former `category` field.
+_Avoid_: Category (legacy name), subtitle (different field — the longer text on the project page)
+
 **Localized Text**:
 A bilingual value `{ en: string, it: string }` — the atomic unit of translatable content.
 _Avoid_: Translation, i18n field, bilingual field
