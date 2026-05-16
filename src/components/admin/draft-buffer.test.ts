@@ -60,6 +60,7 @@ describe("Draft Buffer", () => {
     const buffer = createDraftBuffer();
     expect(buffer.changeSummary()).toEqual({
       createdEntities: [],
+      fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
       textEdits: [],
@@ -138,6 +139,7 @@ describe("Draft Buffer", () => {
     buffer.discard();
     expect(buffer.changeSummary()).toEqual({
       createdEntities: [],
+      fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
       textEdits: [],
@@ -305,6 +307,15 @@ describe("Draft Buffer", () => {
         ])
       );
       expect(buffer.deletions()).toHaveLength(2);
+    });
+  });
+
+  describe("Field Deletions", () => {
+    it("deleteField marks a prefix and isFieldDeleted reports it", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.isFieldDeleted("essence.timeline", "abc123")).toBe(false);
+      buffer.deleteField("essence.timeline", "abc123");
+      expect(buffer.isFieldDeleted("essence.timeline", "abc123")).toBe(true);
     });
   });
 

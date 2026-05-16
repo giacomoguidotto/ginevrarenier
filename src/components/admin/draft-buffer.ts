@@ -10,8 +10,14 @@ export interface ImageSwap {
   publicId: string;
 }
 
+export interface FieldDeletion {
+  keyPrefix: string;
+  section: string;
+}
+
 export interface ChangeSummary {
   createdEntities: EntityRef[];
+  fieldDeletions: FieldDeletion[];
   imageSwaps: ImageSwap[];
   pendingDeletions: EntityRef[];
   textEdits: TextEdit[];
@@ -26,6 +32,7 @@ export function createDraftBuffer() {
   const store = new Map<string, string>();
   const creations = new Set<string>();
   const deletions = new Set<string>();
+  const fieldDels = new Set<string>();
 
   function key(section: string, field: string, locale: string) {
     return `${section}\0${field}\0${locale}`;
@@ -43,7 +50,12 @@ export function createDraftBuffer() {
       store.set(key(section, field, locale), value);
     },
     hasChanges(): boolean {
-      return store.size > 0 || creations.size > 0 || deletions.size > 0;
+      return (
+        store.size > 0 ||
+        creations.size > 0 ||
+        deletions.size > 0 ||
+        fieldDels.size > 0
+      );
     },
     changes(): Map<string, Record<string, Record<string, string>>> {
       const grouped = new Map<string, Record<string, Record<string, string>>>();
@@ -60,6 +72,23 @@ export function createDraftBuffer() {
         sectionMap[field][locale] = value;
       }
       return grouped;
+    },
+    sectionChanges(section: string): Record<string, Record<string, string>> {
+      const result: Record<string, Record<string, string>> = {};
+      const prefix = `${section}\0`;
+      for (const [k, value] of store) {
+        if (k.startsWith(prefix)) {
+          const rest = k.slice(prefix.length);
+          const sep = rest.indexOf("\0");
+          const field = rest.slice(0, sep);
+          const locale = rest.slice(sep + 1);
+          if (!result[field]) {
+            result[field] = {};
+          }
+          result[field][locale] = value;
+        }
+      }
+      return result;
     },
     changeSummary(
       getOriginal?: (
@@ -92,7 +121,18 @@ export function createDraftBuffer() {
         pendingDeletions.push({ entityType, id });
       }
 
-      return { imageSwaps: [], textEdits, createdEntities, pendingDeletions };
+      const fds: FieldDeletion[] = [...fieldDels].map((k) => {
+        const [section, keyPrefix] = k.split("\0");
+        return { section, keyPrefix };
+      });
+
+      return {
+        imageSwaps: [],
+        textEdits,
+        createdEntities,
+        pendingDeletions,
+        fieldDeletions: fds,
+      };
     },
     editedLocales(section: string, field: string): Set<string> {
       const prefix = `${section}\0${field}\0`;
@@ -131,10 +171,26 @@ export function createDraftBuffer() {
         return { entityType, id };
       });
     },
+    deleteField(section: string, keyPrefix: string): void {
+      fieldDels.add(`${section}\0${keyPrefix}`);
+    },
+    cancelFieldDeletion(section: string, keyPrefix: string): void {
+      fieldDels.delete(`${section}\0${keyPrefix}`);
+    },
+    isFieldDeleted(section: string, keyPrefix: string): boolean {
+      return fieldDels.has(`${section}\0${keyPrefix}`);
+    },
+    fieldDeletions(): { section: string; keyPrefix: string }[] {
+      return [...fieldDels].map((k) => {
+        const [section, keyPrefix] = k.split("\0");
+        return { section, keyPrefix };
+      });
+    },
     discard(): void {
       store.clear();
       creations.clear();
       deletions.clear();
+      fieldDels.clear();
     },
   };
 }
