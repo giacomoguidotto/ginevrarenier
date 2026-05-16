@@ -341,22 +341,24 @@ function TimelineEntryInner({
         }`}
       />
 
-      <Field
-        as="span"
-        className="mb-2 block text-cream/60 text-sm uppercase tracking-widest"
-        name={`${id}.year`}
-      />
-      <Field
-        as="h3"
-        className="mb-2 font-light text-cream text-xl"
-        name={`${id}.title`}
-      />
-      <Field
-        as="p"
-        className="text-muted-foreground"
-        multiline
-        name={`${id}.description`}
-      />
+      <div className="flex flex-col gap-2">
+        <Field
+          as="span"
+          className="block text-cream/60 text-sm uppercase tracking-widest"
+          name={`${id}.year`}
+        />
+        <Field
+          as="h3"
+          className="font-light text-cream text-xl"
+          name={`${id}.title`}
+        />
+        <Field
+          as="p"
+          className="text-muted-foreground"
+          multiline
+          name={`${id}.description`}
+        />
+      </div>
       <AnimatePresence>
         {isEditMode && (
           <motion.div
