@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation, adminQuery } from "./functions";
 
-export const list = query({
+export const list = adminQuery({
   args: {},
   handler: async (ctx) => ctx.db.query("blogPosts").collect(),
 });
@@ -13,21 +14,31 @@ export const listPublished = query({
       .query("blogPosts")
       .withIndex("by_published", (q) => q.eq("published", true))
       .collect();
-    // Sort by publishedAt descending
     return all.sort((a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0));
   },
 });
 
 export const getBySlug = query({
   args: { slug: v.string() },
-  handler: async (ctx, { slug }) =>
-    ctx.db
+  handler: async (ctx, { slug }) => {
+    const post = await ctx.db
       .query("blogPosts")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .unique(),
+      .unique();
+    if (!post) {
+      return null;
+    }
+    if (!post.published) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return null;
+      }
+    }
+    return post;
+  },
 });
 
-export const create = mutation({
+export const create = adminMutation({
   args: {
     slug: v.string(),
     title: v.object({ en: v.string(), it: v.string() }),
@@ -43,7 +54,7 @@ export const create = mutation({
     }),
 });
 
-export const update = mutation({
+export const update = adminMutation({
   args: {
     id: v.id("blogPosts"),
     slug: v.optional(v.string()),
@@ -78,7 +89,7 @@ export const update = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = adminMutation({
   args: { id: v.id("blogPosts") },
   handler: async (ctx, { id }) => {
     await ctx.db.delete(id);

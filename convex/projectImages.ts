@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation } from "./functions";
 
 export const listByProject = query({
   args: { projectId: v.id("projects") },
@@ -10,7 +11,7 @@ export const listByProject = query({
       .collect(),
 });
 
-export const add = mutation({
+export const add = adminMutation({
   args: {
     projectId: v.id("projects"),
     url: v.string(),
@@ -44,7 +45,7 @@ export const add = mutation({
   },
 });
 
-export const reorder = mutation({
+export const reorder = adminMutation({
   args: {
     ids: v.array(v.id("projectImages")),
   },
@@ -55,7 +56,7 @@ export const reorder = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = adminMutation({
   args: { id: v.id("projectImages") },
   handler: async (ctx, { id }) => {
     const image = await ctx.db.get(id);

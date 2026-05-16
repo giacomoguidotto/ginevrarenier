@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
+import { adminMutation, adminQuery } from "./functions";
 
 type LocalizedRecord = Record<string, { en: string; it: string }>;
 
@@ -28,7 +29,7 @@ export const getBySection = query({
   },
 });
 
-export const listAll = query({
+export const listAll = adminQuery({
   args: {},
   handler: async (ctx) => {
     const docs = await ctx.db.query("siteContent").collect();
@@ -41,7 +42,7 @@ export const listAll = query({
 
 const localizedText = v.object({ en: v.string(), it: v.string() });
 
-export const upsert = mutation({
+export const upsert = adminMutation({
   args: {
     section: v.string(),
     content: v.record(v.string(), localizedText),

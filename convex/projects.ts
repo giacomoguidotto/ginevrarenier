@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation, adminQuery } from "./functions";
 
-export const list = query({
+export const list = adminQuery({
   args: {},
   handler: async (ctx) =>
     ctx.db.query("projects").withIndex("by_order").collect(),
@@ -17,14 +18,25 @@ export const listPublished = query({
 
 export const getBySlug = query({
   args: { slug: v.string() },
-  handler: async (ctx, { slug }) =>
-    ctx.db
+  handler: async (ctx, { slug }) => {
+    const project = await ctx.db
       .query("projects")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .unique(),
+      .unique();
+    if (!project) {
+      return null;
+    }
+    if (!project.published) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return null;
+      }
+    }
+    return project;
+  },
 });
 
-export const create = mutation({
+export const create = adminMutation({
   args: {
     slug: v.string(),
     title: v.object({ en: v.string(), it: v.string() }),
@@ -45,7 +57,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = adminMutation({
   args: {
     id: v.id("projects"),
     title: v.optional(v.object({ en: v.string(), it: v.string() })),
@@ -73,7 +85,7 @@ export const update = mutation({
   },
 });
 
-export const reorder = mutation({
+export const reorder = adminMutation({
   args: {
     ids: v.array(v.id("projects")),
   },
@@ -84,7 +96,7 @@ export const reorder = mutation({
   },
 });
 
-export const setCover = mutation({
+export const setCover = adminMutation({
   args: {
     projectId: v.id("projects"),
     imageId: v.id("projectImages"),
@@ -98,7 +110,7 @@ export const setCover = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = adminMutation({
   args: { id: v.id("projects") },
   handler: async (ctx, { id }) => {
     // Delete all images belonging to this project

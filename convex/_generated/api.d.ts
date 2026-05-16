@@ -9,6 +9,7 @@
  */
 
 import type * as blogPosts from "../blogPosts.js";
+import type * as functions from "../functions.js";
 import type * as projectImages from "../projectImages.js";
 import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
@@ -23,6 +24,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   blogPosts: typeof blogPosts;
+  functions: typeof functions;
   projectImages: typeof projectImages;
   projects: typeof projects;
   seed: typeof seed;

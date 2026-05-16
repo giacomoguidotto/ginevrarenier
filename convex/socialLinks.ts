@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation } from "./functions";
 
 export const list = query({
   args: {},
@@ -19,7 +20,7 @@ export const list = query({
   },
 });
 
-export const create = mutation({
+export const create = adminMutation({
   args: {
     platform: v.string(),
     href: v.string(),
@@ -37,7 +38,7 @@ export const create = mutation({
   },
 });
 
-export const update = mutation({
+export const update = adminMutation({
   args: {
     id: v.id("socialLinks"),
     platform: v.optional(v.string()),
@@ -62,7 +63,7 @@ export const update = mutation({
   },
 });
 
-export const reorder = mutation({
+export const reorder = adminMutation({
   args: {
     ids: v.array(v.id("socialLinks")),
   },
@@ -73,7 +74,7 @@ export const reorder = mutation({
   },
 });
 
-export const remove = mutation({
+export const remove = adminMutation({
   args: { id: v.id("socialLinks") },
   handler: async (ctx, { id }) => {
     await ctx.db.delete(id);
