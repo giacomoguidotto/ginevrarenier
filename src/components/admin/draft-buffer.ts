@@ -28,11 +28,18 @@ export interface EntityRef {
   id: string;
 }
 
-export function createDraftBuffer() {
-  const store = new Map<string, string>();
-  const creations = new Set<string>();
-  const deletions = new Set<string>();
-  const fieldDels = new Set<string>();
+export interface SerializedDraftBuffer {
+  creations: string[];
+  deletions: string[];
+  fieldDels: string[];
+  store: [string, string][];
+}
+
+export function createDraftBuffer(initial?: SerializedDraftBuffer) {
+  const store = new Map<string, string>(initial?.store);
+  const creations = new Set<string>(initial?.creations);
+  const deletions = new Set<string>(initial?.deletions);
+  const fieldDels = new Set<string>(initial?.fieldDels);
 
   function key(section: string, field: string, locale: string) {
     return `${section}\0${field}\0${locale}`;
@@ -191,6 +198,14 @@ export function createDraftBuffer() {
       creations.clear();
       deletions.clear();
       fieldDels.clear();
+    },
+    serialize(): SerializedDraftBuffer {
+      return {
+        store: [...store.entries()],
+        creations: [...creations],
+        deletions: [...deletions],
+        fieldDels: [...fieldDels],
+      };
     },
   };
 }

@@ -78,4 +78,21 @@ describe("Image Assets", () => {
     const assets = createImageAssets(stubConfig());
     expect(assets.changeSummary()).toEqual({ imageSwaps: [] });
   });
+
+  it("initializes with pre-tracked assets", () => {
+    const assets = createImageAssets(stubConfig(), ["img_a", "img_b"]);
+    expect(assets.trackedAssets()).toEqual(["img_a", "img_b"]);
+    expect(assets.changeSummary()).toEqual({
+      imageSwaps: [{ publicId: "img_a" }, { publicId: "img_b" }],
+    });
+  });
+
+  it("cleanup deletes pre-tracked assets from initial state", async () => {
+    const config = stubConfig();
+    config.deleteAsset.mockResolvedValue(undefined);
+    const assets = createImageAssets(config, ["img_persisted"]);
+    await assets.cleanup();
+    expect(config.deleteAsset).toHaveBeenCalledWith("img_persisted");
+    expect(assets.trackedAssets()).toEqual([]);
+  });
 });

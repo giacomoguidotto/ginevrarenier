@@ -353,4 +353,71 @@ describe("Draft Buffer", () => {
       expect(buffer.deletions()).toHaveLength(1);
     });
   });
+
+  describe("serialize and hydrate", () => {
+    it("serialize returns all buffer state as plain data", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.write("hero", "title", "it", "Ciao");
+      buffer.trackCreation("project", "p1");
+      buffer.trackDeletion("post", "b1");
+      buffer.deleteField("essence.timeline", "abc");
+
+      const serialized = buffer.serialize();
+      expect(serialized.store).toEqual(
+        expect.arrayContaining([
+          ["hero\0title\0en", "Hello"],
+          ["hero\0title\0it", "Ciao"],
+        ])
+      );
+      expect(serialized.creations).toEqual(["project\0p1"]);
+      expect(serialized.deletions).toEqual(["post\0b1"]);
+      expect(serialized.fieldDels).toEqual(["essence.timeline\0abc"]);
+    });
+
+    it("hydrating from serialized state restores full buffer", () => {
+      const original = createDraftBuffer();
+      original.write("hero", "title", "en", "Hello");
+      original.write("intro", "body", "it", "Mondo");
+      original.trackCreation("project", "p1");
+      original.trackDeletion("post", "b1");
+      original.deleteField("essence.timeline", "xyz");
+
+      const serialized = original.serialize();
+      const restored = createDraftBuffer(serialized);
+
+      expect(restored.read("hero", "title", "en")).toBe("Hello");
+      expect(restored.read("intro", "body", "it")).toBe("Mondo");
+      expect(restored.isSessionCreated("project", "p1")).toBe(true);
+      expect(restored.isPendingDeletion("post", "b1")).toBe(true);
+      expect(restored.isFieldDeleted("essence.timeline", "xyz")).toBe(true);
+      expect(restored.hasChanges()).toBe(true);
+    });
+
+    it("hydrated buffer changeSummary matches original", () => {
+      const original = createDraftBuffer();
+      original.write("hero", "title", "en", "New");
+      original.trackCreation("project", "p1");
+
+      const restored = createDraftBuffer(original.serialize());
+      const summary = restored.changeSummary();
+
+      expect(summary.textEdits).toHaveLength(1);
+      expect(summary.textEdits[0].newValue).toBe("New");
+      expect(summary.createdEntities).toEqual([
+        { entityType: "project", id: "p1" },
+      ]);
+    });
+
+    it("empty buffer serializes to empty arrays", () => {
+      const buffer = createDraftBuffer();
+      const serialized = buffer.serialize();
+      expect(serialized).toEqual({
+        store: [],
+        creations: [],
+        deletions: [],
+        fieldDels: [],
+      });
+    });
+  });
 });

@@ -7,17 +7,58 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import type { ChangeSummary, EntityRef } from "./draft-buffer";
+import type {
+  ChangeSummary,
+  EntityRef,
+  SerializedDraftBuffer,
+} from "./draft-buffer";
 import { createDraftBuffer } from "./draft-buffer";
 import { createImageAssets } from "./image-assets";
 import { deleteCloudinaryImage, uploadImage } from "./image-upload";
 
 type Buffer = ReturnType<typeof createDraftBuffer>;
 type Assets = ReturnType<typeof createImageAssets>;
+
+const PERSIST_KEY = "draft-buffer-state";
+const PERSIST_DEBOUNCE_MS = 300;
+
+interface PersistedState {
+  buffer: SerializedDraftBuffer;
+  imageAssets: string[];
+}
+
+function loadPersistedState(): PersistedState | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const editActive = localStorage.getItem("edit-mode-active") === "true";
+    if (!editActive) {
+      localStorage.removeItem(PERSIST_KEY);
+      return null;
+    }
+    const raw = localStorage.getItem(PERSIST_KEY);
+    if (!raw) {
+      return null;
+    }
+    return JSON.parse(raw) as PersistedState;
+  } catch {
+    return null;
+  }
+}
+
+function clearPersistedState(): void {
+  try {
+    localStorage.removeItem(PERSIST_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 interface DraftBufferOps {
   cancelDeletion: (entityType: string, id: string) => void;
@@ -103,7 +144,31 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       deleteAsset: deleteCloudinaryImage,
     })
   );
-  const [hasChanges, setHasChanges] = useState(false);
+  const persistTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+
+  const [hasChanges, setHasChanges] = useState(() => {
+    const persisted = loadPersistedState();
+    if (persisted) {
+      bufferRef.current = createDraftBuffer(persisted.buffer);
+      imageAssetsRef.current = createImageAssets(
+        { upload: uploadImage, deleteAsset: deleteCloudinaryImage },
+        persisted.imageAssets
+      );
+      return (
+        bufferRef.current.hasChanges() ||
+        imageAssetsRef.current.trackedAssets().length > 0
+      );
+    }
+    bufferRef.current = createDraftBuffer();
+    imageAssetsRef.current = createImageAssets({
+      upload: uploadImage,
+      deleteAsset: deleteCloudinaryImage,
+    });
+    return false;
+  });
+
   const [globalEditedLocales, setGlobalEditedLocales] = useState(
     () => new Set<string>()
   );
@@ -113,6 +178,32 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const upsertSiteContent = useMutation(api.siteContent.upsert);
   const removeProject = useMutation(api.projects.remove);
   const removeBlogPost = useMutation(api.blogPosts.remove);
+
+  const schedulePersist = useCallback(() => {
+    if (persistTimerRef.current) {
+      clearTimeout(persistTimerRef.current);
+    }
+    persistTimerRef.current = setTimeout(() => {
+      try {
+        const state: PersistedState = {
+          buffer: bufferRef.current.serialize(),
+          imageAssets: imageAssetsRef.current.trackedAssets(),
+        };
+        localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
+      } catch {
+        // quota exceeded or storage unavailable
+      }
+    }, PERSIST_DEBOUNCE_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
+      }
+    },
+    []
+  );
 
   const read: Buffer["read"] = useCallback(
     (section, field, locale) => bufferRef.current.read(section, field, locale),
@@ -135,49 +226,75 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         return new Set(prev).add(locale);
       });
       setEditVersion((v) => v + 1);
+      schedulePersist();
     },
-    []
+    [schedulePersist]
   );
 
-  const trackAsset = useCallback((publicId: string) => {
-    imageAssetsRef.current.trackAsset(publicId);
-    setHasChanges(true);
-  }, []);
+  const trackAsset = useCallback(
+    (publicId: string) => {
+      imageAssetsRef.current.trackAsset(publicId);
+      setHasChanges(true);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
 
-  const uploadAsset = useCallback(async (file: File, folder: string) => {
-    const result = await imageAssetsRef.current.upload(file, folder);
-    setHasChanges(true);
-    return result;
-  }, []);
+  const uploadAsset = useCallback(
+    async (file: File, folder: string) => {
+      const result = await imageAssetsRef.current.upload(file, folder);
+      setHasChanges(true);
+      schedulePersist();
+      return result;
+    },
+    [schedulePersist]
+  );
 
-  const trackCreation = useCallback((entityType: string, id: string) => {
-    bufferRef.current.trackCreation(entityType, id);
-    setHasChanges(true);
-  }, []);
+  const trackCreation = useCallback(
+    (entityType: string, id: string) => {
+      bufferRef.current.trackCreation(entityType, id);
+      setHasChanges(true);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
 
-  const trackDeletion = useCallback((entityType: string, id: string) => {
-    bufferRef.current.trackDeletion(entityType, id);
-    setHasChanges(true);
-  }, []);
+  const trackDeletion = useCallback(
+    (entityType: string, id: string) => {
+      bufferRef.current.trackDeletion(entityType, id);
+      setHasChanges(true);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
 
-  const cancelDeletion = useCallback((entityType: string, id: string) => {
-    bufferRef.current.cancelDeletion(entityType, id);
-    setHasChanges(bufferRef.current.hasChanges());
-  }, []);
+  const cancelDeletion = useCallback(
+    (entityType: string, id: string) => {
+      bufferRef.current.cancelDeletion(entityType, id);
+      setHasChanges(bufferRef.current.hasChanges());
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
 
-  const deleteField = useCallback((section: string, keyPrefix: string) => {
-    bufferRef.current.deleteField(section, keyPrefix);
-    setHasChanges(true);
-    setEditVersion((v) => v + 1);
-  }, []);
+  const deleteField = useCallback(
+    (section: string, keyPrefix: string) => {
+      bufferRef.current.deleteField(section, keyPrefix);
+      setHasChanges(true);
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
 
   const cancelFieldDeletion = useCallback(
     (section: string, keyPrefix: string) => {
       bufferRef.current.cancelFieldDeletion(section, keyPrefix);
       setHasChanges(bufferRef.current.hasChanges());
       setEditVersion((v) => v + 1);
+      schedulePersist();
     },
-    []
+    [schedulePersist]
   );
 
   const sectionChanges: Buffer["sectionChanges"] = useCallback(
@@ -239,11 +356,14 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       const merged: Record<string, { en: string; it: string }> = {};
       for (const [field, locales] of Object.entries(fields)) {
         const current = existing[field] ?? { en: "", it: "" };
-        merged[field] = { ...current, ...locales };
+        merged[field] = { ...current, ...locales } as {
+          en: string;
+          it: string;
+        };
       }
       await upsertSiteContent({
         section,
-        content: JSON.stringify(merged),
+        content: merged,
         deleteKeyPrefixes: deletionsBySection.get(section),
       });
     }
@@ -258,6 +378,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setGlobalEditedLocales(new Set());
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
+    clearPersistedState();
   }, [allContent, upsertSiteContent, removeEntity]);
 
   const discard = useCallback(async () => {
@@ -272,6 +393,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setGlobalEditedLocales(new Set());
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
+    clearPersistedState();
   }, [removeEntity]);
 
   const changeSummary = useCallback((): ChangeSummary => {

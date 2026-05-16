@@ -8,8 +8,11 @@ export interface ImageAssetsConfig {
   ) => Promise<{ url: string; publicId: string }>;
 }
 
-export function createImageAssets(config: ImageAssetsConfig) {
-  const tracked = new Set<string>();
+export function createImageAssets(
+  config: ImageAssetsConfig,
+  initialTracked?: string[]
+) {
+  const tracked = new Set<string>(initialTracked);
 
   return {
     trackAsset(publicId: string): void {
