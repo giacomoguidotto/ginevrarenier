@@ -212,6 +212,15 @@ export const seed = internalMutation({
         },
       },
       {
+        section: "footer",
+        content: {
+          tagline: {
+            en: "Capturing moments that transcend time. Photography that tells stories through light and shadow.",
+            it: "Catturare momenti che trascendono il tempo. Fotografia che racconta storie attraverso luce e ombra.",
+          },
+        },
+      },
+      {
         section: "reflections.header",
         content: {
           label: {

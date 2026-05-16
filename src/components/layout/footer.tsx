@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { Field } from "@/components/admin/field";
+import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { useSocialLinks } from "@/lib/hooks";
 import { getSocialIcon } from "@/lib/social-icons";
@@ -25,16 +27,20 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
-          <div className="space-y-4">
-            <Link className="block" href="/">
-              <span className="font-light text-xl uppercase tracking-widest">
-                Ginevra Renier
-              </span>
-            </Link>
-            <p className="max-w-xs text-cream/60 text-sm">
-              {t("footer.tagline")}
-            </p>
-          </div>
+          <Section name="footer">
+            <div className="space-y-4">
+              <Link className="block" href="/">
+                <span className="font-light text-xl uppercase tracking-widest">
+                  Ginevra Renier
+                </span>
+              </Link>
+              <Field
+                as="p"
+                className="max-w-xs text-cream/60 text-sm"
+                name="tagline"
+              />
+            </div>
+          </Section>
 
           {/* Navigation */}
           <div className="space-y-4">
