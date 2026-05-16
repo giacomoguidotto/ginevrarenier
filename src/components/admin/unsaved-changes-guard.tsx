@@ -5,7 +5,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -41,19 +40,6 @@ export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
   const { exitEditMode } = useEditMode();
   const [showDialog, setShowDialog] = useState(false);
   const pendingCallbackRef = useRef<(() => void) | undefined>(undefined);
-
-  useEffect(() => {
-    if (!hasChanges) {
-      return;
-    }
-
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [hasChanges]);
 
   const requestExit = useCallback(
     (onExit?: () => void) => {
