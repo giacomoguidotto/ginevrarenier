@@ -1,9 +1,18 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Award, Camera, Globe } from "lucide-react";
-import { useCallback, useRef } from "react";
-import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
+import {
+  AnimatePresence,
+  motion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { ArrowRight, Award, Camera, Globe, Plus, Trash2 } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import {
+  useDraftBufferOps,
+  useDraftBufferReset,
+} from "@/components/admin/draft-buffer-context";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
 import {
@@ -14,11 +23,10 @@ import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
 import { useLocalized } from "@/lib/hooks";
+import { createEntryWrites, deriveBufferedEntries } from "./timeline-entries";
 
 const achievementIcons = [Camera, Award, Globe];
 const achievementKeys = ["years", "recognition", "countries"] as const;
-
-const timelineYears = ["2022", "2024", "2025"] as const;
 
 export function EssenceClient() {
   return (
@@ -81,7 +89,6 @@ function EssenceHero() {
     >
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
-          {/* Image */}
           <motion.div
             animate={{ opacity: 1, x: 0 }}
             className="relative z-[1] aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[80vh]"
@@ -99,7 +106,6 @@ function EssenceHero() {
             />
           </motion.div>
 
-          {/* Text Content */}
           <motion.div
             className="flex flex-col justify-center lg:py-20"
             style={{ y: textY }}
@@ -181,8 +187,65 @@ function EssenceAchievements() {
   );
 }
 
+function generateId() {
+  return Math.random().toString(36).slice(2, 8);
+}
+
+function useTimelineEntries() {
+  const section = "essence.timeline";
+  const { data } = useSection();
+  const { write, deleteField, isFieldDeleted, sectionChanges } =
+    useDraftBufferOps();
+  const resetSignal = useDraftBufferReset();
+  const newIdsRef = useRef(new Set<string>());
+
+  const derive = useCallback(
+    () =>
+      deriveBufferedEntries(data, sectionChanges(section), (prefix) =>
+        isFieldDeleted(section, prefix)
+      ),
+    [data, sectionChanges, isFieldDeleted]
+  );
+
+  const [entries, setEntries] = useState(() => derive());
+  const prevDataRef = useRef(data);
+  const prevResetRef = useRef(resetSignal);
+
+  if (data !== prevDataRef.current || resetSignal !== prevResetRef.current) {
+    if (resetSignal !== prevResetRef.current) {
+      newIdsRef.current = new Set();
+    }
+    prevDataRef.current = data;
+    prevResetRef.current = resetSignal;
+    setEntries(derive());
+  }
+
+  const handleAdd = useCallback(() => {
+    const id = generateId();
+    const year = new Date().getFullYear().toString();
+    for (const w of createEntryWrites(id, year)) {
+      write(section, w.field, w.locale, w.value);
+    }
+    newIdsRef.current.add(id);
+    setEntries((prev) => [...prev, { id }]);
+  }, [write]);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      deleteField(section, id);
+      newIdsRef.current.delete(id);
+      setEntries((prev) => prev.filter((e) => e.id !== id));
+    },
+    [deleteField]
+  );
+
+  return { entries, handleAdd, handleDelete, newIds: newIdsRef.current };
+}
+
 function EssenceTimeline() {
   const { markVisible } = useFieldVisibility();
+  const { isEditMode } = useEditMode();
+  const { entries, handleAdd, handleDelete, newIds } = useTimelineEntries();
 
   return (
     <section className="bg-charcoal py-24">
@@ -203,52 +266,118 @@ function EssenceTimeline() {
         </motion.div>
 
         <div className="relative">
-          {/* Timeline line */}
           <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
 
-          {timelineYears.map((year, index) => (
-            <motion.div
-              className={`relative mb-12 pl-10 md:mb-16 md:w-1/2 md:pl-0 ${
-                index % 2 === 0
-                  ? "md:pr-12 md:text-right"
-                  : "md:ml-auto md:pl-12"
-              }`}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-              key={year}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              whileInView={{ opacity: 1, x: 0 }}
-            >
-              {/* Timeline dot */}
-              <div
-                className={`absolute top-1 left-0 h-4 w-4 rounded-full border-2 border-cream bg-charcoal ${
-                  index % 2 === 0
-                    ? "md:right-[-8px] md:left-auto"
-                    : "md:left-[-8px]"
-                }`}
+          {entries.map(({ id }, index) => (
+            <FieldVisibilityProvider key={id}>
+              <TimelineEntryInner
+                id={id}
+                index={index}
+                isNew={newIds.has(id)}
+                onDelete={handleDelete}
               />
-
-              <Field
-                as="span"
-                className="mb-2 block text-cream/60 text-sm uppercase tracking-widest"
-                name={`${year}.year`}
-              />
-              <Field
-                as="h3"
-                className="mb-2 font-light text-cream text-xl"
-                name={`${year}.title`}
-              />
-              <Field
-                as="p"
-                className="text-muted-foreground"
-                multiline
-                name={`${year}.description`}
-              />
-            </motion.div>
+            </FieldVisibilityProvider>
           ))}
+
+          <AnimatePresence>
+            {isEditMode && (
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                className="h-0 overflow-visible"
+                exit={{ opacity: 0, y: -4 }}
+                initial={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="mt-8 text-center">
+                  <button
+                    className="inline-flex items-center gap-2 rounded border border-cream/20 px-4 py-2 text-cream/60 text-sm transition-colors hover:border-cream/40 hover:text-cream"
+                    onClick={handleAdd}
+                    type="button"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Timeline Entry
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>
+  );
+}
+
+function TimelineEntryInner({
+  id,
+  index,
+  isNew,
+  onDelete,
+}: {
+  id: string;
+  index: number;
+  isNew: boolean;
+  onDelete: (id: string) => void;
+}) {
+  const { isEditMode } = useEditMode();
+  const { markVisible } = useFieldVisibility();
+
+  const animateProps = isNew
+    ? { animate: { opacity: 1, x: 0 } }
+    : { whileInView: { opacity: 1, x: 0 }, viewport: { once: true } };
+
+  return (
+    <motion.div
+      className={`relative mb-12 pl-10 md:mb-16 md:w-1/2 md:pl-0 ${
+        index % 2 === 0 ? "md:pr-12 md:text-right" : "md:ml-auto md:pl-12"
+      }`}
+      initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+      onAnimationComplete={markVisible}
+      transition={{ duration: 0.5 }}
+      {...animateProps}
+    >
+      <div
+        className={`absolute top-1 left-0 h-4 w-4 rounded-full border-2 border-cream bg-charcoal ${
+          index % 2 === 0 ? "md:right-[-8px] md:left-auto" : "md:left-[-8px]"
+        }`}
+      />
+
+      <Field
+        as="span"
+        className="mb-2 block text-cream/60 text-sm uppercase tracking-widest"
+        name={`${id}.year`}
+      />
+      <Field
+        as="h3"
+        className="mb-2 font-light text-cream text-xl"
+        name={`${id}.title`}
+      />
+      <Field
+        as="p"
+        className="text-muted-foreground"
+        multiline
+        name={`${id}.description`}
+      />
+      <AnimatePresence>
+        {isEditMode && (
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="h-0 overflow-visible"
+            exit={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+          >
+            <button
+              className="mt-2 inline-flex items-center gap-1 rounded border border-red-500/30 px-2 py-1 text-red-400 text-xs transition-colors hover:bg-red-500/10"
+              onClick={() => onDelete(id)}
+              type="button"
+            >
+              <Trash2 className="h-3 w-3" />
+              Remove
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
