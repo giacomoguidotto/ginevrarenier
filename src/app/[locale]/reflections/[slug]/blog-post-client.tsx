@@ -11,13 +11,14 @@ import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
+import { Section } from "@/components/admin/section";
+import { useStableEntity } from "@/components/admin/use-stable-entity";
 import { ScrollProgress } from "@/components/blog/scroll-progress";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
 import { formatDate } from "@/lib/format";
-import { useBlogPost, useLocalized } from "@/lib/hooks";
+import { useLocalized } from "@/lib/hooks";
 
-// Lazy load BlockNote to avoid SSR issues
 const BlockEditor = dynamic(
   () =>
     import("@/components/admin/block-editor").then((mod) => mod.BlockEditor),
@@ -26,7 +27,7 @@ const BlockEditor = dynamic(
 
 export function BlogPostClient() {
   const { slug } = useParams<{ slug: string }>();
-  const { post, isLoading } = useBlogPost(slug);
+  const { id: postId, entity: post, isLoading } = useStableEntity("post", slug);
   const { isEditMode, editingLocale } = useEditMode();
   const t = useTranslations("common");
   const tr = useTranslations("reflections");
@@ -35,38 +36,25 @@ export function BlogPostClient() {
 
   const handleContentChange = useCallback(
     (json: string) => {
-      if (!post) {
+      if (!postId) {
+        return;
+      }
+      const postData = post as Record<string, unknown> | undefined;
+      const content = postData?.content as
+        | { en: string; it: string }
+        | undefined;
+      if (!content) {
         return;
       }
       updatePost({
-        id: post._id,
+        id: postId as never,
         content: {
-          ...post.content,
+          ...content,
           [editingLocale]: json,
         },
       });
     },
-    [post, editingLocale, updatePost]
-  );
-
-  const handleTitleChange = useCallback(
-    (v: { en: string; it: string }) => {
-      if (!post) {
-        return;
-      }
-      updatePost({ id: post._id, title: v });
-    },
-    [post, updatePost]
-  );
-
-  const handleExcerptChange = useCallback(
-    (v: { en: string; it: string }) => {
-      if (!post) {
-        return;
-      }
-      updatePost({ id: post._id, excerpt: v });
-    },
-    [post, updatePost]
+    [postId, post, editingLocale, updatePost]
   );
 
   if (isLoading) {
@@ -81,10 +69,16 @@ export function BlogPostClient() {
     notFound();
   }
 
-  const title = localized(post.title);
+  const postData = post as Record<string, unknown>;
+  const postTitle = postData.title as { en: string; it: string };
+  const postContent = postData.content as { en: string; it: string };
+  const postCoverImageUrl = postData.coverImageUrl as string | undefined;
+  const postPublishedAt = postData.publishedAt as number | undefined;
+
+  const title = localized(postTitle);
   const content = isEditMode
-    ? post.content[editingLocale]
-    : localized(post.content);
+    ? postContent[editingLocale]
+    : localized(postContent);
 
   return (
     <PageTransition>
@@ -108,55 +102,53 @@ export function BlogPostClient() {
           </motion.div>
 
           {/* Header */}
-          <header className="mb-12">
-            {post.publishedAt ? (
+          <Section label={`Post: ${postTitle.en}`} name={`post:${postId}`}>
+            <header className="mb-12">
+              {postPublishedAt ? (
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 flex flex-wrap items-center gap-4 text-muted-foreground text-sm"
+                  initial={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4" />
+                    <time dateTime={new Date(postPublishedAt).toISOString()}>
+                      {formatDate(new Date(postPublishedAt).toISOString())}
+                    </time>
+                  </span>
+                </motion.div>
+              ) : null}
+
               <motion.div
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 flex flex-wrap items-center gap-4 text-muted-foreground text-sm"
                 initial={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" />
-                  <time dateTime={new Date(post.publishedAt).toISOString()}>
-                    {formatDate(new Date(post.publishedAt).toISOString())}
-                  </time>
-                </span>
+                <Field
+                  as="h1"
+                  className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
+                  name="title"
+                />
               </motion.div>
-            ) : null}
 
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Field
-                as="h1"
-                className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
-                name="title"
-                onChange={handleTitleChange}
-                value={post.title}
-              />
-            </motion.div>
-
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <Field
-                as="p"
-                className="text-muted-foreground text-xl"
-                multiline
-                name="excerpt"
-                onChange={handleExcerptChange}
-                value={post.excerpt}
-              />
-            </motion.div>
-          </header>
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <Field
+                  as="p"
+                  className="text-muted-foreground text-xl"
+                  multiline
+                  name="excerpt"
+                />
+              </motion.div>
+            </header>
+          </Section>
 
           {/* Cover Image */}
-          {post.coverImageUrl ? (
+          {postCoverImageUrl ? (
             <motion.figure
               animate={{ opacity: 1, y: 0 }}
               className="relative mb-16 aspect-video overflow-hidden rounded-lg"
@@ -169,7 +161,7 @@ export function BlogPostClient() {
                 fill
                 priority
                 sizes="(max-width: 896px) 100vw, 896px"
-                src={post.coverImageUrl}
+                src={postCoverImageUrl}
               />
             </motion.figure>
           ) : null}

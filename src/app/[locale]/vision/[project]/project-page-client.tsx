@@ -1,12 +1,11 @@
 "use client";
 
-import { api } from "convex/_generated/api";
-import { useMutation } from "convex/react";
+import type { Id } from "convex/_generated/dataModel";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { Field } from "@/components/admin/field";
@@ -14,21 +13,26 @@ import {
   FieldVisibilityProvider,
   useFieldVisibility,
 } from "@/components/admin/field-visibility";
+import { Section } from "@/components/admin/section";
+import { useStableEntity } from "@/components/admin/use-stable-entity";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
-import { useLocalized, useProject, useProjectImages } from "@/lib/hooks";
+import { useLocalized, useProjectImages } from "@/lib/hooks";
 
 export function ProjectPageClient() {
   const { project: slug } = useParams<{ project: string }>();
-  const { project, isLoading: projectLoading } = useProject(slug);
+  const {
+    id: projectId,
+    entity: project,
+    isLoading: projectLoading,
+  } = useStableEntity("project", slug);
   const { images: rawImages, isLoading: imagesLoading } = useProjectImages(
-    project?._id
+    projectId as Id<"projects"> | undefined
   );
   const { isEditMode } = useEditMode();
-  const updateProject = useMutation(api.projects.update);
 
   const t = useTranslations("common");
   const _localized = useLocalized();
@@ -36,33 +40,6 @@ export function ProjectPageClient() {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
-
-  const handleCategoryChange = useCallback(
-    (v: { en: string; it: string }) => {
-      if (project) {
-        updateProject({ id: project._id, category: v });
-      }
-    },
-    [project, updateProject]
-  );
-
-  const handleTitleChange = useCallback(
-    (v: { en: string; it: string }) => {
-      if (project) {
-        updateProject({ id: project._id, title: v });
-      }
-    },
-    [project, updateProject]
-  );
-
-  const handleDescriptionChange = useCallback(
-    (v: { en: string; it: string }) => {
-      if (project) {
-        updateProject({ id: project._id, description: v });
-      }
-    },
-    [project, updateProject]
-  );
 
   if (projectLoading || imagesLoading) {
     return (
@@ -91,6 +68,10 @@ export function ProjectPageClient() {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const projectTitle = (project as Record<string, unknown>).title as
+    | { en: string; it: string }
+    | undefined;
+
   return (
     <PageTransition>
       <CursorFollower isHoveringImage={isHoveringImage} />
@@ -113,23 +94,20 @@ export function ProjectPageClient() {
           </motion.div>
 
           {/* Project Header */}
-          <FieldVisibilityProvider>
-            <ProjectHeader
-              category={project.category}
-              description={project.description}
-              imageCount={images.length}
-              onCategoryChange={handleCategoryChange}
-              onDescriptionChange={handleDescriptionChange}
-              onTitleChange={handleTitleChange}
-              title={project.title}
-            />
-          </FieldVisibilityProvider>
+          <Section
+            label={`Project: ${projectTitle?.en ?? ""}`}
+            name={`project:${projectId}`}
+          >
+            <FieldVisibilityProvider>
+              <ProjectHeader imageCount={images.length} />
+            </FieldVisibilityProvider>
+          </Section>
 
           {/* Image Grid — edit mode shows sortable grid with upload */}
           {isEditMode ? (
             <EditableImageGrid
               images={rawImages}
-              projectId={project._id}
+              projectId={projectId as Id<"projects">}
               projectSlug={slug}
             />
           ) : null}
@@ -166,23 +144,7 @@ export function ProjectPageClient() {
   );
 }
 
-function ProjectHeader({
-  category,
-  title,
-  description,
-  imageCount,
-  onCategoryChange,
-  onTitleChange,
-  onDescriptionChange,
-}: {
-  category: { en: string; it: string };
-  description: { en: string; it: string };
-  imageCount: number;
-  onCategoryChange: (v: { en: string; it: string }) => void;
-  onDescriptionChange: (v: { en: string; it: string }) => void;
-  onTitleChange: (v: { en: string; it: string }) => void;
-  title: { en: string; it: string };
-}) {
+function ProjectHeader({ imageCount }: { imageCount: number }) {
   const { markVisible } = useFieldVisibility();
   const t = useTranslations("common");
 
@@ -197,8 +159,6 @@ function ProjectHeader({
           as="p"
           className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
           name="category"
-          onChange={onCategoryChange}
-          value={category}
         />
       </motion.div>
       <motion.div
@@ -206,13 +166,7 @@ function ProjectHeader({
         initial={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Field
-          as="h1"
-          className="mb-6 text-foreground"
-          name="title"
-          onChange={onTitleChange}
-          value={title}
-        />
+        <Field as="h1" className="mb-6 text-foreground" name="title" />
       </motion.div>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
@@ -224,8 +178,6 @@ function ProjectHeader({
           className="text-lg text-muted-foreground"
           multiline
           name="description"
-          onChange={onDescriptionChange}
-          value={description}
         />
       </motion.div>
       <motion.p
