@@ -18,8 +18,15 @@ import type {
   SerializedDraftBuffer,
 } from "./draft-buffer";
 import { createDraftBuffer } from "./draft-buffer";
+import { useEditMode } from "./edit-mode-context";
 import { createImageAssets } from "./image-assets";
 import { deleteCloudinaryImage, uploadImage } from "./image-upload";
+import {
+  buildEntityUpdates,
+  groupFieldDeletions,
+  mergeSiteContent,
+  routeSection,
+} from "./save-routing";
 
 type Buffer = ReturnType<typeof createDraftBuffer>;
 type Assets = ReturnType<typeof createImageAssets>;
@@ -174,8 +181,14 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   );
   const [resetSignal, setResetSignal] = useState(0);
   const [editVersion, setEditVersion] = useState(0);
-  const allContent = useQuery(api.siteContent.listAll);
+  const { isEditMode } = useEditMode();
+  const allContent = useQuery(
+    api.siteContent.listAll,
+    isEditMode ? {} : "skip"
+  );
   const upsertSiteContent = useMutation(api.siteContent.upsert);
+  const updateProject = useMutation(api.projects.update);
+  const updateBlogPost = useMutation(api.blogPosts.update);
   const removeProject = useMutation(api.projects.remove);
   const removeBlogPost = useMutation(api.blogPosts.remove);
 
@@ -333,39 +346,38 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
   const save = useCallback(async () => {
     const grouped = bufferRef.current.changes();
-    const fds = bufferRef.current.fieldDeletions();
-    const deletionsBySection = new Map<string, string[]>();
-    for (const { section, keyPrefix } of fds) {
-      let list = deletionsBySection.get(section);
-      if (!list) {
-        list = [];
-        deletionsBySection.set(section, list);
-      }
-      list.push(keyPrefix);
-    }
+    const deletionsBySection = groupFieldDeletions(
+      bufferRef.current.fieldDeletions()
+    );
 
     const touchedSections = new Set([
       ...grouped.keys(),
       ...deletionsBySection.keys(),
     ]);
 
-    for (const section of touchedSections) {
-      const fields = grouped.get(section) ?? {};
-      const existing =
-        allContent?.find((c) => c.section === section)?.content ?? {};
-      const merged: Record<string, { en: string; it: string }> = {};
-      for (const [field, locales] of Object.entries(fields)) {
-        const current = existing[field] ?? { en: "", it: "" };
-        merged[field] = { ...current, ...locales } as {
-          en: string;
-          it: string;
-        };
+    for (const sectionName of touchedSections) {
+      const fields = grouped.get(sectionName) ?? {};
+      const route = routeSection(sectionName);
+
+      if (route.kind === "project") {
+        await updateProject({
+          id: route.id as never,
+          ...buildEntityUpdates(fields),
+        } as Parameters<typeof updateProject>[0]);
+      } else if (route.kind === "post") {
+        await updateBlogPost({
+          id: route.id as never,
+          ...buildEntityUpdates(fields),
+        } as Parameters<typeof updateBlogPost>[0]);
+      } else {
+        const existing =
+          allContent?.find((c) => c.section === sectionName)?.content ?? {};
+        await upsertSiteContent({
+          section: sectionName,
+          content: mergeSiteContent(fields, existing),
+          deleteKeyPrefixes: deletionsBySection.get(sectionName),
+        });
       }
-      await upsertSiteContent({
-        section,
-        content: merged,
-        deleteKeyPrefixes: deletionsBySection.get(section),
-      });
     }
 
     for (const ref of bufferRef.current.deletions()) {
@@ -379,7 +391,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
     clearPersistedState();
-  }, [allContent, upsertSiteContent, removeEntity]);
+  }, [
+    allContent,
+    upsertSiteContent,
+    updateProject,
+    updateBlogPost,
+    removeEntity,
+  ]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
