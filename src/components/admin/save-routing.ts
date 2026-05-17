@@ -1,0 +1,55 @@
+export type SectionRoute =
+  | { kind: "siteContent"; section: string }
+  | { kind: "project"; id: string }
+  | { kind: "post"; id: string };
+
+export function routeSection(section: string): SectionRoute {
+  if (section.startsWith("project:")) {
+    return { kind: "project", id: section.slice("project:".length) };
+  }
+  if (section.startsWith("post:")) {
+    return { kind: "post", id: section.slice("post:".length) };
+  }
+  return { kind: "siteContent", section };
+}
+
+export function buildEntityUpdates(
+  fields: Record<string, Record<string, string>>
+): Record<string, unknown> {
+  const updates: Record<string, unknown> = {};
+  for (const [field, locales] of Object.entries(fields)) {
+    if (field === "slug") {
+      updates.slug = locales.en ?? locales.it;
+    } else {
+      updates[field] = locales as { en: string; it: string };
+    }
+  }
+  return updates;
+}
+
+export function groupFieldDeletions(
+  fds: Array<{ section: string; keyPrefix: string }>
+): Map<string, string[]> {
+  const grouped = new Map<string, string[]>();
+  for (const { section, keyPrefix } of fds) {
+    let list = grouped.get(section);
+    if (!list) {
+      list = [];
+      grouped.set(section, list);
+    }
+    list.push(keyPrefix);
+  }
+  return grouped;
+}
+
+export function mergeSiteContent(
+  fields: Record<string, Record<string, string>>,
+  existing: Record<string, { en: string; it: string }>
+): Record<string, { en: string; it: string }> {
+  const merged: Record<string, { en: string; it: string }> = {};
+  for (const [field, locales] of Object.entries(fields)) {
+    const current = existing[field] ?? { en: "", it: "" };
+    merged[field] = { ...current, ...locales } as { en: string; it: string };
+  }
+  return merged;
+}
