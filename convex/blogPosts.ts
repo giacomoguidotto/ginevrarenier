@@ -38,6 +38,23 @@ export const getBySlug = query({
   },
 });
 
+export const getById = query({
+  args: { id: v.id("blogPosts") },
+  handler: async (ctx, { id }) => {
+    const post = await ctx.db.get(id);
+    if (!post) {
+      return null;
+    }
+    if (!post.published) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        return null;
+      }
+    }
+    return post;
+  },
+});
+
 export const create = adminMutation({
   args: {
     slug: v.string(),
