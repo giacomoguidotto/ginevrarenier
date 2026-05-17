@@ -15,16 +15,15 @@ vi.mock("next-intl", () => ({
 vi.mock("./section", () => {
   const React = require("react");
   const ctx = React.createContext({
-    name: "",
-    data: undefined,
+    name: "project:abc123",
+    data: {
+      title: { en: "Solstice", it: "Solstizio" },
+      description: { en: "A photo project", it: "Un progetto foto" },
+    },
   });
   return {
     Section: ({ children }: { children: ReactNode }) =>
-      React.createElement(
-        ctx.Provider,
-        { value: { name: "", data: undefined } },
-        children
-      ),
+      React.createElement(ctx.Provider, { value: ctx._currentValue }, children),
     useSection: () => React.useContext(ctx),
   };
 });
@@ -44,19 +43,6 @@ vi.mock("./draft-buffer-context", () => ({
       bufferStore.current?.write(section, field, locale, value),
   }),
   useDraftBufferReset: () => 0,
-  useDraftBufferState: () => ({
-    changeSummary: () => ({
-      textEdits: [],
-      imageSwaps: [],
-      createdEntities: [],
-      pendingDeletions: [],
-    }),
-    hasChanges: false,
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
-    save: async () => {},
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
-    discard: () => {},
-  }),
 }));
 
 beforeEach(() => {
@@ -90,84 +76,53 @@ function getFieldEl(container: HTMLElement) {
   return el;
 }
 
-describe("Field entity mode (value/onChange)", () => {
-  it("renders value from props instead of section context", () => {
+describe("Field in virtual section (no value/onChange)", () => {
+  it("renders entity data from section context", () => {
     const { container } = render(
       <Providers>
         <div data-testid="field-wrapper">
-          <Field
-            as="span"
-            name="title"
-            value={{ en: "Project Title", it: "Titolo Progetto" }}
-          />
+          <Field as="span" name="title" />
         </div>
       </Providers>
     );
 
-    const field = getFieldEl(container);
-    expect(field.textContent).toBe("Project Title");
+    expect(getFieldEl(container).textContent).toBe("Solstice");
   });
 
-  it("calls onChange with updated bilingual value on input in edit mode", async () => {
-    const onChange = vi.fn();
-
+  it("writes to Draft Buffer on edit, not directly to backend", async () => {
     const { getByTestId, container } = render(
       <Providers>
         <EditModeToggle />
         <div data-testid="field-wrapper">
-          <Field
-            as="span"
-            name="title"
-            onChange={onChange}
-            value={{ en: "Original", it: "Originale" }}
-          />
+          <Field as="span" name="title" />
         </div>
       </Providers>
     );
 
     await act(() => getByTestId("toggle").click());
-
     const field = getFieldEl(container);
+
     await act(() => {
-      field.textContent = "Updated";
-      fireEvent.blur(field);
+      field.textContent = "Updated Title";
+      fireEvent.input(field);
     });
 
-    expect(onChange).toHaveBeenCalledWith({ en: "Updated", it: "Originale" });
+    expect(bufferStore.current?.read("project:abc123", "title", "en")).toBe(
+      "Updated Title"
+    );
   });
 
-  it("switches to the other locale value when editing locale changes", async () => {
-    function LocaleSwitcher() {
-      const { editingLocale, setEditingLocale } = useEditMode();
-      return (
-        <button
-          data-testid="switch-locale"
-          onClick={() => setEditingLocale(editingLocale === "en" ? "it" : "en")}
-          type="button"
-        >
-          {editingLocale}
-        </button>
-      );
-    }
+  it("reads draft value over entity data", () => {
+    bufferStore.current?.write("project:abc123", "title", "en", "Draft Title");
 
-    const { getByTestId, container } = render(
+    const { container } = render(
       <Providers>
-        <EditModeToggle />
-        <LocaleSwitcher />
         <div data-testid="field-wrapper">
-          <Field
-            as="span"
-            name="title"
-            value={{ en: "English", it: "Italiano" }}
-          />
+          <Field as="span" name="title" />
         </div>
       </Providers>
     );
 
-    await act(() => getByTestId("toggle").click());
-    expect(getFieldEl(container).textContent).toBe("English");
-
-    await act(() => getByTestId("switch-locale").click());
-    expect(getFieldEl(container).textContent).toBe("Italiano");
+    expect(getFieldEl(container).textContent).toBe("Draft Title");
   });
 });
