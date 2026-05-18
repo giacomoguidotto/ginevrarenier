@@ -1,11 +1,13 @@
 "use client";
 
-import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
-import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Trash2, Undo2 } from "lucide-react";
+import { ArrowUpRight, EyeOff, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import {
@@ -69,17 +71,32 @@ function CardContent({
   const { isEditMode } = useEditMode();
   const { markVisible } = useFieldVisibility();
   const localized = useLocalized();
-  const updateProject = useMutation(api.projects.update);
+  const { getPublishOverride, setPublishOverride, clearPublishOverride } =
+    useDraftBufferOps();
+  useEditVersion();
   const coverSrc = project.coverImageUrl || "/images/placeholder.svg";
+
+  const publishOverride = getPublishOverride("project", project._id);
+  const effectivePublished =
+    publishOverride === undefined ? project.published : publishOverride;
 
   let contentClass = "";
   if (isEditMode) {
     if (pendingDeletion) {
       contentClass = "opacity-30 grayscale";
-    } else if (!project.published) {
+    } else if (!effectivePublished) {
       contentClass = "opacity-50";
     }
   }
+
+  const handleTogglePublish = () => {
+    const target = !effectivePublished;
+    if (target === project.published) {
+      clearPublishOverride("project", project._id);
+    } else {
+      setPublishOverride("project", project._id, target);
+    }
+  };
 
   return (
     <motion.div
@@ -188,13 +205,21 @@ function CardContent({
               <Trash2 className="h-3 w-3" />
             </button>
           )}
-          {!project.published && (
+          {effectivePublished ? (
+            <button
+              className="flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
+              data-testid="card-unpublish-button"
+              onClick={handleTogglePublish}
+              type="button"
+            >
+              <EyeOff className="h-3 w-3" />
+              Unpublish
+            </button>
+          ) : (
             <button
               className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-medium text-[11px] text-primary-foreground uppercase tracking-wider transition-all hover:bg-primary/90 hover:shadow-md"
               data-testid="card-publish-button"
-              onClick={() =>
-                updateProject({ id: project._id, published: true })
-              }
+              onClick={handleTogglePublish}
               type="button"
             >
               <ArrowUpRight className="h-3 w-3" />
@@ -204,16 +229,50 @@ function CardContent({
         </div>
       )}
 
-      {isEditMode && pendingDeletion && (
-        <div className="absolute top-6 left-6 z-10 rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive uppercase backdrop-blur-sm">
-          Pending deletion
-        </div>
-      )}
-      {isEditMode && !pendingDeletion && !project.published && (
-        <div className="absolute top-6 left-6 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-          Draft
-        </div>
+      {isEditMode && (
+        <StatusBadge
+          pendingDeletion={pendingDeletion}
+          published={project.published}
+          publishOverride={publishOverride}
+        />
       )}
     </motion.div>
   );
+}
+
+function StatusBadge({
+  pendingDeletion,
+  publishOverride,
+  published,
+}: {
+  pendingDeletion?: boolean;
+  publishOverride: boolean | undefined;
+  published: boolean;
+}) {
+  if (pendingDeletion) {
+    return (
+      <div className="absolute top-6 left-6 z-10 rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive uppercase backdrop-blur-sm">
+        Pending deletion
+      </div>
+    );
+  }
+  if (publishOverride !== undefined) {
+    return publishOverride ? (
+      <div className="absolute top-6 left-6 z-10 rounded bg-primary/20 px-2 py-0.5 font-mono text-[10px] text-primary uppercase backdrop-blur-sm">
+        Pending publish
+      </div>
+    ) : (
+      <div className="absolute top-6 left-6 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+        Pending unpublish
+      </div>
+    );
+  }
+  if (!published) {
+    return (
+      <div className="absolute top-6 left-6 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+        Unpublished
+      </div>
+    );
+  }
+  return null;
 }

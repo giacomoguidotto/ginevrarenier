@@ -17,6 +17,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
+import { preloadedQueryResult } from "convex/nextjs";
+import type { Preloaded } from "convex/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
@@ -52,7 +54,10 @@ function SortableProjectCard({
   const pendingDeletion = isPendingDeletion("project", project._id);
 
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: project._id, disabled: !isEditMode });
+    useSortable({
+      id: project._id,
+      disabled: !isEditMode || pendingDeletion,
+    });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -78,7 +83,11 @@ function SortableProjectCard({
   return card;
 }
 
-export function VisionClient() {
+export function VisionClient({
+  preloadedProjects,
+}: {
+  preloadedProjects?: Preloaded<typeof api.projects.listPublished>;
+}) {
   const { isEditMode } = useEditMode();
   const { isAuthenticated } = useConvexAuth();
 
@@ -90,11 +99,24 @@ export function VisionClient() {
     api.projects.listPublished,
     isEditMode ? "skip" : {}
   );
-  const projects = isEditMode ? (allProjects ?? []) : (publishedProjects ?? []);
+  const preloaded = preloadedProjects
+    ? preloadedQueryResult(preloadedProjects)
+    : undefined;
+  const projects = isEditMode
+    ? (allProjects ?? [])
+    : (publishedProjects ?? preloaded ?? []);
 
-  const { trackCreation } = useDraftBufferOps();
+  const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();
+  useEditVersion();
   const createProject = useMutation(api.projects.create);
-  const reorderProjects = useMutation(api.projects.reorder);
+
+  const reorderList = getReorderList("project");
+  const displayProjects = reorderList
+    ? reorderList
+        .map((id) => projects.find((p) => p._id === id))
+        .filter((p): p is Doc<"projects"> => p !== undefined)
+        .concat(projects.filter((p) => !reorderList.includes(p._id)))
+    : projects;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -109,17 +131,20 @@ export function VisionClient() {
       if (!over || active.id === over.id) {
         return;
       }
-      const oldIndex = projects.findIndex((p) => p._id === active.id);
-      const newIndex = projects.findIndex((p) => p._id === over.id);
+      const oldIndex = displayProjects.findIndex((p) => p._id === active.id);
+      const newIndex = displayProjects.findIndex((p) => p._id === over.id);
       if (oldIndex === -1 || newIndex === -1) {
         return;
       }
-      const reordered = [...projects];
+      const reordered = [...displayProjects];
       const [moved] = reordered.splice(oldIndex, 1);
       reordered.splice(newIndex, 0, moved);
-      reorderProjects({ ids: reordered.map((p) => p._id) });
+      setReorderList(
+        "project",
+        reordered.map((p) => p._id)
+      );
     },
-    [projects, reorderProjects]
+    [displayProjects, setReorderList]
   );
 
   const handleCreate = useCallback(async () => {
@@ -175,7 +200,7 @@ export function VisionClient() {
             sensors={sensors}
           >
             <SortableContext
-              items={projects.map((p) => p._id)}
+              items={displayProjects.map((p) => p._id)}
               strategy={rectSortingStrategy}
             >
               <motion.div
@@ -184,7 +209,7 @@ export function VisionClient() {
                 initial="hidden"
                 variants={staggerContainer}
               >
-                {projects.map((project, index) => (
+                {displayProjects.map((project, index) => (
                   <SortableProjectCard
                     index={index}
                     key={project._id}
