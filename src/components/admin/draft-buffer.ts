@@ -15,11 +15,19 @@ export interface FieldDeletion {
   section: string;
 }
 
+export interface PublishOverrideEntry {
+  entityType: string;
+  id: string;
+  published: boolean;
+}
+
 export interface ChangeSummary {
   createdEntities: EntityRef[];
   fieldDeletions: FieldDeletion[];
   imageSwaps: ImageSwap[];
   pendingDeletions: EntityRef[];
+  publishOverrides: PublishOverrideEntry[];
+  reorderedEntityTypes: string[];
   textEdits: TextEdit[];
 }
 
@@ -32,6 +40,8 @@ export interface SerializedDraftBuffer {
   creations: string[];
   deletions: string[];
   fieldDels: string[];
+  publishOverrides?: [string, boolean][];
+  reorderLists?: [string, string[]][];
   store: [string, string][];
 }
 
@@ -40,6 +50,8 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
   const creations = new Set<string>(initial?.creations);
   const deletions = new Set<string>(initial?.deletions);
   const fieldDels = new Set<string>(initial?.fieldDels);
+  const pubOverrides = new Map<string, boolean>(initial?.publishOverrides);
+  const reorderLists = new Map<string, string[]>(initial?.reorderLists);
 
   function key(section: string, field: string, locale: string) {
     return `${section}\0${field}\0${locale}`;
@@ -61,7 +73,9 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         store.size > 0 ||
         creations.size > 0 ||
         deletions.size > 0 ||
-        fieldDels.size > 0
+        fieldDels.size > 0 ||
+        pubOverrides.size > 0 ||
+        reorderLists.size > 0
       );
     },
     changes(): Map<string, Record<string, Record<string, string>>> {
@@ -133,12 +147,21 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         return { section, keyPrefix };
       });
 
+      const pubOvrs: PublishOverrideEntry[] = [...pubOverrides].map(
+        ([k, published]) => {
+          const [entityType, id] = k.split("\0");
+          return { entityType, id, published };
+        }
+      );
+
       return {
         imageSwaps: [],
         textEdits,
         createdEntities,
         pendingDeletions,
         fieldDeletions: fds,
+        publishOverrides: pubOvrs,
+        reorderedEntityTypes: [...reorderLists.keys()],
       };
     },
     editedLocales(section: string, field: string): Set<string> {
@@ -193,11 +216,42 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         return { section, keyPrefix };
       });
     },
+    setPublishOverride(
+      entityType: string,
+      id: string,
+      published: boolean
+    ): void {
+      pubOverrides.set(entityKey(entityType, id), published);
+    },
+    getPublishOverride(entityType: string, id: string): boolean | undefined {
+      return pubOverrides.get(entityKey(entityType, id));
+    },
+    clearPublishOverride(entityType: string, id: string): void {
+      pubOverrides.delete(entityKey(entityType, id));
+    },
+    publishOverrides(): {
+      entityType: string;
+      id: string;
+      published: boolean;
+    }[] {
+      return [...pubOverrides].map(([k, published]) => {
+        const [entityType, id] = k.split("\0");
+        return { entityType, id, published };
+      });
+    },
+    setReorderList(entityType: string, ids: string[]): void {
+      reorderLists.set(entityType, ids);
+    },
+    getReorderList(entityType: string): string[] | undefined {
+      return reorderLists.get(entityType);
+    },
     discard(): void {
       store.clear();
       creations.clear();
       deletions.clear();
       fieldDels.clear();
+      pubOverrides.clear();
+      reorderLists.clear();
     },
     serialize(): SerializedDraftBuffer {
       return {
@@ -205,6 +259,8 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         creations: [...creations],
         deletions: [...deletions],
         fieldDels: [...fieldDels],
+        publishOverrides: [...pubOverrides.entries()],
+        reorderLists: [...reorderLists.entries()],
       };
     },
   };

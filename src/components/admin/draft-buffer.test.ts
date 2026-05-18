@@ -63,6 +63,8 @@ describe("Draft Buffer", () => {
       fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
+      publishOverrides: [],
+      reorderedEntityTypes: [],
       textEdits: [],
     });
   });
@@ -142,6 +144,8 @@ describe("Draft Buffer", () => {
       fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
+      publishOverrides: [],
+      reorderedEntityTypes: [],
       textEdits: [],
     });
   });
@@ -417,7 +421,162 @@ describe("Draft Buffer", () => {
         creations: [],
         deletions: [],
         fieldDels: [],
+        publishOverrides: [],
+        reorderLists: [],
       });
+    });
+  });
+
+  describe("Publish Overrides", () => {
+    it("records intended publish state and reads it back", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.getPublishOverride("project", "p1")).toBeUndefined();
+      buffer.setPublishOverride("project", "p1", true);
+      expect(buffer.getPublishOverride("project", "p1")).toBe(true);
+    });
+
+    it("records unpublish intent (false)", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", false);
+      expect(buffer.getPublishOverride("project", "p1")).toBe(false);
+    });
+
+    it("clearPublishOverride removes the override", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", true);
+      buffer.clearPublishOverride("project", "p1");
+      expect(buffer.getPublishOverride("project", "p1")).toBeUndefined();
+    });
+
+    it("overwriting an override replaces the previous value", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", true);
+      buffer.setPublishOverride("project", "p1", false);
+      expect(buffer.getPublishOverride("project", "p1")).toBe(false);
+    });
+
+    it("hasChanges reports true when Publish Overrides exist", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", true);
+      expect(buffer.hasChanges()).toBe(true);
+    });
+
+    it("discard clears Publish Overrides", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", true);
+      buffer.setPublishOverride("post", "b1", false);
+      buffer.discard();
+      expect(buffer.getPublishOverride("project", "p1")).toBeUndefined();
+      expect(buffer.getPublishOverride("post", "b1")).toBeUndefined();
+      expect(buffer.hasChanges()).toBe(false);
+    });
+
+    it("publishOverrides accessor lists all overrides", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", true);
+      buffer.setPublishOverride("post", "b1", false);
+      expect(buffer.publishOverrides()).toEqual(
+        expect.arrayContaining([
+          { entityType: "project", id: "p1", published: true },
+          { entityType: "post", id: "b1", published: false },
+        ])
+      );
+      expect(buffer.publishOverrides()).toHaveLength(2);
+    });
+
+    it("serialize/hydrate roundtrips Publish Overrides", () => {
+      const original = createDraftBuffer();
+      original.setPublishOverride("project", "p1", true);
+      original.setPublishOverride("post", "b1", false);
+
+      const restored = createDraftBuffer(original.serialize());
+      expect(restored.getPublishOverride("project", "p1")).toBe(true);
+      expect(restored.getPublishOverride("post", "b1")).toBe(false);
+      expect(restored.publishOverrides()).toHaveLength(2);
+    });
+
+    it("hydrating old format without publishOverrides defaults to empty", () => {
+      const legacy = {
+        store: [] as [string, string][],
+        creations: [],
+        deletions: [],
+        fieldDels: [],
+      };
+      const buffer = createDraftBuffer(legacy);
+      expect(buffer.getPublishOverride("project", "p1")).toBeUndefined();
+      expect(buffer.publishOverrides()).toHaveLength(0);
+    });
+
+    it("changeSummary includes Publish Overrides", () => {
+      const buffer = createDraftBuffer();
+      buffer.setPublishOverride("project", "p1", true);
+      buffer.setPublishOverride("post", "b1", false);
+
+      const summary = buffer.changeSummary();
+      expect(summary.publishOverrides).toEqual(
+        expect.arrayContaining([
+          { entityType: "project", id: "p1", published: true },
+          { entityType: "post", id: "b1", published: false },
+        ])
+      );
+      expect(summary.publishOverrides).toHaveLength(2);
+    });
+  });
+
+  describe("Reorder Lists", () => {
+    it("stores and retrieves a reorder list", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.getReorderList("project")).toBeUndefined();
+      buffer.setReorderList("project", ["p3", "p1", "p2"]);
+      expect(buffer.getReorderList("project")).toEqual(["p3", "p1", "p2"]);
+    });
+
+    it("overwrites a reorder list on subsequent set", () => {
+      const buffer = createDraftBuffer();
+      buffer.setReorderList("project", ["p1", "p2"]);
+      buffer.setReorderList("project", ["p2", "p1"]);
+      expect(buffer.getReorderList("project")).toEqual(["p2", "p1"]);
+    });
+
+    it("hasChanges reports true when reorder lists exist", () => {
+      const buffer = createDraftBuffer();
+      buffer.setReorderList("project", ["p1"]);
+      expect(buffer.hasChanges()).toBe(true);
+    });
+
+    it("discard clears reorder lists", () => {
+      const buffer = createDraftBuffer();
+      buffer.setReorderList("project", ["p1", "p2"]);
+      buffer.discard();
+      expect(buffer.getReorderList("project")).toBeUndefined();
+      expect(buffer.hasChanges()).toBe(false);
+    });
+
+    it("serialize/hydrate roundtrips reorder lists", () => {
+      const original = createDraftBuffer();
+      original.setReorderList("project", ["p3", "p1", "p2"]);
+
+      const restored = createDraftBuffer(original.serialize());
+      expect(restored.getReorderList("project")).toEqual(["p3", "p1", "p2"]);
+    });
+
+    it("hydrating old format without reorderLists defaults to empty", () => {
+      const legacy = {
+        store: [] as [string, string][],
+        creations: [],
+        deletions: [],
+        fieldDels: [],
+      };
+      const buffer = createDraftBuffer(legacy);
+      expect(buffer.getReorderList("project")).toBeUndefined();
+    });
+
+    it("changeSummary includes reordered entity types", () => {
+      const buffer = createDraftBuffer();
+      buffer.setReorderList("project", ["p1", "p2"]);
+
+      const summary = buffer.changeSummary();
+      expect(summary.reorderedEntityTypes).toEqual(["project"]);
     });
   });
 });
