@@ -1,6 +1,6 @@
-When implementing UI changes, **always check visually the correctness** by using Playwright to read screenshot of the dev server. **Assume the dev server is already running**.
+**Always run lint and typecheck** before reporting the task as complete.
 
-Then **always run lint and typecheck** before reporting the task as complete.
+When implementing UI changes, **always check visually the correctness** by using Playwright to read screenshot of the dev server. **Assume the dev server is already running**.
 
 When working on Convex code, always read
 `convex/_generated/ai/guidelines.md` first for important guidelines on
