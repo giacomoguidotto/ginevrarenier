@@ -1,3 +1,5 @@
+import { api } from "convex/_generated/api";
+import { preloadQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { VisionClient } from "./vision-client";
@@ -20,5 +22,7 @@ export default async function VisionPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <VisionClient />;
+  const preloadedProjects = await preloadQuery(api.projects.listPublished, {});
+
+  return <VisionClient preloadedProjects={preloadedProjects} />;
 }
