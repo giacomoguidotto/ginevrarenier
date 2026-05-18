@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode, RefObject } from "react";
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createChromeRegistry } from "./chrome-registry";
 import { useEditMode } from "./edit-mode-context";
 import { useFieldVisibility } from "./field-visibility";
@@ -10,10 +10,29 @@ import { useSection } from "./section";
 type Registry = ReturnType<typeof createChromeRegistry>;
 
 const ChromeContext = createContext<Registry | null>(null);
+const DismountEpochContext = createContext(0);
 
 export function ChromeProvider({ children }: { children: ReactNode }) {
   const registryRef = useRef<Registry>(createChromeRegistry());
-  return <ChromeContext value={registryRef.current}>{children}</ChromeContext>;
+  const [epoch, setEpoch] = useState(0);
+
+  const registry = registryRef.current;
+  useEffect(() => {
+    let tracked = registry.getDismountGeneration();
+    return registry.subscribe(() => {
+      const gen = registry.getDismountGeneration();
+      if (gen !== tracked) {
+        tracked = gen;
+        setEpoch(gen);
+      }
+    });
+  }, [registry]);
+
+  return (
+    <ChromeContext value={registry}>
+      <DismountEpochContext value={epoch}>{children}</DismountEpochContext>
+    </ChromeContext>
+  );
 }
 
 export function useChromeRegister(
@@ -24,10 +43,12 @@ export function useChromeRegister(
   const { isEditMode } = useEditMode();
   const { name: section } = useSection();
   const { visible } = useFieldVisibility();
+  const dismountEpoch = useContext(DismountEpochContext);
   const id = `${section}\0${fieldName}`;
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dismountEpoch triggers re-registration after dismountAll clears persistent (layout-level) fields
   useEffect(() => {
     const el = ref.current;
     if (!(registry && el && isEditMode)) {
@@ -39,7 +60,7 @@ export function useChromeRegister(
       registry.markVisible(id);
     }
     return () => registry.deregister(id);
-  }, [isEditMode, id, ref, registry]);
+  }, [isEditMode, id, ref, registry, dismountEpoch]);
 
   useEffect(() => {
     if (!registry) {

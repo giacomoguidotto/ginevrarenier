@@ -186,7 +186,7 @@ describe("Chrome Context", () => {
 });
 
 describe("Chrome Dismount on Navigate", () => {
-  it("dismounts all fields when pathname changes", async () => {
+  it("persistent fields re-register after dismountAll on navigation", async () => {
     function DismountHarness() {
       const [count, setCount] = useState(0);
       const [path, setPath] = useState("/");
@@ -220,7 +220,7 @@ describe("Chrome Dismount on Navigate", () => {
     await act(() => {
       getByTestId("navigate").click();
     });
-    expect(getByTestId("count").textContent).toBe("0");
+    expect(getByTestId("count").textContent).toBe("1");
   });
 });
 
