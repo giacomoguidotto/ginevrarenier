@@ -2,7 +2,7 @@
 
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -130,8 +130,12 @@ function EntityBadge({
 export function ReflectionsClient() {
   const t = useTranslations("reflections");
   const { isEditMode } = useEditMode();
+  const { isAuthenticated } = useConvexAuth();
 
-  const allPosts = useQuery(api.blogPosts.list, isEditMode ? {} : "skip");
+  const allPosts = useQuery(
+    api.blogPosts.list,
+    isEditMode && isAuthenticated ? {} : "skip"
+  );
   const publishedPosts = useQuery(
     api.blogPosts.listPublished,
     isEditMode ? "skip" : {}

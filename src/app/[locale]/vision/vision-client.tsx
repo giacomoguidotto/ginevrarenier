@@ -17,7 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import { useCallback } from "react";
@@ -133,9 +133,12 @@ function SortableProjectCard({
 
 export function VisionClient() {
   const { isEditMode } = useEditMode();
+  const { isAuthenticated } = useConvexAuth();
 
-  // In edit mode, show all projects (including unpublished). Otherwise published only.
-  const allProjects = useQuery(api.projects.list, isEditMode ? {} : "skip");
+  const allProjects = useQuery(
+    api.projects.list,
+    isEditMode && isAuthenticated ? {} : "skip"
+  );
   const publishedProjects = useQuery(
     api.projects.listPublished,
     isEditMode ? "skip" : {}

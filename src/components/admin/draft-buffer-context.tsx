@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "convex/_generated/api";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import type { ReactNode } from "react";
 import {
   createContext,
@@ -182,9 +182,10 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const [resetSignal, setResetSignal] = useState(0);
   const [editVersion, setEditVersion] = useState(0);
   const { isEditMode } = useEditMode();
+  const { isAuthenticated } = useConvexAuth();
   const allContent = useQuery(
     api.siteContent.listAll,
-    isEditMode ? {} : "skip"
+    isEditMode && isAuthenticated ? {} : "skip"
   );
   const upsertSiteContent = useMutation(api.siteContent.upsert);
   const updateProject = useMutation(api.projects.update);
