@@ -131,8 +131,11 @@ export function ReflectionsClient() {
   const t = useTranslations("reflections");
   const { isEditMode } = useEditMode();
 
-  const allPosts = useQuery(api.blogPosts.list);
-  const publishedPosts = useQuery(api.blogPosts.listPublished);
+  const allPosts = useQuery(api.blogPosts.list, isEditMode ? {} : "skip");
+  const publishedPosts = useQuery(
+    api.blogPosts.listPublished,
+    isEditMode ? "skip" : {}
+  );
   const posts = isEditMode ? (allPosts ?? []) : (publishedPosts ?? []);
 
   const { trackCreation } = useDraftBufferOps();
