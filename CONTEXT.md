@@ -51,7 +51,7 @@ The period between entering and exiting edit mode. All uncommitted changes live 
 _Avoid_: Edit mode (use for the boolean toggle only, not the session concept)
 
 **Draft Buffer**:
-In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, reorder changes, Field Deletions, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
+In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, reorder changes, Field Deletions, Pending Deletions, Dismissals, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
 _Avoid_: Change tracker, command buffer, undo stack
 
 **Session-Created Entity**:
@@ -71,12 +71,24 @@ A Draft Buffer entry recording the intended visibility state (Published or Unpub
 _Avoid_: Toggle, publish flag, visibility toggle
 
 **Chrome**:
-The stateless visual layer for editing cues on Active Fields. Draws outlines (line animation as a state-transition cue), hatching, and stale-locale indicators. Rendered per-Field as an SVG child of the Field's DOM wrapper, so it moves, resizes, and unmounts with its Field automatically. Owns no content state — reads everything from the Draft Buffer and edit-mode state.
+The stateless visual layer for editing cues on Active Fields. Draws outlines (line animation as a state-transition cue), hatching, and semantic dots (warning for Stale Fields, info for system-filled content such as auto-translation). Rendered per-Field as an SVG child of the Field's DOM wrapper, so it moves, resizes, and unmounts with its Field automatically. Owns no content state — reads everything from the Draft Buffer and edit-mode state. Shows an on-focus tooltip with the human-readable Section label and Field name.
 _Avoid_: Overlay, HUD, editing UI (too vague), decoration
 
 **Image Assets**:
 Module that manages Cloudinary uploads, tracks public IDs during an Edit Session, and performs cleanup on discard. Coordinated by the Draft Buffer but owns its own lifecycle.
 _Avoid_: Media, uploads, files
+
+**Stale Field**:
+A Field edited in one locale but not yet resolved in another. Resolution paths: manual edit, auto-translation, or Dismissal. Only text edits create staleness — structural operations (entity creation, deletion, Publish Override, reorder) are locale-agnostic and never trigger it.
+_Avoid_: Dirty field (overloaded — a field can be dirty without being stale), untranslated field
+
+**Dismissal**:
+A Draft Buffer operation acknowledging that a Stale Field does not need translation in the other locale. Excluded from stale indicators and the save summary. Automatically reset when the source locale is re-edited, since the original acknowledgment may no longer hold.
+_Avoid_: Skip, ignore, suppress
+
+**Page Boundary**:
+A named component boundary grouping Sections for hierarchical change aggregation. Sections register with their nearest Page Boundary on mount, providing their name and label. Enables progressive disclosure of editing state across three tiers: locale toggle → page-level indicators → per-field indicators.
+_Avoid_: Page wrapper, route boundary, layout
 
 ### Field lifecycle
 
@@ -98,7 +110,11 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 - The **Draft Buffer** accumulates changes from **Fields**, **Publish Overrides**, reorder intents, **Field Deletions**, **Pending Deletions**, and **Session-Created Entities**
 - A **Section** may contain **Derived Entries** — groups of **Fields** sharing a key prefix, discovered at runtime rather than declared in code
 - **Chrome** is rendered by each **Field** as a DOM child — it reads **Draft Buffer** state but owns none
+- **Chrome** renders semantic dots: warning (amber) for **Stale Fields**, info (blue) for system-filled content
 - **Image Assets** are tracked by the **Draft Buffer** and cleaned up on discard
+- A **Page Boundary** groups one or more **Sections**; **Sections** register with their nearest **Page Boundary** on mount
+- A **Stale Field** is resolved by manual edit, auto-translation, or **Dismissal**
+- A **Dismissal** is reset when the source locale of the corresponding **Field** is re-edited
 
 ## Example dialogue
 
@@ -110,6 +126,12 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 
 > **Dev:** "If the user switches locales, does the **Chrome** need to redraw?"
 > **Domain expert:** "The **Chrome** redraws reactively — the **Field** content changes, the element reflows, ResizeObserver fires, and the **Chrome** picks up the new geometry. No special locale-switch logic in **Chrome** itself."
+
+> **Dev:** "If the Admin edits a title in EN but not IT, what happens?"
+> **Domain expert:** "The title becomes a **Stale Field**. The locale toggle shows a warning dot, the **Page Boundary** for that page shows a dot in the nav, and the **Field** itself shows an amber dot. She can resolve it by editing IT manually, auto-translating, or creating a **Dismissal** to acknowledge it's fine as-is."
+
+> **Dev:** "What if she dismisses a **Stale Field** and then edits the EN version again?"
+> **Domain expert:** "The **Dismissal** resets automatically — the original acknowledgment was for the previous EN content. The **Field** becomes stale again because the source changed."
 
 ## Flagged ambiguities
 
