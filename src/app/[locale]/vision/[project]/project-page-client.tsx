@@ -4,7 +4,7 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Eye } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -168,27 +168,6 @@ function ProjectHeader({
 
   return (
     <div className="mb-16 max-w-3xl">
-      {isEditMode && !published && (
-        <motion.div
-          animate={{ opacity: 1, y: 0 }}
-          initial={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.5 }}
-        >
-          <button
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-foreground/10 px-4 py-2 text-foreground/70 text-sm transition-colors hover:bg-foreground/20 hover:text-foreground"
-            onClick={() =>
-              updateProject({
-                id: projectId as Id<"projects">,
-                published: true,
-              })
-            }
-            type="button"
-          >
-            <Eye className="h-4 w-4" />
-            Publish project
-          </button>
-        </motion.div>
-      )}
       <motion.div
         animate={{ opacity: 1, y: 0 }}
         initial={{ opacity: 0, y: 20 }}
@@ -228,6 +207,27 @@ function ProjectHeader({
       >
         {t("photographs", { count: imageCount })}
       </motion.p>
+      {isEditMode && !published && (
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <button
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-primary/90 hover:shadow-md"
+            onClick={() =>
+              updateProject({
+                id: projectId as Id<"projects">,
+                published: true,
+              })
+            }
+            type="button"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            Publish project
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 }

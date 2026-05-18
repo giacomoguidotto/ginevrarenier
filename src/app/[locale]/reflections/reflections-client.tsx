@@ -7,7 +7,10 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
-import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import {
@@ -37,14 +40,15 @@ function PostCardWrapper({
 }) {
   const { trackDeletion, cancelDeletion, isPendingDeletion } =
     useDraftBufferOps();
+  useEditVersion();
   const updatePost = useMutation(api.blogPosts.update);
   const pendingDeletion = isPendingDeletion("post", post._id);
 
-  let stateClass = "";
+  let contentClass = "";
   if (pendingDeletion) {
-    stateClass = "opacity-30 grayscale";
+    contentClass = "opacity-30 grayscale";
   } else if (!post.published) {
-    stateClass = "opacity-50";
+    contentClass = "opacity-50";
   }
 
   if (!isEditMode) {
@@ -59,8 +63,34 @@ function PostCardWrapper({
     <motion.div variants={fadeUp}>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div className={`relative ${stateClass}`}>
-            <PostCard index={index} post={post} />
+          <div className="relative">
+            <div className={contentClass}>
+              <PostCard index={index} post={post} />
+            </div>
+
+            {pendingDeletion && (
+              <button
+                className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
+                onClick={() => cancelDeletion("post", post._id)}
+                type="button"
+              >
+                <Undo2 className="h-3 w-3" />
+                Cancel deletion
+              </button>
+            )}
+
+            {!pendingDeletion && (
+              <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+                <button
+                  className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
+                  onClick={() => trackDeletion("post", post._id)}
+                  type="button"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
             <EntityBadge
               pendingDeletion={pendingDeletion}
               published={post.published}
@@ -83,20 +113,6 @@ function PostCardWrapper({
               </>
             )}
           </ContextMenuItem>
-          {pendingDeletion ? (
-            <ContextMenuItem onClick={() => cancelDeletion("post", post._id)}>
-              <Undo2 className="mr-2 h-4 w-4" />
-              Cancel deletion
-            </ContextMenuItem>
-          ) : (
-            <ContextMenuItem
-              className="text-red-400 focus:text-red-400"
-              onClick={() => trackDeletion("post", post._id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </ContextMenuItem>
-          )}
         </ContextMenuContent>
       </ContextMenu>
     </motion.div>
@@ -112,14 +128,14 @@ function EntityBadge({
 }) {
   if (pendingDeletion) {
     return (
-      <div className="absolute top-2 left-2 rounded bg-red-500/20 px-2 py-0.5 font-mono text-[10px] text-red-400 uppercase backdrop-blur-sm">
+      <div className="absolute top-2 left-2 z-10 rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive uppercase backdrop-blur-sm">
         Pending deletion
       </div>
     );
   }
   if (!published) {
     return (
-      <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+      <div className="absolute top-2 left-2 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
         Draft
       </div>
     );

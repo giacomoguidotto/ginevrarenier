@@ -144,13 +144,8 @@ const StateContext = createContext<DraftBufferState>({
 });
 
 export function DraftBufferProvider({ children }: { children: ReactNode }) {
-  const bufferRef = useRef<Buffer>(createDraftBuffer());
-  const imageAssetsRef = useRef<Assets>(
-    createImageAssets({
-      upload: uploadImage,
-      deleteAsset: deleteCloudinaryImage,
-    })
-  );
+  const bufferRef = useRef<Buffer>(null as unknown as Buffer);
+  const imageAssetsRef = useRef<Assets>(null as unknown as Assets);
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
@@ -277,6 +272,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (entityType: string, id: string) => {
       bufferRef.current.trackDeletion(entityType, id);
       setHasChanges(true);
+      setEditVersion((v) => v + 1);
       schedulePersist();
     },
     [schedulePersist]
@@ -286,6 +282,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (entityType: string, id: string) => {
       bufferRef.current.cancelDeletion(entityType, id);
       setHasChanges(bufferRef.current.hasChanges());
+      setEditVersion((v) => v + 1);
       schedulePersist();
     },
     [schedulePersist]

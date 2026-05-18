@@ -4,7 +4,7 @@ import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { Eye } from "lucide-react";
+import { ArrowUpRight, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
@@ -23,10 +23,14 @@ export function ProjectCard({
   project,
   index,
   pendingDeletion,
+  onDelete,
+  onCancelDeletion,
 }: {
   project: Project;
   index: number;
   pendingDeletion?: boolean;
+  onDelete?: () => void;
+  onCancelDeletion?: () => void;
 }) {
   const { isEditMode } = useEditMode();
 
@@ -36,6 +40,8 @@ export function ProjectCard({
         <FieldVisibilityProvider>
           <CardContent
             index={index}
+            onCancelDeletion={onCancelDeletion}
+            onDelete={onDelete}
             pendingDeletion={pendingDeletion}
             project={project}
           />
@@ -51,16 +57,29 @@ function CardContent({
   project,
   index,
   pendingDeletion,
+  onDelete,
+  onCancelDeletion,
 }: {
   project: Project;
   index: number;
   pendingDeletion?: boolean;
+  onDelete?: () => void;
+  onCancelDeletion?: () => void;
 }) {
   const { isEditMode } = useEditMode();
   const { markVisible } = useFieldVisibility();
   const localized = useLocalized();
   const updateProject = useMutation(api.projects.update);
   const coverSrc = project.coverImageUrl || "/images/placeholder.svg";
+
+  let contentClass = "";
+  if (isEditMode) {
+    if (pendingDeletion) {
+      contentClass = "opacity-30 grayscale";
+    } else if (!project.published) {
+      contentClass = "opacity-50";
+    }
+  }
 
   return (
     <motion.div
@@ -70,7 +89,7 @@ function CardContent({
       variants={fadeUp}
     >
       <Link
-        className="block overflow-hidden rounded-lg"
+        className={`block overflow-hidden rounded-lg ${contentClass}`}
         href={`/vision/${project.slug}`}
       >
         <div className="relative z-[1] aspect-4/5 overflow-hidden">
@@ -141,25 +160,57 @@ function CardContent({
         )}
       </Link>
 
-      {isEditMode && !project.published && (
+      {isEditMode && pendingDeletion && onCancelDeletion && (
         <button
-          className="absolute top-2 right-2 z-10 flex items-center gap-1 rounded-full bg-foreground/10 px-3 py-1 text-[11px] text-foreground/60 backdrop-blur-sm transition-colors hover:bg-foreground/20 hover:text-foreground"
-          data-testid="card-publish-button"
-          onClick={() => updateProject({ id: project._id, published: true })}
+          className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
+          data-testid="card-cancel-deletion-button"
+          onClick={onCancelDeletion}
+          onPointerDown={(e) => e.stopPropagation()}
           type="button"
         >
-          <Eye className="h-3 w-3" />
-          Publish
+          <Undo2 className="h-3 w-3" />
+          Cancel deletion
         </button>
       )}
 
+      {isEditMode && !pendingDeletion && (
+        <div
+          className="absolute top-6 right-6 z-10 flex items-center gap-1.5"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {onDelete && (
+            <button
+              className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
+              data-testid="card-delete-button"
+              onClick={onDelete}
+              type="button"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          )}
+          {!project.published && (
+            <button
+              className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-medium text-[11px] text-primary-foreground uppercase tracking-wider transition-all hover:bg-primary/90 hover:shadow-md"
+              data-testid="card-publish-button"
+              onClick={() =>
+                updateProject({ id: project._id, published: true })
+              }
+              type="button"
+            >
+              <ArrowUpRight className="h-3 w-3" />
+              Publish
+            </button>
+          )}
+        </div>
+      )}
+
       {isEditMode && pendingDeletion && (
-        <div className="absolute top-2 left-2 z-10 rounded bg-red-500/20 px-2 py-0.5 font-mono text-[10px] text-red-400 uppercase backdrop-blur-sm">
+        <div className="absolute top-6 left-6 z-10 rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive uppercase backdrop-blur-sm">
           Pending deletion
         </div>
       )}
       {isEditMode && !pendingDeletion && !project.published && (
-        <div className="absolute top-2 left-2 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+        <div className="absolute top-6 left-6 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
           Draft
         </div>
       )}

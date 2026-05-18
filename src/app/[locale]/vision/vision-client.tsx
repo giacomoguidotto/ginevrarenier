@@ -19,9 +19,12 @@ import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useCallback } from "react";
-import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import {
@@ -31,12 +34,6 @@ import {
 import { Section, useSection } from "@/components/admin/section";
 import { ProjectCard } from "@/components/gallery/project-card";
 import { PageTransition } from "@/components/layout/page-transition";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useLocalized } from "@/lib/hooks";
 
@@ -50,7 +47,7 @@ function SortableProjectCard({
   const { isEditMode } = useEditMode();
   const { isPendingDeletion, trackDeletion, cancelDeletion } =
     useDraftBufferOps();
-  const updateProject = useMutation(api.projects.update);
+  useEditVersion();
 
   const pendingDeletion = isPendingDeletion("project", project._id);
 
@@ -62,73 +59,23 @@ function SortableProjectCard({
     transition,
   };
 
-  let stateClass = "";
-  if (pendingDeletion) {
-    stateClass = "opacity-30 grayscale";
-  } else if (!project.published && isEditMode) {
-    stateClass = "opacity-50";
-  }
-
   const card = (
     <div
-      className={stateClass}
       ref={setNodeRef}
       style={style}
       {...(isEditMode ? { ...attributes, ...listeners } : {})}
     >
       <ProjectCard
         index={index}
+        onCancelDeletion={() => cancelDeletion("project", project._id)}
+        onDelete={() => trackDeletion("project", project._id)}
         pendingDeletion={pendingDeletion}
         project={project}
       />
     </div>
   );
 
-  if (!isEditMode) {
-    return card;
-  }
-
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{card}</ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem
-          onClick={() =>
-            updateProject({
-              id: project._id,
-              published: !project.published,
-            })
-          }
-        >
-          {project.published ? (
-            <>
-              <EyeOff className="mr-2 h-4 w-4" /> Unpublish
-            </>
-          ) : (
-            <>
-              <Eye className="mr-2 h-4 w-4" /> Publish
-            </>
-          )}
-        </ContextMenuItem>
-        {pendingDeletion ? (
-          <ContextMenuItem
-            onClick={() => cancelDeletion("project", project._id)}
-          >
-            <Undo2 className="mr-2 h-4 w-4" />
-            Cancel deletion
-          </ContextMenuItem>
-        ) : (
-          <ContextMenuItem
-            className="text-red-400 focus:text-red-400"
-            onClick={() => trackDeletion("project", project._id)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </ContextMenuItem>
-        )}
-      </ContextMenuContent>
-    </ContextMenu>
-  );
+  return card;
 }
 
 export function VisionClient() {
