@@ -51,7 +51,7 @@ The period between entering and exiting edit mode. All uncommitted changes live 
 _Avoid_: Edit mode (use for the boolean toggle only, not the session concept)
 
 **Draft Buffer**:
-In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, reorder changes, Field Deletions, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`). Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
+In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, reorder changes, Field Deletions, Pending Deletions, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
 _Avoid_: Change tracker, command buffer, undo stack
 
 **Session-Created Entity**:
@@ -65,6 +65,10 @@ _Avoid_: Key removal, field removal, delete operation
 **Pending Deletion**:
 A Draft Buffer command marking an existing entity for deletion on save. Cancellable at any point during the Edit Session. The entity remains in the database until save is confirmed. Visually indicated by the Chrome layer.
 _Avoid_: Soft delete, marked for removal
+
+**Publish Override**:
+A Draft Buffer entry recording the intended visibility state (Published or Unpublished) for an entity during an Edit Session. Present only when the intended state differs from the current database value. On save, applied as a publish/unpublish mutation. On discard, cleared. The UI renders the overridden state: cards appear at full opacity for a pending publish and dimmed for a pending unpublish.
+_Avoid_: Toggle, publish flag, visibility toggle
 
 **Chrome**:
 The stateless visual overlay layer for editing cues. Draws outlines (line animation top-left to bottom-right), hatching, stale-locale indicators, and Pending Deletion overlays. Reads geometry from Field DOM elements via ResizeObserver and renders in a portal. Owns no content state — reads everything from the Draft Buffer and Field registration.
@@ -91,7 +95,7 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 - A **Field** displays one **Localized Text** value, resolved to the active locale
 - A **Project** has a gallery of images and bilingual metadata; each metadata field is a **Field**
 - A **Post** has bilingual content edited via BlockNote, distinct from the **Field** primitive
-- The **Draft Buffer** accumulates changes from **Fields**, **Field Deletions**, **Pending Deletions**, and **Session-Created Entities**
+- The **Draft Buffer** accumulates changes from **Fields**, **Publish Overrides**, reorder intents, **Field Deletions**, **Pending Deletions**, and **Session-Created Entities**
 - A **Section** may contain **Derived Entries** — groups of **Fields** sharing a key prefix, discovered at runtime rather than declared in code
 - The **Chrome** layer observes **Field** geometry and reads **Draft Buffer** state — it owns no state of its own
 - **Image Assets** are tracked by the **Draft Buffer** and cleaned up on discard
