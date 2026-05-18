@@ -2,6 +2,8 @@
 
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
+import { preloadedQueryResult } from "convex/nextjs";
+import type { Preloaded } from "convex/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
@@ -38,16 +40,34 @@ function PostCardWrapper({
   index: number;
   isEditMode: boolean;
 }) {
-  const { trackDeletion, cancelDeletion, isPendingDeletion } =
-    useDraftBufferOps();
+  const {
+    trackDeletion,
+    cancelDeletion,
+    isPendingDeletion,
+    getPublishOverride,
+    setPublishOverride,
+    clearPublishOverride,
+  } = useDraftBufferOps();
   useEditVersion();
-  const updatePost = useMutation(api.blogPosts.update);
   const pendingDeletion = isPendingDeletion("post", post._id);
+
+  const publishOverride = getPublishOverride("post", post._id);
+  const effectivePublished =
+    publishOverride === undefined ? post.published : publishOverride;
+
+  const handleTogglePublish = () => {
+    const target = !effectivePublished;
+    if (target === post.published) {
+      clearPublishOverride("post", post._id);
+    } else {
+      setPublishOverride("post", post._id, target);
+    }
+  };
 
   let contentClass = "";
   if (pendingDeletion) {
     contentClass = "opacity-30 grayscale";
-  } else if (!post.published) {
+  } else if (!effectivePublished) {
     contentClass = "opacity-50";
   }
 
@@ -94,16 +114,13 @@ function PostCardWrapper({
             <EntityBadge
               pendingDeletion={pendingDeletion}
               published={post.published}
+              publishOverride={publishOverride}
             />
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem
-            onClick={() =>
-              updatePost({ id: post._id, published: !post.published })
-            }
-          >
-            {post.published ? (
+          <ContextMenuItem onClick={handleTogglePublish}>
+            {effectivePublished ? (
               <>
                 <EyeOff className="mr-2 h-4 w-4" /> Unpublish
               </>
@@ -121,9 +138,11 @@ function PostCardWrapper({
 
 function EntityBadge({
   pendingDeletion,
+  publishOverride,
   published,
 }: {
   pendingDeletion: boolean;
+  publishOverride: boolean | undefined;
   published: boolean;
 }) {
   if (pendingDeletion) {
@@ -133,17 +152,32 @@ function EntityBadge({
       </div>
     );
   }
+  if (publishOverride !== undefined) {
+    return publishOverride ? (
+      <div className="absolute top-2 left-2 z-10 rounded bg-primary/20 px-2 py-0.5 font-mono text-[10px] text-primary uppercase backdrop-blur-sm">
+        Pending publish
+      </div>
+    ) : (
+      <div className="absolute top-2 left-2 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+        Pending unpublish
+      </div>
+    );
+  }
   if (!published) {
     return (
       <div className="absolute top-2 left-2 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-        Draft
+        Unpublished
       </div>
     );
   }
   return null;
 }
 
-export function ReflectionsClient() {
+export function ReflectionsClient({
+  preloadedPosts,
+}: {
+  preloadedPosts?: Preloaded<typeof api.blogPosts.listPublished>;
+}) {
   const t = useTranslations("reflections");
   const { isEditMode } = useEditMode();
   const { isAuthenticated } = useConvexAuth();
@@ -156,7 +190,12 @@ export function ReflectionsClient() {
     api.blogPosts.listPublished,
     isEditMode ? "skip" : {}
   );
-  const posts = isEditMode ? (allPosts ?? []) : (publishedPosts ?? []);
+  const preloaded = preloadedPosts
+    ? preloadedQueryResult(preloadedPosts)
+    : undefined;
+  const posts = isEditMode
+    ? (allPosts ?? [])
+    : (publishedPosts ?? preloaded ?? []);
 
   const { trackCreation } = useDraftBufferOps();
   const createPost = useMutation(api.blogPosts.create);
