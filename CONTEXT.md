@@ -71,7 +71,7 @@ A Draft Buffer entry recording the intended visibility state (Published or Unpub
 _Avoid_: Toggle, publish flag, visibility toggle
 
 **Chrome**:
-The stateless visual overlay layer for editing cues. Draws outlines (line animation top-left to bottom-right), hatching, stale-locale indicators, and Pending Deletion overlays. Reads geometry from Field DOM elements via ResizeObserver and renders in a portal. Owns no content state — reads everything from the Draft Buffer and Field registration.
+The stateless visual layer for editing cues on Active Fields. Draws outlines (line animation as a state-transition cue), hatching, and stale-locale indicators. Rendered per-Field as an SVG child of the Field's DOM wrapper, so it moves, resizes, and unmounts with its Field automatically. Owns no content state — reads everything from the Draft Buffer and edit-mode state.
 _Avoid_: Overlay, HUD, editing UI (too vague), decoration
 
 **Image Assets**:
@@ -81,10 +81,10 @@ _Avoid_: Media, uploads, files
 ### Field lifecycle
 
 **Mounted**:
-A Field exists in the DOM but may be invisible (e.g., below the scroll fold, mid-entrance-animation). Not editable, not tracked by Chrome.
+A Field exists in the DOM but may be invisible (e.g., below the scroll fold, mid-entrance-animation). Not editable, Chrome not rendered.
 
 **Visible**:
-A Field's entrance animation has completed and it occupies a stable position. Registers with Chrome. In an active Edit Session, becomes editable.
+A Field's entrance animation has completed and it occupies a stable position. Chrome rendering is enabled. In an active Edit Session, becomes editable.
 
 **Active**:
 A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is enabled, Chrome draws its cues, threshold constraints are enforced.
@@ -97,7 +97,7 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 - A **Post** has bilingual content edited via BlockNote, distinct from the **Field** primitive
 - The **Draft Buffer** accumulates changes from **Fields**, **Publish Overrides**, reorder intents, **Field Deletions**, **Pending Deletions**, and **Session-Created Entities**
 - A **Section** may contain **Derived Entries** — groups of **Fields** sharing a key prefix, discovered at runtime rather than declared in code
-- The **Chrome** layer observes **Field** geometry and reads **Draft Buffer** state — it owns no state of its own
+- **Chrome** is rendered by each **Field** as a DOM child — it reads **Draft Buffer** state but owns none
 - **Image Assets** are tracked by the **Draft Buffer** and cleaned up on discard
 
 ## Example dialogue
