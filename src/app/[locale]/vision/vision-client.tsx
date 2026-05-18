@@ -40,30 +40,6 @@ import {
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useLocalized } from "@/lib/hooks";
 
-function EntityBadge({
-  pendingDeletion,
-  published,
-}: {
-  pendingDeletion: boolean;
-  published: boolean;
-}) {
-  if (pendingDeletion) {
-    return (
-      <div className="absolute top-2 left-2 rounded bg-red-500/20 px-2 py-0.5 font-mono text-[10px] text-red-400 uppercase backdrop-blur-sm">
-        Pending deletion
-      </div>
-    );
-  }
-  if (!published) {
-    return (
-      <div className="absolute top-2 left-2 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-        Draft
-      </div>
-    );
-  }
-  return null;
-}
-
 function SortableProjectCard({
   project,
   index,
@@ -95,15 +71,15 @@ function SortableProjectCard({
 
   const card = (
     <div
-      className={`relative ${stateClass}`}
+      className={stateClass}
       ref={setNodeRef}
       style={style}
       {...(isEditMode ? { ...attributes, ...listeners } : {})}
     >
-      <ProjectCard index={index} project={project} />
-      <EntityBadge
+      <ProjectCard
+        index={index}
         pendingDeletion={pendingDeletion}
-        published={project.published}
+        project={project}
       />
     </div>
   );

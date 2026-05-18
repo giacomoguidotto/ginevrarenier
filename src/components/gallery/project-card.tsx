@@ -22,9 +22,11 @@ type Project = Doc<"projects">;
 export function ProjectCard({
   project,
   index,
+  pendingDeletion,
 }: {
   project: Project;
   index: number;
+  pendingDeletion?: boolean;
 }) {
   const { isEditMode } = useEditMode();
 
@@ -32,7 +34,11 @@ export function ProjectCard({
     return (
       <Section name={`project:${project._id}`}>
         <FieldVisibilityProvider>
-          <CardContent index={index} project={project} />
+          <CardContent
+            index={index}
+            pendingDeletion={pendingDeletion}
+            project={project}
+          />
         </FieldVisibilityProvider>
       </Section>
     );
@@ -41,7 +47,15 @@ export function ProjectCard({
   return <CardContent index={index} project={project} />;
 }
 
-function CardContent({ project, index }: { project: Project; index: number }) {
+function CardContent({
+  project,
+  index,
+  pendingDeletion,
+}: {
+  project: Project;
+  index: number;
+  pendingDeletion?: boolean;
+}) {
   const { isEditMode } = useEditMode();
   const { markVisible } = useFieldVisibility();
   const localized = useLocalized();
@@ -137,6 +151,17 @@ function CardContent({ project, index }: { project: Project; index: number }) {
           <Eye className="h-3 w-3" />
           Publish
         </button>
+      )}
+
+      {isEditMode && pendingDeletion && (
+        <div className="absolute top-2 left-2 z-10 rounded bg-red-500/20 px-2 py-0.5 font-mono text-[10px] text-red-400 uppercase backdrop-blur-sm">
+          Pending deletion
+        </div>
+      )}
+      {isEditMode && !pendingDeletion && !project.published && (
+        <div className="absolute top-2 left-2 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
+          Draft
+        </div>
       )}
     </motion.div>
   );
