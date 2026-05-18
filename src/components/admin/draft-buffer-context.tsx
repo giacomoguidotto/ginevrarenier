@@ -70,13 +70,22 @@ function clearPersistedState(): void {
 interface DraftBufferOps {
   cancelDeletion: (entityType: string, id: string) => void;
   cancelFieldDeletion: (section: string, keyPrefix: string) => void;
+  clearPublishOverride: (entityType: string, id: string) => void;
   deleteField: (section: string, keyPrefix: string) => void;
   editedLocales: Buffer["editedLocales"];
+  getPublishOverride: (entityType: string, id: string) => boolean | undefined;
+  getReorderList: (entityType: string) => string[] | undefined;
   isFieldDeleted: (section: string, keyPrefix: string) => boolean;
   isPendingDeletion: (entityType: string, id: string) => boolean;
   isSessionCreated: (entityType: string, id: string) => boolean;
   read: Buffer["read"];
   sectionChanges: Buffer["sectionChanges"];
+  setPublishOverride: (
+    entityType: string,
+    id: string,
+    published: boolean
+  ) => void;
+  setReorderList: (entityType: string, ids: string[]) => void;
   trackCreation: (entityType: string, id: string) => void;
   trackDeletion: (entityType: string, id: string) => void;
   write: (
@@ -109,13 +118,18 @@ const noop = () => {};
 const OpsContext = createContext<DraftBufferOps>({
   cancelDeletion: noop,
   cancelFieldDeletion: noop,
+  clearPublishOverride: noop,
   deleteField: noop,
   editedLocales: () => new Set<string>(),
+  getPublishOverride: () => undefined,
+  getReorderList: () => undefined,
   isFieldDeleted: () => false,
   isPendingDeletion: () => false,
   isSessionCreated: () => false,
   read: () => undefined,
   sectionChanges: () => ({}),
+  setPublishOverride: noop,
+  setReorderList: noop,
   trackCreation: noop,
   trackDeletion: noop,
   write: noop,
@@ -135,6 +149,8 @@ const StateContext = createContext<DraftBufferState>({
     fieldDeletions: [],
     imageSwaps: [],
     pendingDeletions: [],
+    publishOverrides: [],
+    reorderedEntityTypes: [],
     textEdits: [],
   }),
   editedLocales: new Set<string>(),
@@ -185,6 +201,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const upsertSiteContent = useMutation(api.siteContent.upsert);
   const updateProject = useMutation(api.projects.update);
   const updateBlogPost = useMutation(api.blogPosts.update);
+  const reorderProjects = useMutation(api.projects.reorder);
   const removeProject = useMutation(api.projects.remove);
   const removeBlogPost = useMutation(api.blogPosts.remove);
 
@@ -331,6 +348,47 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const setPublishOverride = useCallback(
+    (entityType: string, id: string, published: boolean) => {
+      bufferRef.current.setPublishOverride(entityType, id, published);
+      setHasChanges(true);
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const getPublishOverride = useCallback(
+    (entityType: string, id: string) =>
+      bufferRef.current.getPublishOverride(entityType, id),
+    []
+  );
+
+  const clearPublishOverride = useCallback(
+    (entityType: string, id: string) => {
+      bufferRef.current.clearPublishOverride(entityType, id);
+      setHasChanges(bufferRef.current.hasChanges());
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const setReorderList = useCallback(
+    (entityType: string, ids: string[]) => {
+      bufferRef.current.setReorderList(entityType, ids);
+      setHasChanges(true);
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const getReorderList = useCallback(
+    (entityType: string) => bufferRef.current.getReorderList(entityType),
+    []
+  );
+
   const removeEntity = useCallback(
     async (ref: EntityRef) => {
       if (ref.entityType === "project") {
@@ -378,6 +436,32 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    for (const ovr of bufferRef.current.publishOverrides()) {
+      if (ovr.entityType === "project") {
+        await updateProject({
+          id: ovr.id as never,
+          published: ovr.published,
+        } as Parameters<typeof updateProject>[0]);
+      } else if (ovr.entityType === "post") {
+        await updateBlogPost({
+          id: ovr.id as never,
+          published: ovr.published,
+        } as Parameters<typeof updateBlogPost>[0]);
+      }
+    }
+
+    const pendingDeletionIds = new Set(
+      bufferRef.current.deletions().map((d) => d.id)
+    );
+    const projectReorder = bufferRef.current.getReorderList("project");
+    if (projectReorder) {
+      await reorderProjects({
+        ids: projectReorder.filter(
+          (id) => !pendingDeletionIds.has(id)
+        ) as never,
+      });
+    }
+
     for (const ref of bufferRef.current.deletions()) {
       await removeEntity(ref);
     }
@@ -394,6 +478,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     upsertSiteContent,
     updateProject,
     updateBlogPost,
+    reorderProjects,
     removeEntity,
   ]);
 
@@ -426,6 +511,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       createdEntities: textSummary.createdEntities,
       pendingDeletions: textSummary.pendingDeletions,
       fieldDeletions: textSummary.fieldDeletions,
+      publishOverrides: textSummary.publishOverrides,
+      reorderedEntityTypes: textSummary.reorderedEntityTypes,
     };
   }, [allContent]);
 
@@ -433,13 +520,18 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     () => ({
       cancelDeletion,
       cancelFieldDeletion,
+      clearPublishOverride,
       deleteField,
       editedLocales,
+      getPublishOverride,
+      getReorderList,
       isFieldDeleted,
       isPendingDeletion,
       isSessionCreated,
       read,
       sectionChanges,
+      setPublishOverride,
+      setReorderList,
       trackCreation,
       trackDeletion,
       write,
@@ -447,13 +539,18 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [
       cancelDeletion,
       cancelFieldDeletion,
+      clearPublishOverride,
       deleteField,
       editedLocales,
+      getPublishOverride,
+      getReorderList,
       isFieldDeleted,
       isPendingDeletion,
       isSessionCreated,
       read,
       sectionChanges,
+      setPublishOverride,
+      setReorderList,
       trackCreation,
       trackDeletion,
       write,
