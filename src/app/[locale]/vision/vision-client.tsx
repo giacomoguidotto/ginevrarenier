@@ -20,8 +20,7 @@ import type { Doc } from "convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
-import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
@@ -30,6 +29,7 @@ import {
   useFieldVisibility,
 } from "@/components/admin/field-visibility";
 import { Section, useSection } from "@/components/admin/section";
+import { ProjectCard } from "@/components/gallery/project-card";
 import { PageTransition } from "@/components/layout/page-transition";
 import {
   ContextMenu,
@@ -37,7 +37,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Link } from "@/i18n/routing";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useLocalized } from "@/lib/hooks";
 
@@ -75,7 +74,6 @@ function SortableProjectCard({
   const { isEditMode } = useEditMode();
   const { isPendingDeletion, trackDeletion, cancelDeletion } =
     useDraftBufferOps();
-  const localized = useLocalized();
   const updateProject = useMutation(api.projects.update);
 
   const pendingDeletion = isPendingDeletion("project", project._id);
@@ -88,8 +86,6 @@ function SortableProjectCard({
     transition,
   };
 
-  const coverSrc = project.coverImageUrl || "/images/placeholder.svg";
-
   let stateClass = "";
   if (pendingDeletion) {
     stateClass = "opacity-30 grayscale";
@@ -98,43 +94,18 @@ function SortableProjectCard({
   }
 
   const card = (
-    <motion.div
-      className={`group relative ${stateClass}`}
-      custom={index}
+    <div
+      className={`relative ${stateClass}`}
       ref={setNodeRef}
       style={style}
-      variants={fadeUp}
       {...(isEditMode ? { ...attributes, ...listeners } : {})}
     >
-      <Link
-        className="block overflow-hidden rounded-lg"
-        href={`/vision/${project.slug}`}
-      >
-        <div className="relative z-[1] aspect-4/5 overflow-hidden">
-          <Image
-            alt={localized(project.title)}
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            src={coverSrc}
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-charcoal/90 via-charcoal/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        </div>
-        <div className="mt-4 transition-opacity duration-500 group-hover:opacity-0">
-          <p className="mb-1 text-muted-foreground text-xs uppercase tracking-widest">
-            {localized(project.category)}
-          </p>
-          <h3 className="font-light text-foreground text-xl">
-            {localized(project.title)}
-          </h3>
-        </div>
-      </Link>
-
+      <ProjectCard index={index} project={project} />
       <EntityBadge
         pendingDeletion={pendingDeletion}
         published={project.published}
       />
-    </motion.div>
+    </div>
   );
 
   if (!isEditMode) {
@@ -188,16 +159,16 @@ export function VisionClient() {
   const { isEditMode } = useEditMode();
 
   // In edit mode, show all projects (including unpublished). Otherwise published only.
-  const allProjects = useQuery(api.projects.list);
-  const publishedProjects = useQuery(api.projects.listPublished);
+  const allProjects = useQuery(api.projects.list, isEditMode ? {} : "skip");
+  const publishedProjects = useQuery(
+    api.projects.listPublished,
+    isEditMode ? "skip" : {}
+  );
   const projects = isEditMode ? (allProjects ?? []) : (publishedProjects ?? []);
 
   const { trackCreation } = useDraftBufferOps();
   const createProject = useMutation(api.projects.create);
   const reorderProjects = useMutation(api.projects.reorder);
-
-  const [creating, setCreating] = useState(false);
-  const [newSlug, setNewSlug] = useState("");
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -226,21 +197,39 @@ export function VisionClient() {
   );
 
   const handleCreate = useCallback(async () => {
-    if (!newSlug.trim()) {
-      return;
-    }
-    const slug = newSlug.trim().toLowerCase().replace(/\s+/g, "-");
+    const titles = [
+      "Solstice",
+      "Penumbra",
+      "Aperture",
+      "Meridian",
+      "Parallax",
+      "Umbra",
+      "Zenith",
+      "Cascade",
+      "Reverie",
+      "Prism",
+      "Vestige",
+      "Cadence",
+      "Eclipse",
+      "Gossamer",
+      "Nebula",
+      "Patina",
+      "Silhouette",
+      "Trestle",
+      "Vignette",
+      "Aurora",
+      "Chiaroscuro",
+      "Sfumato",
+      "Contrapposto",
+      "Velatura",
+      "Nocturne",
+    ];
+    const title = titles[Math.floor(Math.random() * titles.length)];
     const id = await createProject({
-      slug,
-      title: { en: slug, it: slug },
-      subtitle: { en: "", it: "" },
-      description: { en: "", it: "" },
-      category: { en: "", it: "" },
+      title: { en: title, it: title },
     });
     trackCreation("project", id);
-    setNewSlug("");
-    setCreating(false);
-  }, [newSlug, createProject, trackCreation]);
+  }, [createProject, trackCreation]);
 
   return (
     <PageTransition>
@@ -280,53 +269,13 @@ export function VisionClient() {
                 {/* Create new project card */}
                 {isEditMode ? (
                   <motion.div variants={fadeUp}>
-                    {creating ? (
-                      <div className="flex aspect-4/5 flex-col items-center justify-center gap-4 rounded-lg border-2 border-foreground/15 border-dashed p-6">
-                        <input
-                          autoFocus
-                          className="w-full rounded bg-transparent px-3 py-2 text-center text-foreground outline-none ring-1 ring-foreground/20 placeholder:text-foreground/30 focus:ring-foreground/40"
-                          onChange={(e) => setNewSlug(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleCreate();
-                            }
-                            if (e.key === "Escape") {
-                              setCreating(false);
-                              setNewSlug("");
-                            }
-                          }}
-                          placeholder="project-slug"
-                          value={newSlug}
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            className="rounded-full bg-foreground/10 px-4 py-1.5 text-foreground text-xs transition-colors hover:bg-foreground/20"
-                            onClick={handleCreate}
-                            type="button"
-                          >
-                            Create
-                          </button>
-                          <button
-                            className="rounded-full px-4 py-1.5 text-foreground/50 text-xs transition-colors hover:text-foreground"
-                            onClick={() => {
-                              setCreating(false);
-                              setNewSlug("");
-                            }}
-                            type="button"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        className="flex aspect-4/5 w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
-                        onClick={() => setCreating(true)}
-                        type="button"
-                      >
-                        <Plus className="h-8 w-8" />
-                      </button>
-                    )}
+                    <button
+                      className="flex aspect-4/5 w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+                      onClick={handleCreate}
+                      type="button"
+                    >
+                      <Plus className="h-8 w-8" />
+                    </button>
                   </motion.div>
                 ) : null}
               </motion.div>

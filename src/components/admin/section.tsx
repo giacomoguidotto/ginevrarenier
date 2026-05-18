@@ -51,7 +51,7 @@ export function Section({
       title: project.title,
       subtitle: project.subtitle,
       description: project.description,
-      category: project.category,
+      tagline: project.tagline,
     };
   } else if (route.kind === "post" && post) {
     data = {

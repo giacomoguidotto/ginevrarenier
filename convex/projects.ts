@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { adminMutation, adminQuery } from "./functions";
+import { slugify } from "./slugify";
 
 export const list = adminQuery({
   args: {},
@@ -55,18 +56,28 @@ export const getById = query({
 
 export const create = adminMutation({
   args: {
-    slug: v.string(),
     title: v.object({ en: v.string(), it: v.string() }),
-    subtitle: v.object({ en: v.string(), it: v.string() }),
-    description: v.object({ en: v.string(), it: v.string() }),
-    category: v.object({ en: v.string(), it: v.string() }),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { title }) => {
     const all = await ctx.db.query("projects").collect();
     const maxOrder = all.reduce((max, p) => Math.max(max, p.order), -1);
 
+    let slug = slugify(title.en);
+    const existingSlugs = new Set(all.map((p) => p.slug));
+    if (existingSlugs.has(slug)) {
+      let counter = 2;
+      while (existingSlugs.has(`${slug}-${counter}`)) {
+        counter++;
+      }
+      slug = `${slug}-${counter}`;
+    }
+
     return ctx.db.insert("projects", {
-      ...args,
+      title,
+      slug,
+      subtitle: { en: "", it: "" },
+      description: { en: "", it: "" },
+      tagline: { en: "", it: "" },
       coverImageUrl: undefined,
       order: maxOrder + 1,
       published: false,
@@ -80,7 +91,7 @@ export const update = adminMutation({
     title: v.optional(v.object({ en: v.string(), it: v.string() })),
     subtitle: v.optional(v.object({ en: v.string(), it: v.string() })),
     description: v.optional(v.object({ en: v.string(), it: v.string() })),
-    category: v.optional(v.object({ en: v.string(), it: v.string() })),
+    tagline: v.optional(v.object({ en: v.string(), it: v.string() })),
     slug: v.optional(v.string()),
     coverImageUrl: v.optional(v.string()),
     published: v.optional(v.boolean()),

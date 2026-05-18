@@ -12,21 +12,67 @@ function asAdmin(t: ReturnType<typeof convexTest<typeof schema.tables>>) {
   return t.withIdentity({ name: "Admin" });
 }
 
+describe("projects.create", () => {
+  it("creates project with just a title, derives slug from EN title", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const id = await admin.mutation(api.projects.create, {
+      title: { en: "Solstice", it: "Solstice" },
+    });
+
+    const project = await admin.query(api.projects.getById, { id });
+    expect(project).toMatchObject({
+      slug: "solstice",
+      title: { en: "Solstice", it: "Solstice" },
+      subtitle: { en: "", it: "" },
+      description: { en: "", it: "" },
+      tagline: { en: "", it: "" },
+      published: false,
+    });
+  });
+
+  it("auto-deduplicates slug on collision", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    await admin.mutation(api.projects.create, {
+      title: { en: "Solstice", it: "Solstice" },
+    });
+    const id2 = await admin.mutation(api.projects.create, {
+      title: { en: "Solstice", it: "Solstice" },
+    });
+
+    const project2 = await admin.query(api.projects.getById, { id: id2 });
+    expect(project2?.slug).toBe("solstice-2");
+  });
+
+  it("assigns incrementing order values", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const id1 = await admin.mutation(api.projects.create, {
+      title: { en: "First", it: "Primo" },
+    });
+    const id2 = await admin.mutation(api.projects.create, {
+      title: { en: "Second", it: "Secondo" },
+    });
+
+    const p1 = await admin.query(api.projects.getById, { id: id1 });
+    const p2 = await admin.query(api.projects.getById, { id: id2 });
+    expect(p1?.order).toBe(0);
+    expect(p2?.order).toBe(1);
+  });
+});
+
 describe("projects.getById", () => {
   it("returns a project by ID", async () => {
     const t = convexTest(schema, modules);
     const admin = asAdmin(t);
     const id = await admin.mutation(api.projects.create, {
-      slug: "test-project",
       title: { en: "Test", it: "Prova" },
-      subtitle: { en: "Sub", it: "Sotto" },
-      description: { en: "Desc", it: "Desc" },
-      category: { en: "Cat", it: "Cat" },
     });
 
     const project = await admin.query(api.projects.getById, { id });
     expect(project).toMatchObject({
-      slug: "test-project",
+      slug: "test",
       title: { en: "Test", it: "Prova" },
     });
   });
@@ -35,11 +81,7 @@ describe("projects.getById", () => {
     const t = convexTest(schema, modules);
     const admin = asAdmin(t);
     const id = await admin.mutation(api.projects.create, {
-      slug: "temp",
-      title: { en: "T", it: "T" },
-      subtitle: { en: "S", it: "S" },
-      description: { en: "D", it: "D" },
-      category: { en: "C", it: "C" },
+      title: { en: "Temp", it: "Temp" },
     });
     await admin.mutation(api.projects.remove, { id });
 

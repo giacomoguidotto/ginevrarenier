@@ -14,6 +14,7 @@ import type * as projectImages from "../projectImages.js";
 import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
 import type * as siteContent from "../siteContent.js";
+import type * as slugify from "../slugify.js";
 import type * as socialLinks from "../socialLinks.js";
 
 import type {
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   projects: typeof projects;
   seed: typeof seed;
   siteContent: typeof siteContent;
+  slugify: typeof slugify;
   socialLinks: typeof socialLinks;
 }>;
 

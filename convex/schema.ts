@@ -21,7 +21,7 @@ export default defineSchema({
     title: localizedText,
     subtitle: localizedText,
     description: localizedText,
-    category: localizedText,
+    tagline: localizedText,
     coverImageUrl: v.optional(v.string()),
     order: v.number(),
     published: v.boolean(),

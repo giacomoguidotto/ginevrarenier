@@ -21,7 +21,7 @@ vi.mock("convex/react", () => ({
         title: { en: "Solstice", it: "Solstizio" },
         subtitle: { en: "Sub EN", it: "Sub IT" },
         description: { en: "Desc EN", it: "Desc IT" },
-        category: { en: "Cat EN", it: "Cat IT" },
+        tagline: { en: "Tag EN", it: "Tag IT" },
         slug: "solstice",
         published: false,
       };
@@ -84,7 +84,7 @@ describe("Section with virtual sections", () => {
     expect(data.title).toEqual({ en: "Solstice", it: "Solstizio" });
     expect(data.subtitle).toEqual({ en: "Sub EN", it: "Sub IT" });
     expect(data.description).toEqual({ en: "Desc EN", it: "Desc IT" });
-    expect(data.category).toEqual({ en: "Cat EN", it: "Cat IT" });
+    expect(data.tagline).toEqual({ en: "Tag EN", it: "Tag IT" });
   });
 
   it("provides post entity data mapped to section data shape", () => {
