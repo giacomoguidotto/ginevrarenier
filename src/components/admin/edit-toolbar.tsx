@@ -2,6 +2,9 @@
 
 import { useClerk } from "@clerk/nextjs";
 import {
+  ArrowUpDown,
+  Eye,
+  EyeOff,
   GripVertical,
   LogOut,
   Plus,
@@ -412,6 +415,8 @@ function SaveConfirmDialog({
   const hasTextEdits = summary && summary.textEdits.length > 0;
   const hasCreations = summary && summary.createdEntities.length > 0;
   const hasDeletions = summary && summary.pendingDeletions.length > 0;
+  const hasPublishOverrides = summary && summary.publishOverrides.length > 0;
+  const hasReorder = summary && summary.reorderedEntityTypes.length > 0;
 
   const singleLocaleWarnings = hasTextEdits
     ? detectSingleLocaleEdits(summary.textEdits)
@@ -470,6 +475,35 @@ function SaveConfirmDialog({
                 >
                   <Trash2 className="h-3 w-3 shrink-0" />
                   <span>Delete {formatEntityType(ref.entityType)}</span>
+                </li>
+              ))
+            : null}
+          {hasPublishOverrides
+            ? summary?.publishOverrides.map((ovr) => (
+                <li
+                  className="flex items-baseline gap-2"
+                  key={`publish\0${ovr.entityType}\0${ovr.id}`}
+                >
+                  {ovr.published ? (
+                    <Eye className="h-3 w-3 shrink-0 text-emerald-500" />
+                  ) : (
+                    <EyeOff className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  )}
+                  <span>
+                    {ovr.published ? "Publish" : "Unpublish"}{" "}
+                    {formatEntityType(ovr.entityType)}
+                  </span>
+                </li>
+              ))
+            : null}
+          {hasReorder
+            ? summary?.reorderedEntityTypes.map((type) => (
+                <li
+                  className="flex items-baseline gap-2 text-muted-foreground"
+                  key={`reorder\0${type}`}
+                >
+                  <ArrowUpDown className="h-3 w-3 shrink-0" />
+                  <span>Reorder {formatEntityType(type)}s</span>
                 </li>
               ))
             : null}
