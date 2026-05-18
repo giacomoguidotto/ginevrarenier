@@ -1,8 +1,10 @@
 "use client";
 
+import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -99,7 +101,13 @@ export function ProjectPageClient() {
             name={`project:${projectId}`}
           >
             <FieldVisibilityProvider>
-              <ProjectHeader imageCount={images.length} />
+              <ProjectHeader
+                imageCount={images.length}
+                projectId={projectId as string}
+                published={
+                  (project as Record<string, unknown>).published as boolean
+                }
+              />
             </FieldVisibilityProvider>
           </Section>
 
@@ -144,12 +152,43 @@ export function ProjectPageClient() {
   );
 }
 
-function ProjectHeader({ imageCount }: { imageCount: number }) {
+function ProjectHeader({
+  imageCount,
+  projectId,
+  published,
+}: {
+  imageCount: number;
+  projectId: string;
+  published: boolean;
+}) {
   const { markVisible } = useFieldVisibility();
+  const { isEditMode } = useEditMode();
   const t = useTranslations("common");
+  const updateProject = useMutation(api.projects.update);
 
   return (
     <div className="mb-16 max-w-3xl">
+      {isEditMode && !published && (
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+        >
+          <button
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-foreground/10 px-4 py-2 text-foreground/70 text-sm transition-colors hover:bg-foreground/20 hover:text-foreground"
+            onClick={() =>
+              updateProject({
+                id: projectId as Id<"projects">,
+                published: true,
+              })
+            }
+            type="button"
+          >
+            <Eye className="h-4 w-4" />
+            Publish project
+          </button>
+        </motion.div>
+      )}
       <motion.div
         animate={{ opacity: 1, y: 0 }}
         initial={{ opacity: 0, y: 20 }}
@@ -158,7 +197,7 @@ function ProjectHeader({ imageCount }: { imageCount: number }) {
         <Field
           as="p"
           className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-          name="category"
+          name="tagline"
         />
       </motion.div>
       <motion.div
