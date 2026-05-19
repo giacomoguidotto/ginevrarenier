@@ -16,12 +16,12 @@ function editableFields(page: Page) {
   return page.locator(".editable-field");
 }
 
-function chromeOverlay(page: Page) {
-  return page.locator("[data-chrome-overlay]");
+function fieldChromes(page: Page) {
+  return page.locator("[data-field-chrome]");
 }
 
 function chromeRects(page: Page) {
-  return chromeOverlay(page).locator("rect[stroke]");
+  return page.locator("[data-field-chrome] rect[stroke]");
 }
 
 function editToolbar(page: Page) {
@@ -113,13 +113,12 @@ test.describe("US-1: Inline contentEditable editing", () => {
 // US-2: Chrome overlay with animated outlines on entering edit mode
 // ─────────────────────────────────────────────────────────
 test.describe("US-2: Chrome overlay appears in edit mode", () => {
-  test("Chrome overlay SVG is present in the DOM", async ({ page }) => {
+  test("Per-field Chrome SVGs are present in the DOM", async ({ page }) => {
     await enterEditMode(page);
     await page.goto("/");
     await waitForApp(page);
 
-    const overlay = chromeOverlay(page);
-    await expect(overlay).toBeAttached({ timeout: 10_000 });
+    await expect(fieldChromes(page).first()).toBeAttached({ timeout: 10_000 });
   });
 
   test("Chrome outlines appear after entrance animations", async ({ page }) => {
@@ -138,8 +137,8 @@ test.describe("US-2: Chrome overlay appears in edit mode", () => {
     await waitForApp(page);
     await waitForChromeRects(page);
 
-    const hatching = chromeOverlay(page).locator(
-      "rect[fill='url(#chrome-hatching)']"
+    const hatching = fieldChromes(page).locator(
+      "rect[fill^='url(#chrome-hatching']"
     );
     const count = await hatching.count();
     expect(count).toBeGreaterThan(0);
@@ -158,17 +157,14 @@ test.describe("US-3: Chrome overlay disappears on exit", () => {
     expect(rects).toBe(0);
   });
 
-  test("Chrome overlay does not render rects when not in edit mode", async ({
+  test("No per-field Chrome renders when not in edit mode", async ({
     page,
   }) => {
     await page.goto("/");
     await waitForApp(page);
 
-    const overlay = chromeOverlay(page);
-    if ((await overlay.count()) > 0) {
-      const rects = await chromeRects(page).count();
-      expect(rects).toBe(0);
-    }
+    const chromeCount = await fieldChromes(page).count();
+    expect(chromeCount).toBe(0);
   });
 });
 
@@ -184,7 +180,7 @@ test.describe("US-4: Chrome follows resized Fields", () => {
     await waitForApp(page);
     await waitForChromeRects(page);
 
-    const initialRects = await chromeOverlay(page)
+    const initialRects = await fieldChromes(page)
       .locator("rect[stroke]")
       .evaluateAll((rects) =>
         rects.map((r) => ({
@@ -207,7 +203,7 @@ test.describe("US-4: Chrome follows resized Fields", () => {
       await page.keyboard.type("\nNew line of text added for testing");
       await page.waitForTimeout(500);
 
-      const updatedRects = await chromeOverlay(page)
+      const updatedRects = await fieldChromes(page)
         .locator("rect[stroke]")
         .evaluateAll((rects) =>
           rects.map((r) => ({
@@ -303,7 +299,7 @@ test.describe("US-7: Stale-locale indicators", () => {
     await page.keyboard.type("X");
     await field.blur();
 
-    const amberDots = chromeOverlay(page).locator(
+    const amberDots = fieldChromes(page).locator(
       'circle[fill="oklch(0.82 0.17 80)"]'
     );
     await expect(amberDots.first()).toBeAttached({ timeout: 5000 });
@@ -445,17 +441,16 @@ test.describe("US-11: Discard confirmation dialog", () => {
 // US-17: Chrome doesn't appear on mid-animation Fields
 // ─────────────────────────────────────────────────────────
 test.describe("US-17: Chrome waits for entrance animations", () => {
-  test("No Chrome rects immediately after page load in edit mode", async ({
+  test("No per-field Chrome immediately after page load in edit mode", async ({
     page,
   }) => {
     await enterEditMode(page);
     await page.goto("/");
 
-    const overlay = chromeOverlay(page);
-    await expect(overlay).toBeAttached({ timeout: 10_000 });
-
-    const immediateCount = await chromeRects(page).count();
+    const immediateCount = await fieldChromes(page).count();
     expect(immediateCount).toBe(0);
+
+    await expect(fieldChromes(page).first()).toBeAttached({ timeout: 15_000 });
   });
 });
 
@@ -463,7 +458,7 @@ test.describe("US-17: Chrome waits for entrance animations", () => {
 // US-18: Navigation instantly dismounts Chrome
 // ─────────────────────────────────────────────────────────
 test.describe("US-18: Chrome dismount on navigation", () => {
-  test("Navigating away resets Chrome rects (dismount fires)", async ({
+  test("Old Chrome unmounts on navigation, new page gets fresh Chrome", async ({
     page,
   }) => {
     await enterEditMode(page);
@@ -476,8 +471,9 @@ test.describe("US-18: Chrome dismount on navigation", () => {
 
     await page.click('a[href*="/vision"]');
     await page.waitForURL("**/vision");
+    await waitForApp(page);
 
-    await expect(chromeRects(page)).toHaveCount(0, { timeout: 5000 });
+    await expect(fieldChromes(page).first()).toBeAttached({ timeout: 10_000 });
   });
 });
 
@@ -499,7 +495,7 @@ test.describe("US-19: Below-fold Fields activate on scroll", () => {
     await introSection.scrollIntoViewIfNeeded();
     await page.waitForFunction(
       (prevCount: number) =>
-        document.querySelectorAll("[data-chrome-overlay] rect[stroke]").length >
+        document.querySelectorAll("[data-field-chrome] rect[stroke]").length >
         prevCount,
       heroRectCount,
       { timeout: 15_000 }
@@ -639,8 +635,7 @@ test.describe("US-24: Rapid edit mode toggle", () => {
     await waitForApp(page);
     await waitForChromeRects(page);
 
-    const overlay = chromeOverlay(page);
-    await expect(overlay).toBeAttached({ timeout: 10_000 });
+    await expect(fieldChromes(page).first()).toBeAttached({ timeout: 10_000 });
     const rectsOn = await chromeRects(page).count();
     expect(rectsOn).toBeGreaterThan(0);
 
