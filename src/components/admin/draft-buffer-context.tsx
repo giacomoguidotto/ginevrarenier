@@ -231,16 +231,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const read: Buffer["read"] = useCallback(
-    (section, field, locale) => bufferRef.current.read(section, field, locale),
-    []
-  );
-
-  const editedLocales: Buffer["editedLocales"] = useCallback(
-    (section, field) => bufferRef.current.editedLocales(section, field),
-    []
-  );
-
   const write = useCallback(
     (section: string, field: string, locale: string, value: string) => {
       bufferRef.current.write(section, field, locale, value);
@@ -325,29 +315,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [schedulePersist]
   );
 
-  const sectionChanges: Buffer["sectionChanges"] = useCallback(
-    (section) => bufferRef.current.sectionChanges(section),
-    []
-  );
-
-  const isFieldDeleted = useCallback(
-    (section: string, keyPrefix: string) =>
-      bufferRef.current.isFieldDeleted(section, keyPrefix),
-    []
-  );
-
-  const isPendingDeletion = useCallback(
-    (entityType: string, id: string) =>
-      bufferRef.current.isPendingDeletion(entityType, id),
-    []
-  );
-
-  const isSessionCreated = useCallback(
-    (entityType: string, id: string) =>
-      bufferRef.current.isSessionCreated(entityType, id),
-    []
-  );
-
   const setPublishOverride = useCallback(
     (entityType: string, id: string, published: boolean) => {
       bufferRef.current.setPublishOverride(entityType, id, published);
@@ -356,12 +323,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       schedulePersist();
     },
     [schedulePersist]
-  );
-
-  const getPublishOverride = useCallback(
-    (entityType: string, id: string) =>
-      bufferRef.current.getPublishOverride(entityType, id),
-    []
   );
 
   const clearPublishOverride = useCallback(
@@ -382,11 +343,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       schedulePersist();
     },
     [schedulePersist]
-  );
-
-  const getReorderList = useCallback(
-    (entityType: string) => bufferRef.current.getReorderList(entityType),
-    []
   );
 
   const removeEntity = useCallback(
@@ -516,20 +472,32 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     };
   }, [allContent]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: editVersion forces new read-function identities so React Compiler cannot cache stale return values
   const ops = useMemo(
     () => ({
       cancelDeletion,
       cancelFieldDeletion,
       clearPublishOverride,
       deleteField,
-      editedLocales,
-      getPublishOverride,
-      getReorderList,
-      isFieldDeleted,
-      isPendingDeletion,
-      isSessionCreated,
-      read,
-      sectionChanges,
+      editedLocales: ((section: string, field: string) =>
+        bufferRef.current.editedLocales(
+          section,
+          field
+        )) as Buffer["editedLocales"],
+      getPublishOverride: (entityType: string, id: string) =>
+        bufferRef.current.getPublishOverride(entityType, id),
+      getReorderList: (entityType: string) =>
+        bufferRef.current.getReorderList(entityType),
+      isFieldDeleted: (section: string, keyPrefix: string) =>
+        bufferRef.current.isFieldDeleted(section, keyPrefix),
+      isPendingDeletion: (entityType: string, id: string) =>
+        bufferRef.current.isPendingDeletion(entityType, id),
+      isSessionCreated: (entityType: string, id: string) =>
+        bufferRef.current.isSessionCreated(entityType, id),
+      read: ((section: string, field: string, locale: string) =>
+        bufferRef.current.read(section, field, locale)) as Buffer["read"],
+      sectionChanges: ((section: string) =>
+        bufferRef.current.sectionChanges(section)) as Buffer["sectionChanges"],
       setPublishOverride,
       setReorderList,
       trackCreation,
@@ -537,18 +505,11 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       write,
     }),
     [
+      editVersion,
       cancelDeletion,
       cancelFieldDeletion,
       clearPublishOverride,
       deleteField,
-      editedLocales,
-      getPublishOverride,
-      getReorderList,
-      isFieldDeleted,
-      isPendingDeletion,
-      isSessionCreated,
-      read,
-      sectionChanges,
       setPublishOverride,
       setReorderList,
       trackCreation,
