@@ -54,7 +54,7 @@ export function Field({
   const [dims, setDims] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    const el = containerRef?.current ?? wrapperRef.current;
+    const el = containerRef?.current ?? elRef.current;
     if (!el) {
       return;
     }
