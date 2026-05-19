@@ -5,6 +5,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import type { ReactNode } from "react";
 import { createContext, useContext } from "react";
+import { usePageBoundaryRegistration } from "./page-boundary";
 import { routeSection } from "./save-routing";
 
 interface SectionContextValue {
@@ -41,6 +42,8 @@ export function Section({
     api.blogPosts.getById,
     route.kind === "post" ? { id: route.id as Id<"blogPosts"> } : "skip"
   );
+
+  usePageBoundaryRegistration(name, label ?? name);
 
   let data: Record<string, { en: string; it: string }> | undefined;
 
