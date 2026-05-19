@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { ChromeProvider } from "@/components/admin/chrome-context";
-import { ChromeDismountOnNavigate } from "@/components/admin/chrome-dismount-on-navigate";
-import { ChromeOverlay } from "@/components/admin/chrome-overlay";
 import { DraftBufferProvider } from "@/components/admin/draft-buffer-context";
 import { EditFab } from "@/components/admin/edit-fab";
 import { EditModeProvider } from "@/components/admin/edit-mode-context";
@@ -123,19 +120,15 @@ export default async function LocaleLayout({ children, params }: Props) {
           <TooltipProvider>
             <EditModeProvider>
               <DraftBufferProvider>
-                <ChromeProvider>
-                  <ChromeDismountOnNavigate />
-                  <ChromeOverlay />
-                  <div className="flex min-h-screen flex-col">
-                    <Navbar />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                  </div>
-                  <UnsavedChangesGuard>
-                    <EditFab />
-                    <EditToolbarWrapper />
-                  </UnsavedChangesGuard>
-                </ChromeProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Navbar />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
+                <UnsavedChangesGuard>
+                  <EditFab />
+                  <EditToolbarWrapper />
+                </UnsavedChangesGuard>
               </DraftBufferProvider>
             </EditModeProvider>
           </TooltipProvider>
