@@ -59,7 +59,15 @@ class ResizeObserverMock {
   constructor(cb: ResizeObserverCallback) {
     this.cb = cb;
   }
-  observe() {
+  observe(target: Element) {
+    Object.defineProperty(target, "clientWidth", {
+      value: 200,
+      configurable: true,
+    });
+    Object.defineProperty(target, "clientHeight", {
+      value: 100,
+      configurable: true,
+    });
     this.cb(
       [{ contentRect: { width: 200, height: 100 } } as ResizeObserverEntry],
       this as unknown as ResizeObserver

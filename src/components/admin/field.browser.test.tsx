@@ -62,7 +62,15 @@ class ResizeObserverMock {
   constructor(cb: ResizeObserverCallback) {
     this.cb = cb;
   }
-  observe() {
+  observe(target: Element) {
+    Object.defineProperty(target, "clientWidth", {
+      value: 200,
+      configurable: true,
+    });
+    Object.defineProperty(target, "clientHeight", {
+      value: 100,
+      configurable: true,
+    });
     this.cb(
       [{ contentRect: { width: 200, height: 100 } } as ResizeObserverEntry],
       this as unknown as ResizeObserver
@@ -345,6 +353,7 @@ describe("Field chrome integration", () => {
       fieldWrapper.querySelector(":scope > div > [data-field-chrome]")
     ).toBeNull();
     expect(container.style.position).toBe("relative");
+    expect(container.style.overflow).toBe("visible");
   });
 
   it("toggles focused state on focus and blur", async () => {

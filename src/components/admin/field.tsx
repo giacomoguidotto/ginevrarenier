@@ -58,9 +58,8 @@ export function Field({
     if (!el) {
       return;
     }
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setDims({ width, height });
+    const ro = new ResizeObserver(() => {
+      setDims({ width: el.clientWidth, height: el.clientHeight });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -71,10 +70,13 @@ export function Field({
     if (!(isEditMode && container)) {
       return;
     }
-    const prev = container.style.position;
+    const prevPosition = container.style.position;
+    const prevOverflow = container.style.overflow;
     container.style.position = "relative";
+    container.style.overflow = "visible";
     return () => {
-      container.style.position = prev;
+      container.style.position = prevPosition;
+      container.style.overflow = prevOverflow;
     };
   }, [isEditMode, containerRef]);
 
