@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { Check, MapPin, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type FormEvent, useState } from "react";
-import { Field } from "@/components/admin/field";
 import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import { Field } from "@/components/admin/field";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { useLocalized, useSocialLinks } from "@/lib/hooks";
@@ -53,9 +53,9 @@ export function ConnectClient() {
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
           <Section name="connect.header">
-            <FieldVisibilityProvider>
+            <ChromeEnablerProvider>
               <ConnectHeader />
-            </FieldVisibilityProvider>
+            </ChromeEnablerProvider>
           </Section>
 
           <div className="grid gap-16 lg:grid-cols-2">
@@ -321,7 +321,7 @@ export function ConnectClient() {
 }
 
 function ConnectHeader() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const { data } = useSection();
   const localized = useLocalized();
 
@@ -350,7 +350,7 @@ function ConnectHeader() {
       <motion.div
         animate={{ opacity: 1, y: 0 }}
         initial={{ opacity: 0, y: 20 }}
-        onAnimationComplete={markVisible}
+        onAnimationComplete={enable}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <Field

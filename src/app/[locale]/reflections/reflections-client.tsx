@@ -10,15 +10,15 @@ import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import {
   useDraftBufferOps,
   useEditVersion,
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
 import { Section, useSection } from "@/components/admin/section";
 import { PostCard } from "@/components/blog/post-card";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -224,9 +224,9 @@ export function ReflectionsClient({
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
           <Section name="reflections.header">
-            <FieldVisibilityProvider>
+            <ChromeEnablerProvider>
               <ReflectionsHeader />
-            </FieldVisibilityProvider>
+            </ChromeEnablerProvider>
           </Section>
 
           {/* Posts Grid */}
@@ -316,7 +316,7 @@ export function ReflectionsClient({
 }
 
 function ReflectionsHeader() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const { data } = useSection();
   const localized = useLocalized();
 
@@ -344,7 +344,7 @@ function ReflectionsHeader() {
       <motion.div
         animate={{ opacity: 1, y: 0 }}
         initial={{ opacity: 0, y: 20 }}
-        onAnimationComplete={markVisible}
+        onAnimationComplete={enable}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <Field

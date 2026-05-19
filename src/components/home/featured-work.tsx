@@ -6,11 +6,11 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useRef } from "react";
-import { Field } from "@/components/admin/field";
 import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { useLocalized, useProjects } from "@/lib/hooks";
@@ -89,9 +89,9 @@ function ProjectCard({
 export function FeaturedWork() {
   return (
     <Section name="home.featured">
-      <FieldVisibilityProvider>
+      <ChromeEnablerProvider>
         <FeaturedWorkContent />
-      </FieldVisibilityProvider>
+      </ChromeEnablerProvider>
     </Section>
   );
 }
@@ -100,7 +100,7 @@ function FeaturedWorkContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("common");
   const { projects } = useProjects();
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
 
   const featured = projects.slice(0, 5);
 
@@ -110,7 +110,7 @@ function FeaturedWorkContent() {
       <div className="mx-auto mb-16 max-w-7xl px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
-          onAnimationComplete={markVisible}
+          onAnimationComplete={enable}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}

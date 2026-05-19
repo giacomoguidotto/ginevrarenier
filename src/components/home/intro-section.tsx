@@ -3,22 +3,22 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useCallback, useRef } from "react";
+import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
 import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
 import { Section, useSection } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 
 export function IntroSection() {
   return (
     <Section name="intro">
-      <FieldVisibilityProvider>
+      <ChromeEnablerProvider>
         <IntroSectionContent />
-      </FieldVisibilityProvider>
+      </ChromeEnablerProvider>
     </Section>
   );
 }
@@ -34,7 +34,7 @@ function IntroSectionContent() {
 
   const { data } = useSection();
   const { write } = useDraftBufferOps();
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
   const portraitUrl = data?.portraitImage?.en || undefined;
@@ -86,7 +86,7 @@ function IntroSectionContent() {
           <motion.div
             className="relative z-[1] aspect-3/4 overflow-hidden rounded-lg lg:aspect-auto lg:h-[600px]"
             initial={{ opacity: 0, x: 50 }}
-            onAnimationComplete={markVisible}
+            onAnimationComplete={enable}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
             whileInView={{ opacity: 1, x: 0 }}

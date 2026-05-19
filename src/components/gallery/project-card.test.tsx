@@ -116,16 +116,14 @@ vi.mock("@/components/admin/field", () => ({
   }) => <Tag className={className} data-testid={`field-${name}`} />,
 }));
 
-vi.mock("@/components/admin/field-visibility", () => ({
-  FieldVisibilityProvider: ({ children }: { children: ReactNode }) => (
+vi.mock("@/components/admin/chrome-enabler", () => ({
+  ChromeEnablerProvider: ({ children }: { children: ReactNode }) => (
     <>{children}</>
   ),
-  useFieldVisibility: () => ({
-    visible: true,
+  useChromeEnabler: () => ({
+    enabled: true,
     // biome-ignore lint/suspicious/noEmptyBlockStatements: test stub
-    markVisible: () => {},
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: test stub
-    markHidden: () => {},
+    enable: () => {},
   }),
 }));
 

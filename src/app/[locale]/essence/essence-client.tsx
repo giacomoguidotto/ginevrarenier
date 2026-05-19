@@ -9,16 +9,16 @@ import {
 import { ArrowRight, Award, Camera, Globe, Plus, Trash2 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import {
   useDraftBufferOps,
   useDraftBufferReset,
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
@@ -32,27 +32,27 @@ export function EssenceClient() {
   return (
     <PageTransition>
       <Section name="essence.hero">
-        <FieldVisibilityProvider>
+        <ChromeEnablerProvider>
           <EssenceHero />
-        </FieldVisibilityProvider>
+        </ChromeEnablerProvider>
       </Section>
 
       <Section name="essence.achievements">
-        <FieldVisibilityProvider>
+        <ChromeEnablerProvider>
           <EssenceAchievements />
-        </FieldVisibilityProvider>
+        </ChromeEnablerProvider>
       </Section>
 
       <Section name="essence.timeline">
-        <FieldVisibilityProvider>
+        <ChromeEnablerProvider>
           <EssenceTimeline />
-        </FieldVisibilityProvider>
+        </ChromeEnablerProvider>
       </Section>
 
       <Section name="essence.cta">
-        <FieldVisibilityProvider>
+        <ChromeEnablerProvider>
           <EssenceCTA />
-        </FieldVisibilityProvider>
+        </ChromeEnablerProvider>
       </Section>
     </PageTransition>
   );
@@ -70,7 +70,7 @@ function EssenceHero() {
 
   const { data } = useSection();
   const { write } = useDraftBufferOps();
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const localized = useLocalized();
 
   const portraitUrl = data?.portraitImage?.en || undefined;
@@ -134,7 +134,7 @@ function EssenceHero() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 text-lg text-muted-foreground"
               initial={{ opacity: 0, y: 20 }}
-              onAnimationComplete={markVisible}
+              onAnimationComplete={enable}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
               <Field as="p" multiline name="bio" />
@@ -147,7 +147,7 @@ function EssenceHero() {
 }
 
 function EssenceAchievements() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
 
   return (
     <section className="bg-charcoal py-24">
@@ -161,7 +161,7 @@ function EssenceAchievements() {
                 initial={{ opacity: 0, y: 40 }}
                 key={key}
                 onAnimationComplete={
-                  index === achievementKeys.length - 1 ? markVisible : undefined
+                  index === achievementKeys.length - 1 ? enable : undefined
                 }
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
@@ -243,7 +243,7 @@ function useTimelineEntries() {
 }
 
 function EssenceTimeline() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const { isEditMode } = useEditMode();
   const { entries, handleAdd, handleDelete, newIds } = useTimelineEntries();
 
@@ -253,7 +253,7 @@ function EssenceTimeline() {
         <motion.div
           className="mb-16 text-center"
           initial={{ opacity: 0, y: 20 }}
-          onAnimationComplete={markVisible}
+          onAnimationComplete={enable}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
         >
@@ -269,14 +269,14 @@ function EssenceTimeline() {
           <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
 
           {entries.map(({ id }, index) => (
-            <FieldVisibilityProvider key={id}>
+            <ChromeEnablerProvider key={id}>
               <TimelineEntryInner
                 id={id}
                 index={index}
                 isNew={newIds.has(id)}
                 onDelete={handleDelete}
               />
-            </FieldVisibilityProvider>
+            </ChromeEnablerProvider>
           ))}
 
           <AnimatePresence>
@@ -319,7 +319,7 @@ function TimelineEntryInner({
   onDelete: (id: string) => void;
 }) {
   const { isEditMode } = useEditMode();
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
 
   const animateProps = isNew
     ? { animate: { opacity: 1, x: 0 } }
@@ -331,7 +331,7 @@ function TimelineEntryInner({
         index % 2 === 0 ? "md:pr-12 md:text-right" : "md:ml-auto md:pl-12"
       }`}
       initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-      onAnimationComplete={markVisible}
+      onAnimationComplete={enable}
       transition={{ duration: 0.5 }}
       {...animateProps}
     >
@@ -384,7 +384,7 @@ function TimelineEntryInner({
 }
 
 function EssenceCTA() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
   return (
@@ -412,7 +412,7 @@ function EssenceCTA() {
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          onAnimationComplete={markVisible}
+          onAnimationComplete={enable}
           transition={{ delay: 0.2 }}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}
