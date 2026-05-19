@@ -22,7 +22,9 @@ export interface PublishOverrideEntry {
 }
 
 export interface ChangeSummary {
+  autoTranslations: { section: string; field: string; locale: string }[];
   createdEntities: EntityRef[];
+  dismissals: { section: string; field: string; locale: string }[];
   fieldDeletions: FieldDeletion[];
   imageSwaps: ImageSwap[];
   pendingDeletions: EntityRef[];
@@ -37,8 +39,10 @@ export interface EntityRef {
 }
 
 export interface SerializedDraftBuffer {
+  autoTranslations?: string[];
   creations: string[];
   deletions: string[];
+  dismissals?: string[];
   fieldDels: string[];
   publishOverrides?: [string, boolean][];
   reorderLists?: [string, string[]][];
@@ -52,6 +56,8 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
   const fieldDels = new Set<string>(initial?.fieldDels);
   const pubOverrides = new Map<string, boolean>(initial?.publishOverrides);
   const reorderLists = new Map<string, string[]>(initial?.reorderLists);
+  const dismissals = new Set<string>(initial?.dismissals);
+  const autoTranslations = new Set<string>(initial?.autoTranslations);
 
   function key(section: string, field: string, locale: string) {
     return `${section}\0${field}\0${locale}`;
@@ -66,6 +72,24 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
       return store.get(key(section, field, locale));
     },
     write(section: string, field: string, locale: string, value: string): void {
+      const prefix = `${section}\0${field}\0`;
+      const thisKey = `${prefix}${locale}`;
+      const hasForOtherLocale = (set: Set<string>) =>
+        [...set].some((k) => k.startsWith(prefix) && k !== thisKey);
+      if (hasForOtherLocale(dismissals)) {
+        for (const k of dismissals) {
+          if (k.startsWith(prefix)) {
+            dismissals.delete(k);
+          }
+        }
+      }
+      if (hasForOtherLocale(autoTranslations)) {
+        for (const k of autoTranslations) {
+          if (k.startsWith(prefix)) {
+            autoTranslations.delete(k);
+          }
+        }
+      }
       store.set(key(section, field, locale), value);
     },
     hasChanges(): boolean {
@@ -154,6 +178,12 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         }
       );
 
+      const toFieldLocaleList = (set: Set<string>) =>
+        [...set].map((k) => {
+          const [s, f, l] = k.split("\0");
+          return { section: s, field: f, locale: l };
+        });
+
       return {
         imageSwaps: [],
         textEdits,
@@ -162,6 +192,8 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         fieldDeletions: fds,
         publishOverrides: pubOvrs,
         reorderedEntityTypes: [...reorderLists.keys()],
+        dismissals: toFieldLocaleList(dismissals),
+        autoTranslations: toFieldLocaleList(autoTranslations),
       };
     },
     editedLocales(section: string, field: string): Set<string> {
@@ -239,6 +271,26 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         return { entityType, id, published };
       });
     },
+    dismiss(section: string, field: string, locale: string): void {
+      dismissals.add(key(section, field, locale));
+    },
+    isDismissed(section: string, field: string, locale: string): boolean {
+      return dismissals.has(key(section, field, locale));
+    },
+    resetDismissal(section: string, field: string): void {
+      const prefix = `${section}\0${field}\0`;
+      for (const k of dismissals) {
+        if (k.startsWith(prefix)) {
+          dismissals.delete(k);
+        }
+      }
+    },
+    markAutoTranslated(section: string, field: string, locale: string): void {
+      autoTranslations.add(key(section, field, locale));
+    },
+    isAutoTranslated(section: string, field: string, locale: string): boolean {
+      return autoTranslations.has(key(section, field, locale));
+    },
     setReorderList(entityType: string, ids: string[]): void {
       reorderLists.set(entityType, ids);
     },
@@ -252,6 +304,8 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
       fieldDels.clear();
       pubOverrides.clear();
       reorderLists.clear();
+      dismissals.clear();
+      autoTranslations.clear();
     },
     serialize(): SerializedDraftBuffer {
       return {
@@ -261,6 +315,8 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         fieldDels: [...fieldDels],
         publishOverrides: [...pubOverrides.entries()],
         reorderLists: [...reorderLists.entries()],
+        dismissals: [...dismissals],
+        autoTranslations: [...autoTranslations],
       };
     },
   };

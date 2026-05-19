@@ -145,7 +145,9 @@ const EditVersionContext = createContext(0);
 
 const StateContext = createContext<DraftBufferState>({
   changeSummary: () => ({
+    autoTranslations: [],
     createdEntities: [],
+    dismissals: [],
     fieldDeletions: [],
     imageSwaps: [],
     pendingDeletions: [],
@@ -469,6 +471,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       fieldDeletions: textSummary.fieldDeletions,
       publishOverrides: textSummary.publishOverrides,
       reorderedEntityTypes: textSummary.reorderedEntityTypes,
+      dismissals: textSummary.dismissals,
+      autoTranslations: textSummary.autoTranslations,
     };
   }, [allContent]);
 

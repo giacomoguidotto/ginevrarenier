@@ -161,4 +161,139 @@ describe("Staleness Engine", () => {
     });
     expect(stale).toHaveLength(2);
   });
+
+  describe("Dismissals", () => {
+    it("dismissed field is not stale", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits, {
+        dismissals: [{ section: "hero", field: "title", locale: "it" }],
+      });
+      expect(engine.isStale("hero", "title", "it")).toBe(false);
+    });
+
+    it("dismissed field has fieldStatus 'dismissed'", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits, {
+        dismissals: [{ section: "hero", field: "title", locale: "it" }],
+      });
+      expect(engine.fieldStatus("hero", "title", "it")).toBe("dismissed");
+    });
+
+    it("staleFields excludes dismissed fields", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits, {
+        dismissals: [{ section: "hero", field: "title", locale: "it" }],
+      });
+      expect(engine.staleFields()).toHaveLength(0);
+    });
+  });
+
+  describe("Auto-Translations", () => {
+    it("auto-translated field is not stale", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits, {
+        autoTranslations: [{ section: "hero", field: "title", locale: "it" }],
+      });
+      expect(engine.isStale("hero", "title", "it")).toBe(false);
+    });
+
+    it("auto-translated field has fieldStatus 'system-filled'", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits, {
+        autoTranslations: [{ section: "hero", field: "title", locale: "it" }],
+      });
+      expect(engine.fieldStatus("hero", "title", "it")).toBe("system-filled");
+    });
+
+    it("staleFields excludes auto-translated fields", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits, {
+        autoTranslations: [{ section: "hero", field: "title", locale: "it" }],
+      });
+      expect(engine.staleFields()).toHaveLength(0);
+    });
+  });
+
+  describe("fieldStatus", () => {
+    it("returns 'fresh' for non-stale field", () => {
+      const engine = createStalenessEngine([]);
+      expect(engine.fieldStatus("hero", "title", "en")).toBe("fresh");
+    });
+
+    it("returns 'stale' for undismissed stale field", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits);
+      expect(engine.fieldStatus("hero", "title", "it")).toBe("stale");
+    });
+
+    it("returns 'fresh' for the edited locale", () => {
+      const edits: TextEdit[] = [
+        {
+          section: "hero",
+          field: "title",
+          locale: "en",
+          newValue: "Hello",
+          oldValue: undefined,
+        },
+      ];
+      const engine = createStalenessEngine(edits);
+      expect(engine.fieldStatus("hero", "title", "en")).toBe("fresh");
+    });
+  });
 });

@@ -59,7 +59,9 @@ describe("Draft Buffer", () => {
   it("changeSummary returns empty arrays when no changes", () => {
     const buffer = createDraftBuffer();
     expect(buffer.changeSummary()).toEqual({
+      autoTranslations: [],
       createdEntities: [],
+      dismissals: [],
       fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
@@ -140,7 +142,9 @@ describe("Draft Buffer", () => {
     buffer.write("hero", "title", "en", "Hello");
     buffer.discard();
     expect(buffer.changeSummary()).toEqual({
+      autoTranslations: [],
       createdEntities: [],
+      dismissals: [],
       fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
@@ -423,6 +427,8 @@ describe("Draft Buffer", () => {
         fieldDels: [],
         publishOverrides: [],
         reorderLists: [],
+        dismissals: [],
+        autoTranslations: [],
       });
     });
   });
@@ -520,6 +526,136 @@ describe("Draft Buffer", () => {
         ])
       );
       expect(summary.publishOverrides).toHaveLength(2);
+    });
+  });
+
+  describe("Dismissals", () => {
+    it("dismiss stores and isDismissed reads back", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
+      buffer.dismiss("hero", "title", "it");
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(true);
+    });
+
+    it("resetDismissal clears all dismissals for a field", () => {
+      const buffer = createDraftBuffer();
+      buffer.dismiss("hero", "title", "it");
+      buffer.dismiss("hero", "title", "en");
+      buffer.resetDismissal("hero", "title");
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
+      expect(buffer.isDismissed("hero", "title", "en")).toBe(false);
+    });
+
+    it("write to source locale resets dismissals for that field", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.dismiss("hero", "title", "it");
+      buffer.write("hero", "title", "en", "Hello v2");
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
+    });
+
+    it("write to dismissed locale does not reset dismissal", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.dismiss("hero", "title", "it");
+      buffer.write("hero", "title", "it", "Ciao");
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(true);
+    });
+
+    it("dismissals survive serialize/deserialize", () => {
+      const original = createDraftBuffer();
+      original.dismiss("hero", "title", "it");
+      const restored = createDraftBuffer(original.serialize());
+      expect(restored.isDismissed("hero", "title", "it")).toBe(true);
+    });
+
+    it("hydrating old format without dismissals defaults to empty", () => {
+      const legacy = {
+        store: [] as [string, string][],
+        creations: [],
+        deletions: [],
+        fieldDels: [],
+      };
+      const buffer = createDraftBuffer(legacy);
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
+    });
+
+    it("changeSummary includes dismissals", () => {
+      const buffer = createDraftBuffer();
+      buffer.dismiss("hero", "title", "it");
+      buffer.dismiss("essence", "heading", "en");
+      const summary = buffer.changeSummary();
+      expect(summary.dismissals).toEqual(
+        expect.arrayContaining([
+          { section: "hero", field: "title", locale: "it" },
+          { section: "essence", field: "heading", locale: "en" },
+        ])
+      );
+      expect(summary.dismissals).toHaveLength(2);
+    });
+
+    it("discard clears dismissals", () => {
+      const buffer = createDraftBuffer();
+      buffer.dismiss("hero", "title", "it");
+      buffer.discard();
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
+    });
+
+    it("resetDismissal does not affect other fields", () => {
+      const buffer = createDraftBuffer();
+      buffer.dismiss("hero", "title", "it");
+      buffer.dismiss("hero", "subtitle", "it");
+      buffer.resetDismissal("hero", "title");
+      expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
+      expect(buffer.isDismissed("hero", "subtitle", "it")).toBe(true);
+    });
+  });
+
+  describe("Auto-Translations", () => {
+    it("markAutoTranslated stores and isAutoTranslated reads back", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(false);
+      buffer.markAutoTranslated("hero", "title", "it");
+      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(true);
+    });
+
+    it("write to source locale resets auto-translations for that field", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.markAutoTranslated("hero", "title", "it");
+      buffer.write("hero", "title", "en", "Hello v2");
+      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(false);
+    });
+
+    it("write to auto-translated locale does not reset marker", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.markAutoTranslated("hero", "title", "it");
+      buffer.write("hero", "title", "it", "Ciao v2");
+      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(true);
+    });
+
+    it("auto-translations survive serialize/deserialize", () => {
+      const original = createDraftBuffer();
+      original.markAutoTranslated("hero", "title", "it");
+      const restored = createDraftBuffer(original.serialize());
+      expect(restored.isAutoTranslated("hero", "title", "it")).toBe(true);
+    });
+
+    it("discard clears auto-translations", () => {
+      const buffer = createDraftBuffer();
+      buffer.markAutoTranslated("hero", "title", "it");
+      buffer.discard();
+      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(false);
+    });
+
+    it("changeSummary includes auto-translations", () => {
+      const buffer = createDraftBuffer();
+      buffer.markAutoTranslated("hero", "title", "it");
+      const summary = buffer.changeSummary();
+      expect(summary.autoTranslations).toEqual([
+        { section: "hero", field: "title", locale: "it" },
+      ]);
     });
   });
 
