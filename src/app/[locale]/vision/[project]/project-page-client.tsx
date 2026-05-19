@@ -8,13 +8,13 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { Field } from "@/components/admin/field";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
 import { Section } from "@/components/admin/section";
 import { useStableEntity } from "@/components/admin/use-stable-entity";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
@@ -100,7 +100,7 @@ export function ProjectPageClient() {
             label={`Project: ${projectTitle?.en ?? ""}`}
             name={`project:${projectId}`}
           >
-            <FieldVisibilityProvider>
+            <ChromeEnablerProvider>
               <ProjectHeader
                 imageCount={images.length}
                 projectId={projectId as string}
@@ -108,7 +108,7 @@ export function ProjectPageClient() {
                   (project as Record<string, unknown>).published as boolean
                 }
               />
-            </FieldVisibilityProvider>
+            </ChromeEnablerProvider>
           </Section>
 
           {/* Image Grid — edit mode shows sortable grid with upload */}
@@ -161,7 +161,7 @@ function ProjectHeader({
   projectId: string;
   published: boolean;
 }) {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const { isEditMode } = useEditMode();
   const t = useTranslations("common");
   const updateProject = useMutation(api.projects.update);
@@ -202,7 +202,7 @@ function ProjectHeader({
         animate={{ opacity: 1, y: 0 }}
         className="mt-4 text-muted-foreground text-sm"
         initial={{ opacity: 0, y: 20 }}
-        onAnimationComplete={markVisible}
+        onAnimationComplete={enable}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
         {t("photographs", { count: imageCount })}

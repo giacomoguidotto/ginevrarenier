@@ -2,9 +2,9 @@
 
 import type { ReactNode, RefObject } from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useChromeEnabler } from "./chrome-enabler";
 import { createChromeRegistry } from "./chrome-registry";
 import { useEditMode } from "./edit-mode-context";
-import { useFieldVisibility } from "./field-visibility";
 import { useSection } from "./section";
 
 type Registry = ReturnType<typeof createChromeRegistry>;
@@ -42,11 +42,11 @@ export function useChromeRegister(
   const registry = useContext(ChromeContext);
   const { isEditMode } = useEditMode();
   const { name: section } = useSection();
-  const { visible } = useFieldVisibility();
+  const { enabled } = useChromeEnabler();
   const dismountEpoch = useContext(DismountEpochContext);
   const id = `${section}\0${fieldName}`;
-  const visibleRef = useRef(visible);
-  visibleRef.current = visible;
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: dismountEpoch triggers re-registration after dismountAll clears persistent (layout-level) fields
   useEffect(() => {
@@ -56,7 +56,7 @@ export function useChromeRegister(
     }
 
     registry.register(id, el);
-    if (visibleRef.current) {
+    if (enabledRef.current) {
       registry.markVisible(id);
     }
     return () => registry.deregister(id);
@@ -66,12 +66,12 @@ export function useChromeRegister(
     if (!registry) {
       return;
     }
-    if (visible) {
+    if (enabled) {
       registry.markVisible(id);
     } else {
       registry.markHidden(id);
     }
-  }, [visible, id, registry]);
+  }, [enabled, id, registry]);
 }
 
 export function useChromeDismount(path: string) {

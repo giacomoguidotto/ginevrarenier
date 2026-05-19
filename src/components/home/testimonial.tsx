@@ -2,25 +2,25 @@
 
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
-import { Field } from "@/components/admin/field";
 import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
 
 export function Testimonial() {
   return (
     <Section name="testimonial">
-      <FieldVisibilityProvider>
+      <ChromeEnablerProvider>
         <TestimonialContent />
-      </FieldVisibilityProvider>
+      </ChromeEnablerProvider>
     </Section>
   );
 }
 
 function TestimonialContent() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
 
   return (
     <section className="relative overflow-hidden bg-background py-32">
@@ -39,7 +39,7 @@ function TestimonialContent() {
       <div className="relative mx-auto max-w-4xl px-6 text-center">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
-          onAnimationComplete={markVisible}
+          onAnimationComplete={enable}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -24,15 +24,15 @@ import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useCallback } from "react";
 import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import {
   useDraftBufferOps,
   useEditVersion,
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
 import { Section, useSection } from "@/components/admin/section";
 import { ProjectCard } from "@/components/gallery/project-card";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -188,9 +188,9 @@ export function VisionClient({
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
           <Section name="vision.header">
-            <FieldVisibilityProvider>
+            <ChromeEnablerProvider>
               <VisionHeader />
-            </FieldVisibilityProvider>
+            </ChromeEnablerProvider>
           </Section>
 
           {/* Projects Grid */}
@@ -239,7 +239,7 @@ export function VisionClient({
 }
 
 function VisionHeader() {
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const { data } = useSection();
   const localized = useLocalized();
 
@@ -267,7 +267,7 @@ function VisionHeader() {
       <motion.div
         animate={{ opacity: 1, y: 0 }}
         initial={{ opacity: 0, y: 20 }}
-        onAnimationComplete={markVisible}
+        onAnimationComplete={enable}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <Field

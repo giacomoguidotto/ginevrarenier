@@ -2,20 +2,20 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
-import { useCallback, useRef } from "react";
-import { Field } from "@/components/admin/field";
+import { useRef } from "react";
 import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 
 export function Hero() {
   return (
-    <FieldVisibilityProvider>
+    <ChromeEnablerProvider>
       <HeroContent />
-    </FieldVisibilityProvider>
+    </ChromeEnablerProvider>
   );
 }
 
@@ -30,13 +30,9 @@ function HeroContent() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const ctaRef = useRef<HTMLAnchorElement>(null);
   const ctaSecondaryRef = useRef<HTMLAnchorElement>(null);
-
-  const handleAnimationComplete = useCallback(() => {
-    markVisible();
-  }, [markVisible]);
 
   return (
     <Section name="hero">
@@ -113,7 +109,7 @@ function HeroContent() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
               initial={{ opacity: 0, y: 20 }}
-              onAnimationComplete={handleAnimationComplete}
+              onAnimationComplete={enable}
               transition={{ duration: 0.8, delay: 1 }}
             >
               <Link

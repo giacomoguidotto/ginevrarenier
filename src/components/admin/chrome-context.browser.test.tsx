@@ -10,11 +10,8 @@ import {
   useChromeRegister,
   useChromeRegistry,
 } from "./chrome-context";
+import { ChromeEnablerProvider, useChromeEnabler } from "./chrome-enabler";
 import { EditModeProvider, useEditMode } from "./edit-mode-context";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "./field-visibility";
 import { Section } from "./section";
 
 vi.mock("next-intl", () => ({
@@ -224,15 +221,11 @@ describe("Chrome Dismount on Navigate", () => {
   });
 });
 
-describe("Field Visibility", () => {
+describe("Chrome Enabler", () => {
   function AnimationTrigger() {
-    const { markVisible } = useFieldVisibility();
+    const { enable } = useChromeEnabler();
     return (
-      <button
-        data-testid="animate-complete"
-        onClick={markVisible}
-        type="button"
-      >
+      <button data-testid="animate-complete" onClick={enable} type="button">
         complete animation
       </button>
     );
@@ -246,10 +239,10 @@ describe("Field Visibility", () => {
           <Section name="hero">
             <VisibleCountInspector onCount={setVc} />
             <EditModeToggle />
-            <FieldVisibilityProvider>
+            <ChromeEnablerProvider>
               <AnimationTrigger />
               <FieldWithRegistration name="title" />
-            </FieldVisibilityProvider>
+            </ChromeEnablerProvider>
             <div data-testid="visible-count">{vc}</div>
           </Section>
         </Providers>
@@ -269,91 +262,7 @@ describe("Field Visibility", () => {
     expect(getByTestId("visible-count").textContent).toBe("1");
   });
 
-  it("field becomes hidden when scrolled out of view", async () => {
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: overwritten by mock constructor
-    let intersectionCallback: IntersectionObserverCallback = () => {};
-
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        constructor(cb: IntersectionObserverCallback) {
-          intersectionCallback = cb;
-        }
-        observe = vi.fn();
-        unobserve = vi.fn();
-        disconnect = vi.fn();
-      }
-    );
-
-    function Harness() {
-      const [vc, setVc] = useState(0);
-      const containerRef = useRef<HTMLDivElement>(null);
-      return (
-        <Providers>
-          <Section name="hero">
-            <VisibleCountInspector onCount={setVc} />
-            <EditModeToggle />
-            <FieldVisibilityProvider containerRef={containerRef} trackViewport>
-              <div ref={containerRef}>
-                <AnimationTrigger />
-                <FieldWithRegistration name="title" />
-              </div>
-            </FieldVisibilityProvider>
-            <div data-testid="visible-count">{vc}</div>
-          </Section>
-        </Providers>
-      );
-    }
-
-    const { getByTestId } = render(<Harness />);
-
-    await act(() => {
-      getByTestId("toggle").click();
-    });
-
-    // Scroll into view — not visible yet (animation hasn't completed)
-    await act(() => {
-      intersectionCallback(
-        [{ isIntersecting: true }] as IntersectionObserverEntry[],
-        {} as IntersectionObserver
-      );
-    });
-    expect(getByTestId("visible-count").textContent).toBe("0");
-
-    // Animation completes — now visible (in viewport + animation done)
-    await act(() => {
-      getByTestId("animate-complete").click();
-    });
-    expect(getByTestId("visible-count").textContent).toBe("1");
-
-    // Scroll out — hidden, animation state resets
-    await act(() => {
-      intersectionCallback(
-        [{ isIntersecting: false }] as IntersectionObserverEntry[],
-        {} as IntersectionObserver
-      );
-    });
-    expect(getByTestId("visible-count").textContent).toBe("0");
-
-    // Scroll back in — not visible yet (animation needs to replay)
-    await act(() => {
-      intersectionCallback(
-        [{ isIntersecting: true }] as IntersectionObserverEntry[],
-        {} as IntersectionObserver
-      );
-    });
-    expect(getByTestId("visible-count").textContent).toBe("0");
-
-    // Animation completes again — visible
-    await act(() => {
-      getByTestId("animate-complete").click();
-    });
-    expect(getByTestId("visible-count").textContent).toBe("1");
-
-    vi.unstubAllGlobals();
-  });
-
-  it("field without visibility provider defaults to visible", async () => {
+  it("field without chrome enabler provider defaults to visible", async () => {
     function Harness() {
       const [vc, setVc] = useState(0);
       return (

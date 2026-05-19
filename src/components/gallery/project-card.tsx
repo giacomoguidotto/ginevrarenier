@@ -5,15 +5,15 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, EyeOff, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
 import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import {
   useDraftBufferOps,
   useEditVersion,
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
-import {
-  FieldVisibilityProvider,
-  useFieldVisibility,
-} from "@/components/admin/field-visibility";
 import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { fadeUp } from "@/lib/animations";
@@ -39,7 +39,7 @@ export function ProjectCard({
   if (isEditMode) {
     return (
       <Section name={`project:${project._id}`}>
-        <FieldVisibilityProvider>
+        <ChromeEnablerProvider>
           <CardContent
             index={index}
             onCancelDeletion={onCancelDeletion}
@@ -47,7 +47,7 @@ export function ProjectCard({
             pendingDeletion={pendingDeletion}
             project={project}
           />
-        </FieldVisibilityProvider>
+        </ChromeEnablerProvider>
       </Section>
     );
   }
@@ -69,7 +69,7 @@ function CardContent({
   onCancelDeletion?: () => void;
 }) {
   const { isEditMode } = useEditMode();
-  const { markVisible } = useFieldVisibility();
+  const { enable } = useChromeEnabler();
   const localized = useLocalized();
   const { getPublishOverride, setPublishOverride, clearPublishOverride } =
     useDraftBufferOps();
@@ -102,7 +102,7 @@ function CardContent({
     <motion.div
       className={`group relative ${isEditMode ? "edit-locked" : ""}`}
       custom={index}
-      onAnimationComplete={markVisible}
+      onAnimationComplete={enable}
       variants={fadeUp}
     >
       <Link
