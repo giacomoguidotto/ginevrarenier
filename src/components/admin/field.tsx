@@ -167,12 +167,13 @@ export function Field({
   ) : null;
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative" }}>
+    <div
+      className={className}
+      ref={wrapperRef}
+      style={{ position: "relative" }}
+    >
       <Tag
-        className={
-          `${className ?? ""} ${isEditMode ? "editable-field" : ""}`.trim() ||
-          undefined
-        }
+        className={isEditMode ? "editable-field" : undefined}
         contentEditable={isEditMode ? ("plaintext-only" as const) : undefined}
         onBlur={isEditMode ? handleBlur : undefined}
         onClick={
