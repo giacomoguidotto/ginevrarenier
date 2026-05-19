@@ -25,8 +25,11 @@ export function FieldChrome({
 }: FieldChromeProps) {
   const id = useId();
   const patternId = `chrome-hatching${id}`;
-  const perimeter = 2 * (width + height);
   const r = 4;
+  const inset = 0.5;
+  const rectW = Math.max(0, width - 2 * inset);
+  const rectH = Math.max(0, height - 2 * inset);
+  const perimeter = 2 * (rectW + rectH);
 
   return (
     <>
@@ -69,26 +72,26 @@ export function FieldChrome({
           }}
           exit={{ strokeDashoffset: perimeter }}
           fill="none"
-          height={height}
+          height={rectH}
           initial={{ strokeDashoffset: perimeter }}
           strokeDasharray={perimeter}
           strokeWidth={1}
           transition={SPRING}
-          width={width}
-          x={0}
-          y={0}
+          width={rectW}
+          x={inset}
+          y={inset}
         />
 
         <motion.rect
           animate={{ opacity: focused ? 0 : 1 }}
           exit={{ opacity: 0 }}
           fill={`url(#${patternId})`}
-          height={height}
+          height={rectH}
           initial={{ opacity: 0 }}
           transition={{ ...SPRING, delay: 0.1 }}
-          width={width}
-          x={0}
-          y={0}
+          width={rectW}
+          x={inset}
+          y={inset}
         />
 
         {staleLocale !== null && (

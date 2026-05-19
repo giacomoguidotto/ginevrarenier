@@ -75,10 +75,14 @@ describe("FieldChrome", () => {
 
     const rects = svg?.querySelectorAll("rect");
     expect(rects).toHaveLength(2);
-    expect(rects[0].getAttribute("width")).toBe("200");
-    expect(rects[0].getAttribute("height")).toBe("100");
-    expect(rects[1].getAttribute("width")).toBe("200");
-    expect(rects[1].getAttribute("height")).toBe("100");
+    expect(rects[0].getAttribute("x")).toBe("0.5");
+    expect(rects[0].getAttribute("y")).toBe("0.5");
+    expect(rects[0].getAttribute("width")).toBe("199");
+    expect(rects[0].getAttribute("height")).toBe("99");
+    expect(rects[1].getAttribute("x")).toBe("0.5");
+    expect(rects[1].getAttribute("y")).toBe("0.5");
+    expect(rects[1].getAttribute("width")).toBe("199");
+    expect(rects[1].getAttribute("height")).toBe("99");
   });
 
   it("applies focused styles when focused", () => {
