@@ -303,6 +303,7 @@ function ChromeHarness({
       <ChromeEnablerProvider>
         <EditModeToggle />
         <ChromeEnableTrigger />
+        <LocaleSwitcher />
         <div data-testid="field-wrapper">
           <Field as="span" containerRef={containerRef} name="title" />
         </div>
@@ -409,13 +410,17 @@ describe("Field chrome integration", () => {
     expect(blurredRect?.getAttribute("stroke")).toContain("0.25");
   });
 
-  it("shows stale-locale dot when only one locale is edited", async () => {
+  it("shows stale-locale dot only when viewing the stale locale", async () => {
     bufferStore.current?.write("hero", "title", "en", "Edited EN");
 
     const { getByTestId, container } = render(<ChromeHarness />);
 
     await act(() => getByTestId("toggle").click());
     await act(() => getByTestId("enable-chrome").click());
+
+    expect(container.querySelector("[data-slot='semantic-dot']")).toBeNull();
+
+    await act(() => getByTestId("switch-locale").click());
 
     expect(
       container.querySelector("[data-slot='semantic-dot']")

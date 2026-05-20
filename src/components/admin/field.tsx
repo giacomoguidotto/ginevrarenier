@@ -160,7 +160,10 @@ export function Field({
   let staleLocale: string | null = null;
   if (edited.size === 1) {
     const [editedLoc] = edited;
-    staleLocale = locales.find((l) => l !== editedLoc) ?? null;
+    const other = locales.find((l) => l !== editedLoc) ?? null;
+    if (other === locale) {
+      staleLocale = other;
+    }
   }
   const status = staleLocale
     ? fieldStatus(section, name, staleLocale)
