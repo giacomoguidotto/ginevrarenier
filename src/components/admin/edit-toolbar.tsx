@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   GripVertical,
+  Languages,
   LogOut,
   Plus,
   Power,
@@ -103,8 +104,10 @@ function buildLangTooltip(counts: Map<string, number>): React.ReactNode {
 interface EditToolbarProps {
   changeSummary: () => ChangeSummary;
   hasChanges: boolean;
+  onAutoTranslate: () => void;
   onDiscard: () => void | Promise<void>;
   onSave: () => void | Promise<void>;
+  staleFieldCountForLocale: number;
   staleFields: StaleField[];
 }
 
@@ -146,6 +149,8 @@ export function EditToolbar({
   changeSummary,
   hasChanges,
   staleFields,
+  staleFieldCountForLocale,
+  onAutoTranslate,
   onSave,
   onDiscard,
 }: EditToolbarProps) {
@@ -306,6 +311,17 @@ export function EditToolbar({
           </AnimatePresence>
         </span>
       </ToolbarButton>
+
+      {staleFieldCountForLocale > 0 ? (
+        <ToolbarButton
+          className="flex h-8 items-center gap-1.5 rounded-full bg-sky-500/15 px-3 text-sky-400 text-xs transition-colors hover:bg-sky-500/25"
+          label={`Translate ${staleFieldCountForLocale} stale ${staleFieldCountForLocale === 1 ? "field" : "fields"}`}
+          onClick={onAutoTranslate}
+        >
+          <Languages className="h-3.5 w-3.5" />
+          <span>Translate</span>
+        </ToolbarButton>
+      ) : null}
 
       {/* Save & Discard — only visible with changes */}
       {hasChanges ? (
