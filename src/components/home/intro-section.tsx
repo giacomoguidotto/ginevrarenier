@@ -47,7 +47,11 @@ function IntroSectionContent() {
   );
 
   return (
-    <section className="relative bg-charcoal py-32 text-cream" ref={sectionRef}>
+    <section
+      className="relative bg-charcoal py-32 text-cream"
+      data-testid="intro-section"
+      ref={sectionRef}
+    >
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
           {/* Text Content */}
