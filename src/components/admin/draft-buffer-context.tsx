@@ -501,6 +501,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     clearPersistedState();
   }, [removeEntity]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: editVersion forces fresh read from buffer ref so React Compiler cannot cache stale return values
   const changeSummary = useCallback((): ChangeSummary => {
     const getOriginal = (section: string, field: string, locale: string) => {
       const fieldContent = allContent?.find((c) => c.section === section)
@@ -520,7 +521,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       dismissals: textSummary.dismissals,
       autoTranslations: textSummary.autoTranslations,
     };
-  }, [allContent]);
+  }, [allContent, editVersion]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: editVersion forces new read-function identities so React Compiler cannot cache stale return values
   const ops = useMemo(
