@@ -160,7 +160,7 @@ export function Field({
   }
   const status = staleLocale
     ? fieldStatus(section, name, staleLocale)
-    : "fresh";
+    : fieldStatus(section, name, locale);
   const handleDismiss =
     staleLocale && status === "stale"
       ? () => dismiss(section, name, staleLocale)
