@@ -3,16 +3,6 @@ import { expect, type Page, test } from "@playwright/test";
 const LOCALE_PATTERN = /EN.*IT|IT.*EN/;
 const STALE_FIELD_WARNING = /undismissed stale field/;
 
-async function enterEditMode(page: Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem("edit-mode-active", "true");
-  });
-}
-
-async function waitForApp(page: Page) {
-  await page.locator("main").waitFor();
-}
-
 function editableFields(page: Page) {
   return page.locator(".editable-field");
 }
@@ -29,16 +19,22 @@ function editToolbar(page: Page) {
   return page.locator('[data-testid="edit-toolbar"]');
 }
 
-async function waitForEditable(page: Page) {
+async function enterEditMode(page: Page, url: string) {
+  await page.addInitScript(() => {
+    localStorage.setItem("edit-mode-active", "true");
+  });
+  await page.goto(url);
+  await expect(page.locator("main")).toBeAttached({ timeout: 15_000 });
+  await expect(editToolbar(page)).toBeVisible({ timeout: 15_000 });
   await expect(editableFields(page).first()).toBeAttached({ timeout: 15_000 });
+}
+
+async function waitForApp(page: Page) {
+  await expect(page.locator("main")).toBeAttached({ timeout: 15_000 });
 }
 
 async function waitForChromeRects(page: Page) {
   await expect(chromeRects(page).first()).toBeAttached({ timeout: 15_000 });
-}
-
-async function waitForToolbar(page: Page) {
-  await expect(editToolbar(page)).toBeAttached({ timeout: 15_000 });
 }
 
 // ─────────────────────────────────────────────────────────
@@ -46,10 +42,7 @@ async function waitForToolbar(page: Page) {
 // ─────────────────────────────────────────────────────────
 test.describe("US-1: Inline contentEditable editing", () => {
   test("Fields become contentEditable in edit mode", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const fields = editableFields(page);
     const count = await fields.count();
@@ -74,10 +67,7 @@ test.describe("US-1: Inline contentEditable editing", () => {
   test("Typing in a Field updates the DOM text immediately", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await expect(field).toBeVisible({ timeout: 10_000 });
@@ -94,10 +84,7 @@ test.describe("US-1: Inline contentEditable editing", () => {
   test("Same DOM element is used for display and editing (no element swap)", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const heroTitle = page.locator(".hero-title");
     await expect(heroTitle).toBeAttached({ timeout: 15_000 });
@@ -115,17 +102,13 @@ test.describe("US-1: Inline contentEditable editing", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("US-2: Chrome overlay appears in edit mode", () => {
   test("Per-field Chrome SVGs are present in the DOM", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
+    await enterEditMode(page, "/");
 
     await expect(fieldChromes(page).first()).toBeAttached({ timeout: 10_000 });
   });
 
   test("Chrome outlines appear after entrance animations", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
+    await enterEditMode(page, "/");
     await waitForChromeRects(page);
 
     const afterRects = await chromeRects(page).count();
@@ -133,9 +116,7 @@ test.describe("US-2: Chrome overlay appears in edit mode", () => {
   });
 
   test("Chrome outlines include hatching pattern", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
+    await enterEditMode(page, "/");
     await waitForChromeRects(page);
 
     const hatching = fieldChromes(page).locator(
@@ -176,9 +157,7 @@ test.describe("US-4: Chrome follows resized Fields", () => {
   test("Chrome rects update when Field content changes size", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
+    await enterEditMode(page, "/");
     await waitForChromeRects(page);
 
     const initialRects = await fieldChromes(page)
@@ -202,7 +181,7 @@ test.describe("US-4: Chrome follows resized Fields", () => {
       await expect(bioField).toBeVisible({ timeout: 10_000 });
       await bioField.click();
       await page.keyboard.type("\nNew line of text added for testing");
-      await page.waitForTimeout(500);
+      await expect(chromeRects(page).first()).toBeAttached({ timeout: 5000 });
 
       const updatedRects = await fieldChromes(page)
         .locator("rect[stroke]")
@@ -222,10 +201,7 @@ test.describe("US-4: Chrome follows resized Fields", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("US-5: Field threshold enforcement", () => {
   test("Non-multiline fields block Enter key", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const tagline = page
       .locator("section")
@@ -247,10 +223,7 @@ test.describe("US-5: Field threshold enforcement", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("US-6: Bilingual locale switching", () => {
   test("Toolbar shows locale switcher in edit mode", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForToolbar(page);
+    await enterEditMode(page, "/");
 
     const toolbar = editToolbar(page);
     const enText = toolbar.getByText("EN");
@@ -260,22 +233,17 @@ test.describe("US-6: Bilingual locale switching", () => {
   });
 
   test("Clicking locale switcher changes Field content", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/en");
 
     const heroTitle = page.locator("span.hero-title");
-    await expect(heroTitle).toBeAttached({ timeout: 10_000 });
-    await heroTitle.textContent();
+    const enText = await heroTitle.textContent();
 
     const toolbar = editToolbar(page);
     const localeButton = toolbar
       .locator("button")
       .filter({ hasText: LOCALE_PATTERN });
-    await expect(localeButton).toBeAttached({ timeout: 5000 });
     await localeButton.click();
-    await page.waitForTimeout(500);
+    await expect(heroTitle).not.toHaveText(enText ?? "", { timeout: 5000 });
 
     const itText = await heroTitle.textContent();
     expect(itText).toBeDefined();
@@ -289,9 +257,7 @@ test.describe("US-7: Stale-locale indicators", () => {
   test("Editing in one locale shows amber dot on Chrome overlay", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     const field = editableFields(page).first();
@@ -348,9 +314,7 @@ test.describe("Progressive locale staleness", () => {
   test("Editing EN then switching to IT shows amber dots on locale toggle, nav link, and per-field chrome", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     await editFieldAndBlur(page, editableFields(page).first(), "X");
@@ -368,9 +332,7 @@ test.describe("Progressive locale staleness", () => {
   });
 
   test("Editing the stale locale clears all amber dots", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     const field = editableFields(page).first();
@@ -388,9 +350,7 @@ test.describe("Progressive locale staleness", () => {
   test("Dismissing a stale dot hides it, re-editing source restores it", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     const field = editableFields(page).first();
@@ -416,9 +376,7 @@ test.describe("Progressive locale staleness", () => {
   test("Auto-translate shows info dots, manual edit clears them", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     const fields = editableFields(page);
@@ -431,12 +389,12 @@ test.describe("Progressive locale staleness", () => {
     await expect(translateButton).toBeVisible({ timeout: 5000 });
     await translateButton.click();
 
-    const dots = fieldSemanticDots(page);
-    await page.waitForFunction(
-      (sel) => document.querySelectorAll(sel).length >= 2,
-      "[data-field-chrome] + div [data-slot='semantic-dot']",
-      { timeout: 15_000 }
+    const infoDots = page.locator(
+      "[data-slot='semantic-dot'][data-variant='info']"
     );
+    await expect(infoDots.first()).toBeAttached({ timeout: 15_000 });
+
+    const dots = fieldSemanticDots(page);
     const countAfterTranslate = await dots.count();
     expect(countAfterTranslate).toBeGreaterThanOrEqual(2);
 
@@ -449,9 +407,7 @@ test.describe("Progressive locale staleness", () => {
   test("Save dialog shows stale field warning when undismissed stale fields exist", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     await editFieldAndBlur(page, editableFields(page).first(), "X");
@@ -471,9 +427,7 @@ test.describe("Progressive locale staleness", () => {
   test("Creating an entity (structural operation) produces no staleness warnings", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en/essence");
-    await waitForApp(page);
+    await enterEditMode(page, "/en/essence");
     await waitForChromeRects(page);
 
     const dotsBefore = await fieldSemanticDots(page).count();
@@ -498,13 +452,9 @@ test.describe("US-8: Save button appears with changes", () => {
   test("Save button appears in toolbar when there are unsaved changes", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const toolbar = editToolbar(page);
-    await expect(toolbar).toBeAttached({ timeout: 10_000 });
 
     const saveCountBefore = await toolbar.getByText("Save").count();
     expect(saveCountBefore).toBe(0);
@@ -513,7 +463,6 @@ test.describe("US-8: Save button appears with changes", () => {
     await field.click();
     await page.keyboard.type("Z");
     await field.blur();
-    await page.waitForTimeout(300);
 
     const saveButtonAfter = toolbar.getByText("Save");
     await expect(saveButtonAfter).toBeVisible({ timeout: 5000 });
@@ -527,19 +476,16 @@ test.describe("US-9: Save confirmation dialog", () => {
   test("Clicking Save opens a confirmation dialog listing changes", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await field.click();
     await page.keyboard.type("Q");
     await field.blur();
-    await page.waitForTimeout(300);
 
     const toolbar = editToolbar(page);
     const saveButton = toolbar.getByText("Save");
+    await expect(saveButton).toBeVisible({ timeout: 5000 });
     await saveButton.click();
 
     const dialog = page.getByRole("dialog");
@@ -556,20 +502,16 @@ test.describe("US-9: Save confirmation dialog", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("US-10: Discard button appears with changes", () => {
   test("Discard button appears when there are changes", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await field.click();
     await page.keyboard.type("W");
     await field.blur();
-    await page.waitForTimeout(300);
 
     const toolbar = editToolbar(page);
     const discardButton = toolbar.getByText("Discard");
-    await expect(discardButton).toBeVisible();
+    await expect(discardButton).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -578,19 +520,16 @@ test.describe("US-10: Discard button appears with changes", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("US-11: Discard confirmation dialog", () => {
   test("Clicking Discard opens a confirmation dialog", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await field.click();
     await page.keyboard.type("R");
     await field.blur();
-    await page.waitForTimeout(300);
 
     const toolbar = editToolbar(page);
     const discardButton = toolbar.getByText("Discard");
+    await expect(discardButton).toBeVisible({ timeout: 5000 });
     await discardButton.click();
 
     const dialog = page.getByRole("dialog");
@@ -601,19 +540,17 @@ test.describe("US-11: Discard confirmation dialog", () => {
   test("Discard dialog warns about changes that will be lost", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await field.click();
     await page.keyboard.type("S");
     await field.blur();
-    await page.waitForTimeout(300);
 
     const toolbar = editToolbar(page);
-    await toolbar.getByText("Discard").click();
+    const discardButton = toolbar.getByText("Discard");
+    await expect(discardButton).toBeVisible({ timeout: 5000 });
+    await discardButton.click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
@@ -634,7 +571,9 @@ test.describe("US-17: Chrome waits for entrance animations", () => {
 
     await expect(fieldChromes(page)).toHaveCount(0);
 
-    await enterEditMode(page);
+    await page.addInitScript(() => {
+      localStorage.setItem("edit-mode-active", "true");
+    });
     await page.goto("/");
 
     await expect(fieldChromes(page).first()).toBeAttached({ timeout: 15_000 });
@@ -648,9 +587,7 @@ test.describe("US-18: Chrome dismount on navigation", () => {
   test("Old Chrome unmounts on navigation, new page gets fresh Chrome", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
     const rectsBefore = await chromeRects(page).count();
@@ -671,9 +608,7 @@ test.describe("US-19: Below-fold Fields activate on scroll", () => {
   test("Intro section Fields get Chrome overlays after scrolling into view", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
+    await enterEditMode(page, "/");
     await waitForChromeRects(page);
 
     const heroRectCount = await chromeRects(page).count();
@@ -700,10 +635,7 @@ test.describe("US-20: Paste strips formatting", () => {
   test("contentEditable='plaintext-only' strips rich text on paste", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await expect(field).toBeAttached();
@@ -720,7 +652,7 @@ test.describe("US-20: Paste strips formatting", () => {
       });
       document.activeElement?.dispatchEvent(pasteEvent);
     });
-    await page.waitForTimeout(300);
+    await expect(field).toContainText("bold italic", { timeout: 5000 });
 
     const innerHTML = await field.innerHTML();
     expect(innerHTML).not.toContain("<b>");
@@ -730,10 +662,7 @@ test.describe("US-20: Paste strips formatting", () => {
   test("Field uses plaintext-only contentEditable attribute", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     const attr = await field.getAttribute("contenteditable");
@@ -746,9 +675,7 @@ test.describe("US-20: Paste strips formatting", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("US-21: Newlines in multiline Fields", () => {
   test("Multiline field accepts Enter key", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
+    await enterEditMode(page, "/");
 
     const introSection = page.locator('[data-testid="intro-section"]');
     await introSection.scrollIntoViewIfNeeded();
@@ -792,10 +719,7 @@ test.describe("US-22: Hero title first-line styling", () => {
   });
 
   test("Hero title maintains styling during editing", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const heroTitle = page.locator(".hero-title");
     await expect(heroTitle).toBeAttached();
@@ -817,12 +741,9 @@ test.describe("US-24: Rapid edit mode toggle", () => {
   test("Edit mode works correctly after multiple page loads with toggle", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/en");
-    await waitForApp(page);
+    await enterEditMode(page, "/en");
     await waitForChromeRects(page);
 
-    await expect(fieldChromes(page).first()).toBeAttached({ timeout: 10_000 });
     const rectsOn = await chromeRects(page).count();
     expect(rectsOn).toBeGreaterThan(0);
 
@@ -840,10 +761,7 @@ test.describe("US-24: Rapid edit mode toggle", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("Toolbar integration", () => {
   test("Toolbar is visible in edit mode with drag handle", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForToolbar(page);
+    await enterEditMode(page, "/");
 
     const toolbar = editToolbar(page);
     const dragHandle = toolbar.getByLabel("Drag toolbar");
@@ -851,10 +769,7 @@ test.describe("Toolbar integration", () => {
   });
 
   test("Toolbar has exit edit mode button (via tooltip)", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForToolbar(page);
+    await enterEditMode(page, "/");
 
     const toolbar = editToolbar(page);
     const toolbarButtons = toolbar.locator("button");
@@ -863,10 +778,7 @@ test.describe("Toolbar integration", () => {
   });
 
   test("Toolbar buttons should have accessible labels", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForToolbar(page);
+    await enterEditMode(page, "/");
 
     const toolbar = editToolbar(page);
     const buttonsWithLabel = toolbar.locator("button[aria-label]");
@@ -886,19 +798,15 @@ test.describe("UnsavedChangesGuard", () => {
   test("Exiting edit mode with unsaved changes shows guard dialog", async ({
     page,
   }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await field.click();
     await page.keyboard.type("U");
     await field.blur();
-    await page.waitForTimeout(300);
 
     const toolbar = editToolbar(page);
-    await expect(toolbar).toBeAttached({ timeout: 10_000 });
+    await expect(toolbar.getByText("Save")).toBeVisible({ timeout: 5000 });
     const exitButton = toolbar.locator('button[aria-label="Exit edit mode"]');
     await exitButton.click();
 
@@ -921,10 +829,7 @@ test.describe("UnsavedChangesGuard", () => {
 // ─────────────────────────────────────────────────────────
 test.describe("Cross-page editing", () => {
   test("Edit mode persists across page navigation", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/");
 
     const fieldsBefore = await editableFields(page).count();
     expect(fieldsBefore).toBeGreaterThan(0);
@@ -932,17 +837,16 @@ test.describe("Cross-page editing", () => {
     await page.click('a[href*="/essence"]');
     await page.waitForURL("**/essence");
     await waitForApp(page);
-    await waitForEditable(page);
+    await expect(editableFields(page).first()).toBeAttached({
+      timeout: 15_000,
+    });
 
     const fieldsAfter = await editableFields(page).count();
     expect(fieldsAfter).toBeGreaterThan(0);
   });
 
   test("Essence page has editable Fields", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/en/essence");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/en/essence");
 
     const fields = editableFields(page);
     const count = await fields.count();
@@ -950,10 +854,7 @@ test.describe("Cross-page editing", () => {
   });
 
   test("Connect page has editable Fields", async ({ page }) => {
-    await enterEditMode(page);
-    await page.goto("/en/connect");
-    await waitForApp(page);
-    await waitForEditable(page);
+    await enterEditMode(page, "/en/connect");
 
     const fields = editableFields(page);
     const count = await fields.count();
