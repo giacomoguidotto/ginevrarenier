@@ -31,25 +31,25 @@ const achievementKeys = ["years", "recognition", "countries"] as const;
 export function EssenceClient() {
   return (
     <PageTransition>
-      <Section name="essence.hero">
+      <Section label="Essence: Hero" name="essence.hero">
         <ChromeEnablerProvider>
           <EssenceHero />
         </ChromeEnablerProvider>
       </Section>
 
-      <Section name="essence.achievements">
+      <Section label="Essence: Achievements" name="essence.achievements">
         <ChromeEnablerProvider>
           <EssenceAchievements />
         </ChromeEnablerProvider>
       </Section>
 
-      <Section name="essence.timeline">
+      <Section label="Essence: Timeline" name="essence.timeline">
         <ChromeEnablerProvider>
           <EssenceTimeline />
         </ChromeEnablerProvider>
       </Section>
 
-      <Section name="essence.cta">
+      <Section label="Essence: CTA" name="essence.cta">
         <ChromeEnablerProvider>
           <EssenceCTA />
         </ChromeEnablerProvider>

@@ -207,7 +207,7 @@ export function VisionClient({
       <div className="min-h-screen pt-32 pb-20">
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
-          <Section name="vision.header">
+          <Section label="Vision" name="vision.header">
             <ChromeEnablerProvider>
               <VisionHeader />
             </ChromeEnablerProvider>

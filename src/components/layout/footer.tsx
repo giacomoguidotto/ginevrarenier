@@ -27,7 +27,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
-          <Section name="footer">
+          <Section label="Footer" name="footer">
             <div className="space-y-4">
               <Link className="block" href="/">
                 <span className="font-light text-xl uppercase tracking-widest">

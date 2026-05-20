@@ -88,7 +88,7 @@ function ProjectCard({
 
 export function FeaturedWork() {
   return (
-    <Section name="home.featured">
+    <Section label="Featured Work" name="home.featured">
       <ChromeEnablerProvider>
         <FeaturedWorkContent />
       </ChromeEnablerProvider>

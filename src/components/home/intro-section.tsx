@@ -15,7 +15,7 @@ import { Link } from "@/i18n/routing";
 
 export function IntroSection() {
   return (
-    <Section name="intro">
+    <Section label="Intro" name="intro">
       <ChromeEnablerProvider>
         <IntroSectionContent />
       </ChromeEnablerProvider>

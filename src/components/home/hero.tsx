@@ -35,7 +35,7 @@ function HeroContent() {
   const ctaSecondaryRef = useRef<HTMLAnchorElement>(null);
 
   return (
-    <Section name="hero">
+    <Section label="Hero" name="hero">
       <section
         className="relative h-screen w-full overflow-hidden"
         ref={containerRef}

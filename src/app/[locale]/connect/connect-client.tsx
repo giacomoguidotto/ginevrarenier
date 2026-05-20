@@ -52,7 +52,7 @@ export function ConnectClient() {
       <div className="min-h-screen pt-32 pb-20">
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
-          <Section name="connect.header">
+          <Section label="Connect" name="connect.header">
             <ChromeEnablerProvider>
               <ConnectHeader />
             </ChromeEnablerProvider>

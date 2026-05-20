@@ -11,7 +11,7 @@ import { Section } from "@/components/admin/section";
 
 export function Testimonial() {
   return (
-    <Section name="testimonial">
+    <Section label="Testimonial" name="testimonial">
       <ChromeEnablerProvider>
         <TestimonialContent />
       </ChromeEnablerProvider>
