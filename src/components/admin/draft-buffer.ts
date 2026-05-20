@@ -94,6 +94,9 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
       }
       store.set(key(section, field, locale), value);
     },
+    removeEdit(section: string, field: string, locale: string): void {
+      store.delete(key(section, field, locale));
+    },
     hasChanges(): boolean {
       return (
         store.size > 0 ||

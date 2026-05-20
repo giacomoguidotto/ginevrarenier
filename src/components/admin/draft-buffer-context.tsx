@@ -92,6 +92,7 @@ interface DraftBufferOps {
   isSessionCreated: (entityType: string, id: string) => boolean;
   markAutoTranslated: (section: string, field: string, locale: string) => void;
   read: Buffer["read"];
+  removeEdit: (section: string, field: string, locale: string) => void;
   sectionChanges: Buffer["sectionChanges"];
   setPublishOverride: (
     entityType: string,
@@ -145,6 +146,7 @@ const OpsContext = createContext<DraftBufferOps>({
   isSessionCreated: () => false,
   markAutoTranslated: noop,
   read: () => undefined,
+  removeEdit: noop,
   sectionChanges: () => ({}),
   setPublishOverride: noop,
   setReorderList: noop,
@@ -251,6 +253,16 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (section: string, field: string, locale: string, value: string) => {
       bufferRef.current.write(section, field, locale, value);
       setHasChanges(true);
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const removeEdit = useCallback(
+    (section: string, field: string, locale: string) => {
+      bufferRef.current.removeEdit(section, field, locale);
+      setHasChanges(bufferRef.current.hasChanges());
       setEditVersion((v) => v + 1);
       schedulePersist();
     },
@@ -591,6 +603,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       markAutoTranslated,
       read: ((section: string, field: string, locale: string) =>
         bufferRef.current.read(section, field, locale)) as Buffer["read"],
+      removeEdit,
       sectionChanges: ((section: string) =>
         bufferRef.current.sectionChanges(section)) as Buffer["sectionChanges"],
       setPublishOverride,
@@ -608,6 +621,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       deleteField,
       dismiss,
       markAutoTranslated,
+      removeEdit,
       setPublishOverride,
       setReorderList,
       trackCreation,

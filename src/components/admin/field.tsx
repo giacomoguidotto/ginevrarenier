@@ -44,7 +44,7 @@ export function Field({
   const { isEditMode, editingLocale } = useEditMode();
   const pageLocale = useLocale() as Locale;
   const locale = isEditMode ? editingLocale : pageLocale;
-  const { read, write, editedLocales, fieldStatus, dismiss } =
+  const { read, write, removeEdit, editedLocales, fieldStatus, dismiss } =
     useDraftBufferOps();
   useDraftBufferReset();
   useEditVersion();
@@ -123,10 +123,12 @@ export function Field({
       const oldConvexValue = data?.[name]?.[oldLocale] ?? "";
       if (currentText !== oldConvexValue) {
         write(section, name, oldLocale, currentText);
+      } else if (read(section, name, oldLocale) !== undefined) {
+        removeEdit(section, name, oldLocale);
       }
       prevLocaleRef.current = locale;
     }
-  }, [locale, isEditMode, section, name, write, data]);
+  }, [locale, isEditMode, section, name, write, read, removeEdit, data]);
 
   const draftValue = read(section, name, locale);
   const convexValue = data?.[name]?.[locale] ?? "";
@@ -143,6 +145,8 @@ export function Field({
     const text = elRef.current?.textContent ?? "";
     if (text !== sourceValue) {
       write(section, name, locale, text);
+    } else if (draftValue !== undefined) {
+      removeEdit(section, name, locale);
     }
   };
 
