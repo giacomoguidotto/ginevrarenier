@@ -7,7 +7,7 @@ async function enterEditMode(page: Page) {
 }
 
 async function waitForApp(page: Page) {
-  await page.waitForLoadState("networkidle");
+  await page.locator("main").waitFor();
 }
 
 function fieldChromes(page: Page) {
@@ -112,8 +112,9 @@ test.describe("Per-field Chrome lifecycle", () => {
     const rectsBefore = await chromeRects(page).count();
     expect(rectsBefore).toBeGreaterThan(0);
 
-    const toolbar = page.locator("div.fixed.z-50.rounded-full");
-    const exitButton = toolbar.locator('button[aria-label="Exit edit mode"]');
+    const exitButton = page
+      .locator('[data-testid="edit-toolbar"]')
+      .locator('button[aria-label="Exit edit mode"]');
     await exitButton.click();
 
     await expect(fieldChromes(page)).toHaveCount(0, { timeout: 5000 });
