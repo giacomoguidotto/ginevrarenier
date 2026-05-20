@@ -89,10 +89,13 @@ test.describe("US-1: Inline contentEditable editing", () => {
     const heroTitle = page.locator(".hero-title");
     await expect(heroTitle).toBeAttached({ timeout: 15_000 });
 
-    const tagName = await heroTitle.evaluate((el) => el.tagName.toLowerCase());
+    const inner = heroTitle.locator(".editable-field");
+    await expect(inner).toBeAttached();
+
+    const tagName = await inner.evaluate((el) => el.tagName.toLowerCase());
     expect(tagName).toBe("span");
 
-    const isEditable = await heroTitle.getAttribute("contenteditable");
+    const isEditable = await inner.getAttribute("contenteditable");
     expect(isEditable).toBe("plaintext-only");
   });
 });
@@ -235,7 +238,7 @@ test.describe("US-6: Bilingual locale switching", () => {
   test("Clicking locale switcher changes Field content", async ({ page }) => {
     await enterEditMode(page, "/en");
 
-    const heroTitle = page.locator("span.hero-title");
+    const heroTitle = page.locator(".hero-title");
     const enText = await heroTitle.textContent();
 
     const toolbar = editToolbar(page);
@@ -492,7 +495,7 @@ test.describe("US-9: Save confirmation dialog", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("Save changes")).toBeVisible();
 
-    const changesList = dialog.locator("ul");
+    const changesList = dialog.locator("ul").first();
     await expect(changesList).toBeAttached();
   });
 });
@@ -634,24 +637,32 @@ test.describe("US-19: Below-fold Fields activate on scroll", () => {
 test.describe("US-20: Paste strips formatting", () => {
   test("contentEditable='plaintext-only' strips rich text on paste", async ({
     page,
+    context,
   }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await enterEditMode(page, "/");
 
     const field = editableFields(page).first();
     await expect(field).toBeAttached();
     await field.click();
 
-    await page.evaluate(() => {
-      const clipboardData = new DataTransfer();
-      clipboardData.setData("text/html", "<b>bold</b> <i>italic</i>");
-      clipboardData.setData("text/plain", "bold italic");
-      const pasteEvent = new ClipboardEvent("paste", {
-        clipboardData,
-        bubbles: true,
-        cancelable: true,
-      });
-      document.activeElement?.dispatchEvent(pasteEvent);
+    const modifier = process.platform === "darwin" ? "Meta" : "Control";
+    await page.keyboard.press(`${modifier}+A`);
+    await page.keyboard.press("Backspace");
+
+    await page.evaluate(async () => {
+      const items = [
+        new ClipboardItem({
+          "text/html": new Blob(["<b>bold</b> <i>italic</i>"], {
+            type: "text/html",
+          }),
+          "text/plain": new Blob(["bold italic"], { type: "text/plain" }),
+        }),
+      ];
+      await navigator.clipboard.write(items);
     });
+    await field.focus();
+    await page.keyboard.press(`${modifier}+V`);
     await expect(field).toContainText("bold italic", { timeout: 5000 });
 
     const innerHTML = await field.innerHTML();
@@ -709,7 +720,7 @@ test.describe("US-22: Hero title first-line styling", () => {
     await page.goto("/en");
     await waitForApp(page);
 
-    const heroTitle = page.locator("span.hero-title");
+    const heroTitle = page.locator(".hero-title");
     await expect(heroTitle).toBeAttached({ timeout: 10_000 });
 
     const hasClass = await heroTitle.evaluate((el) =>
@@ -729,7 +740,8 @@ test.describe("US-22: Hero title first-line styling", () => {
     );
     expect(hasClass).toBe(true);
 
-    const isEditable = await heroTitle.getAttribute("contenteditable");
+    const inner = heroTitle.locator(".editable-field");
+    const isEditable = await inner.getAttribute("contenteditable");
     expect(isEditable).toBe("plaintext-only");
   });
 });
