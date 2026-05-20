@@ -115,6 +115,7 @@ export function FieldChrome({
             position: "absolute",
             right: 2,
             top: 2,
+            lineHeight: 0,
             pointerEvents: "auto",
           }}
         >
