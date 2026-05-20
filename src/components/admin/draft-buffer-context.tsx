@@ -12,6 +12,8 @@ import {
   useRef,
   useState,
 } from "react";
+import type { AutoTranslateResult, TranslateFn } from "./auto-translate";
+import { autoTranslateAll } from "./auto-translate";
 import type {
   ChangeSummary,
   EntityRef,
@@ -68,6 +70,10 @@ function clearPersistedState(): void {
 }
 
 interface DraftBufferOps {
+  autoTranslate: (
+    staleFields: { section: string; field: string; locale: string }[],
+    translate: TranslateFn
+  ) => Promise<AutoTranslateResult>;
   cancelDeletion: (entityType: string, id: string) => void;
   cancelFieldDeletion: (section: string, keyPrefix: string) => void;
   clearPublishOverride: (entityType: string, id: string) => void;
@@ -75,9 +81,11 @@ interface DraftBufferOps {
   editedLocales: Buffer["editedLocales"];
   getPublishOverride: (entityType: string, id: string) => boolean | undefined;
   getReorderList: (entityType: string) => string[] | undefined;
+  isAutoTranslated: (section: string, field: string, locale: string) => boolean;
   isFieldDeleted: (section: string, keyPrefix: string) => boolean;
   isPendingDeletion: (entityType: string, id: string) => boolean;
   isSessionCreated: (entityType: string, id: string) => boolean;
+  markAutoTranslated: (section: string, field: string, locale: string) => void;
   read: Buffer["read"];
   sectionChanges: Buffer["sectionChanges"];
   setPublishOverride: (
@@ -115,6 +123,7 @@ interface DraftBufferState {
 const noop = () => {};
 
 const OpsContext = createContext<DraftBufferOps>({
+  autoTranslate: () => Promise.resolve({ translated: [], failed: [] }),
   cancelDeletion: noop,
   cancelFieldDeletion: noop,
   clearPublishOverride: noop,
@@ -122,9 +131,11 @@ const OpsContext = createContext<DraftBufferOps>({
   editedLocales: () => new Set<string>(),
   getPublishOverride: () => undefined,
   getReorderList: () => undefined,
+  isAutoTranslated: () => false,
   isFieldDeleted: () => false,
   isPendingDeletion: () => false,
   isSessionCreated: () => false,
+  markAutoTranslated: noop,
   read: () => undefined,
   sectionChanges: () => ({}),
   setPublishOverride: noop,
@@ -336,6 +347,54 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [schedulePersist]
   );
 
+  const markAutoTranslated = useCallback(
+    (section: string, field: string, locale: string) => {
+      bufferRef.current.markAutoTranslated(section, field, locale);
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const autoTranslate = useCallback(
+    async (
+      staleFields: { section: string; field: string; locale: string }[],
+      translate: TranslateFn
+    ) => {
+      const result = await autoTranslateAll({
+        staleFields,
+        translate,
+        resolveSourceText: (section, field, targetLocale) => {
+          const sourceLocale = targetLocale === "en" ? "it" : "en";
+          const drafted = bufferRef.current.read(section, field, sourceLocale);
+          if (drafted !== undefined) {
+            return { text: drafted, sourceLocale };
+          }
+          const original = allContent?.find((c) => c.section === section)
+            ?.content[field];
+          const text = original?.[sourceLocale as "en" | "it"];
+          if (text === undefined) {
+            return;
+          }
+          return { text, sourceLocale };
+        },
+        writeTranslation: (section, field, locale, value) => {
+          bufferRef.current.write(section, field, locale, value);
+        },
+        markAutoTranslated: (section, field, locale) => {
+          bufferRef.current.markAutoTranslated(section, field, locale);
+        },
+      });
+      if (result.translated.length > 0) {
+        setHasChanges(true);
+        setEditVersion((v) => v + 1);
+        schedulePersist();
+      }
+      return result;
+    },
+    [allContent, schedulePersist]
+  );
+
   const removeEntity = useCallback(
     async (ref: EntityRef) => {
       if (ref.entityType === "project") {
@@ -442,6 +501,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     clearPersistedState();
   }, [removeEntity]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: editVersion forces fresh read from buffer ref so React Compiler cannot cache stale return values
   const changeSummary = useCallback((): ChangeSummary => {
     const getOriginal = (section: string, field: string, locale: string) => {
       const fieldContent = allContent?.find((c) => c.section === section)
@@ -461,11 +521,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       dismissals: textSummary.dismissals,
       autoTranslations: textSummary.autoTranslations,
     };
-  }, [allContent]);
+  }, [allContent, editVersion]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: editVersion forces new read-function identities so React Compiler cannot cache stale return values
   const ops = useMemo(
     () => ({
+      autoTranslate,
       cancelDeletion,
       cancelFieldDeletion,
       clearPublishOverride,
@@ -479,12 +540,15 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         bufferRef.current.getPublishOverride(entityType, id),
       getReorderList: (entityType: string) =>
         bufferRef.current.getReorderList(entityType),
+      isAutoTranslated: (section: string, field: string, locale: string) =>
+        bufferRef.current.isAutoTranslated(section, field, locale),
       isFieldDeleted: (section: string, keyPrefix: string) =>
         bufferRef.current.isFieldDeleted(section, keyPrefix),
       isPendingDeletion: (entityType: string, id: string) =>
         bufferRef.current.isPendingDeletion(entityType, id),
       isSessionCreated: (entityType: string, id: string) =>
         bufferRef.current.isSessionCreated(entityType, id),
+      markAutoTranslated,
       read: ((section: string, field: string, locale: string) =>
         bufferRef.current.read(section, field, locale)) as Buffer["read"],
       sectionChanges: ((section: string) =>
@@ -497,10 +561,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     }),
     [
       editVersion,
+      autoTranslate,
       cancelDeletion,
       cancelFieldDeletion,
       clearPublishOverride,
       deleteField,
+      markAutoTranslated,
       setPublishOverride,
       setReorderList,
       trackCreation,
