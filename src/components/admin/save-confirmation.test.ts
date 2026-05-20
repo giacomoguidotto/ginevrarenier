@@ -26,6 +26,26 @@ describe("formatEditLabel", () => {
       formatEditLabel({ section: "project:abc123", field: "title" }, labels)
     ).toBe("Project: Solstice / title");
   });
+
+  it("strips generated ID prefix from field names", () => {
+    const labels = new Map([["essence.timeline", "Essence: Timeline"]]);
+    expect(
+      formatEditLabel(
+        { section: "essence.timeline", field: "lo0dsw.year" },
+        labels
+      )
+    ).toBe("Essence: Timeline / year");
+  });
+
+  it("keeps semantic field prefixes (no digits)", () => {
+    const labels = new Map([["essence.achievements", "Essence: Achievements"]]);
+    expect(
+      formatEditLabel(
+        { section: "essence.achievements", field: "years.title" },
+        labels
+      )
+    ).toBe("Essence: Achievements / years.title");
+  });
 });
 
 function edit(section: string, field: string, locale: string): TextEdit {
