@@ -83,10 +83,12 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
           }
         }
       }
+      autoTranslations.delete(thisKey);
       if (hasForOtherLocale(autoTranslations)) {
         for (const k of autoTranslations) {
           if (k.startsWith(prefix)) {
             autoTranslations.delete(k);
+            store.delete(k);
           }
         }
       }

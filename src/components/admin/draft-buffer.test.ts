@@ -627,12 +627,23 @@ describe("Draft Buffer", () => {
       expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(false);
     });
 
-    it("write to auto-translated locale does not reset marker", () => {
+    it("write to source locale removes auto-translated value from store", () => {
       const buffer = createDraftBuffer();
       buffer.write("hero", "title", "en", "Hello");
+      buffer.write("hero", "title", "it", "Auto IT");
       buffer.markAutoTranslated("hero", "title", "it");
-      buffer.write("hero", "title", "it", "Ciao v2");
-      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(true);
+      buffer.write("hero", "title", "en", "Hello v2");
+      expect(buffer.read("hero", "title", "it")).toBeUndefined();
+      expect(buffer.editedLocales("hero", "title")).toEqual(new Set(["en"]));
+    });
+
+    it("write to auto-translated locale clears its marker", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      buffer.write("hero", "title", "it", "Auto IT");
+      buffer.markAutoTranslated("hero", "title", "it");
+      buffer.write("hero", "title", "it", "Manual IT");
+      expect(buffer.isAutoTranslated("hero", "title", "it")).toBe(false);
     });
 
     it("auto-translations survive serialize/deserialize", () => {
