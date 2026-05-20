@@ -406,6 +406,18 @@ function formatEntityType(entityType: string) {
   return entityType === "post" ? "Post" : "Project";
 }
 
+function formatEntityRef(
+  entityType: string,
+  id: string,
+  sectionLabels: ReadonlyMap<string, string>
+) {
+  const label = sectionLabels.get(`${entityType}:${id}`);
+  if (label) {
+    return label;
+  }
+  return formatEntityType(entityType);
+}
+
 function StaleFieldsWarning({
   staleFields,
   sectionLabels,
@@ -507,7 +519,9 @@ export function SaveConfirmDialog({
                   key={`create\0${ref.entityType}\0${ref.id}`}
                 >
                   <Plus className="h-3 w-3 shrink-0" />
-                  <span>New {formatEntityType(ref.entityType)}</span>
+                  <span>
+                    New {formatEntityRef(ref.entityType, ref.id, sectionLabels)}
+                  </span>
                 </li>
               ))
             : null}
@@ -518,7 +532,10 @@ export function SaveConfirmDialog({
                   key={`delete\0${ref.entityType}\0${ref.id}`}
                 >
                   <Trash2 className="h-3 w-3 shrink-0" />
-                  <span>Delete {formatEntityType(ref.entityType)}</span>
+                  <span>
+                    Delete{" "}
+                    {formatEntityRef(ref.entityType, ref.id, sectionLabels)}
+                  </span>
                 </li>
               ))
             : null}
@@ -535,7 +552,7 @@ export function SaveConfirmDialog({
                   )}
                   <span>
                     {ovr.published ? "Publish" : "Unpublish"}{" "}
-                    {formatEntityType(ovr.entityType)}
+                    {formatEntityRef(ovr.entityType, ovr.id, sectionLabels)}
                   </span>
                 </li>
               ))
@@ -637,7 +654,8 @@ function DiscardConfirmDialog({
                 >
                   <Trash2 className="h-3 w-3 shrink-0" />
                   <span>
-                    New {formatEntityType(ref.entityType)} will be deleted
+                    New {formatEntityRef(ref.entityType, ref.id, sectionLabels)}{" "}
+                    will be deleted
                   </span>
                 </li>
               ))
