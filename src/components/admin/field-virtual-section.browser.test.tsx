@@ -105,21 +105,44 @@ const bufferStore = {
   current: null as ReturnType<typeof createDraftBuffer> | null,
 };
 
-vi.mock("./draft-buffer-context", () => ({
-  DraftBufferProvider: ({ children }: { children: ReactNode }) => children,
-  useDraftBufferOps: () => ({
-    editedLocales: (section: string, field: string) =>
-      bufferStore.current?.editedLocales(section, field) ?? new Set<string>(),
-    read: (section: string, field: string, locale: string) =>
-      bufferStore.current?.read(section, field, locale),
-    write: (section: string, field: string, locale: string, value: string) =>
-      bufferStore.current?.write(section, field, locale, value),
-    isAutoTranslated: (section: string, field: string, locale: string) =>
-      bufferStore.current?.isAutoTranslated(section, field, locale) ?? false,
-  }),
-  useDraftBufferReset: () => 0,
-  useEditVersion: () => 0,
-}));
+vi.mock("./draft-buffer-context", () => {
+  const locales = ["en", "it"];
+  return {
+    DraftBufferProvider: ({ children }: { children: ReactNode }) => children,
+    useDraftBufferOps: () => ({
+      dismiss: (section: string, field: string, locale: string) =>
+        bufferStore.current?.dismiss(section, field, locale),
+      editedLocales: (section: string, field: string) =>
+        bufferStore.current?.editedLocales(section, field) ?? new Set<string>(),
+      fieldStatus: (section: string, field: string, locale: string) => {
+        const buf = bufferStore.current;
+        if (!buf) {
+          return "fresh";
+        }
+        if (buf.isDismissed(section, field, locale)) {
+          return "dismissed";
+        }
+        if (buf.isAutoTranslated(section, field, locale)) {
+          return "system-filled";
+        }
+        const edited = buf.editedLocales(section, field);
+        if (
+          !edited.has(locale) &&
+          locales.some((l: string) => l !== locale && edited.has(l))
+        ) {
+          return "stale";
+        }
+        return "fresh";
+      },
+      read: (section: string, field: string, locale: string) =>
+        bufferStore.current?.read(section, field, locale),
+      write: (section: string, field: string, locale: string, value: string) =>
+        bufferStore.current?.write(section, field, locale, value),
+    }),
+    useDraftBufferReset: () => 0,
+    useEditVersion: () => 0,
+  };
+});
 
 import { createDraftBuffer } from "./draft-buffer";
 import { EditModeProvider, useEditMode } from "./edit-mode-context";

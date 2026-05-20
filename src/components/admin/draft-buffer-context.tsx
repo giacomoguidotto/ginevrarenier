@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { locales } from "@/i18n/config";
 import type { AutoTranslateResult, TranslateFn } from "./auto-translate";
 import { autoTranslateAll } from "./auto-translate";
 import type {
@@ -29,6 +30,7 @@ import {
   mergeSiteContent,
   routeSection,
 } from "./save-routing";
+import type { FieldStatus } from "./staleness-engine";
 
 type Buffer = ReturnType<typeof createDraftBuffer>;
 type Assets = ReturnType<typeof createImageAssets>;
@@ -78,10 +80,13 @@ interface DraftBufferOps {
   cancelFieldDeletion: (section: string, keyPrefix: string) => void;
   clearPublishOverride: (entityType: string, id: string) => void;
   deleteField: (section: string, keyPrefix: string) => void;
+  dismiss: (section: string, field: string, locale: string) => void;
   editedLocales: Buffer["editedLocales"];
+  fieldStatus: (section: string, field: string, locale: string) => FieldStatus;
   getPublishOverride: (entityType: string, id: string) => boolean | undefined;
   getReorderList: (entityType: string) => string[] | undefined;
   isAutoTranslated: (section: string, field: string, locale: string) => boolean;
+  isDismissed: (section: string, field: string, locale: string) => boolean;
   isFieldDeleted: (section: string, keyPrefix: string) => boolean;
   isPendingDeletion: (entityType: string, id: string) => boolean;
   isSessionCreated: (entityType: string, id: string) => boolean;
@@ -128,10 +133,13 @@ const OpsContext = createContext<DraftBufferOps>({
   cancelFieldDeletion: noop,
   clearPublishOverride: noop,
   deleteField: noop,
+  dismiss: noop,
   editedLocales: () => new Set<string>(),
+  fieldStatus: () => "fresh" as FieldStatus,
   getPublishOverride: () => undefined,
   getReorderList: () => undefined,
   isAutoTranslated: () => false,
+  isDismissed: () => false,
   isFieldDeleted: () => false,
   isPendingDeletion: () => false,
   isSessionCreated: () => false,
@@ -311,6 +319,15 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (section: string, keyPrefix: string) => {
       bufferRef.current.cancelFieldDeletion(section, keyPrefix);
       setHasChanges(bufferRef.current.hasChanges());
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const dismiss = useCallback(
+    (section: string, field: string, locale: string) => {
+      bufferRef.current.dismiss(section, field, locale);
       setEditVersion((v) => v + 1);
       schedulePersist();
     },
@@ -531,17 +548,40 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       cancelFieldDeletion,
       clearPublishOverride,
       deleteField,
+      dismiss,
       editedLocales: ((section: string, field: string) =>
         bufferRef.current.editedLocales(
           section,
           field
         )) as Buffer["editedLocales"],
+      fieldStatus: (
+        section: string,
+        field: string,
+        locale: string
+      ): FieldStatus => {
+        if (bufferRef.current.isDismissed(section, field, locale)) {
+          return "dismissed";
+        }
+        if (bufferRef.current.isAutoTranslated(section, field, locale)) {
+          return "system-filled";
+        }
+        const edited = bufferRef.current.editedLocales(section, field);
+        if (
+          !edited.has(locale) &&
+          locales.some((l) => l !== locale && edited.has(l))
+        ) {
+          return "stale";
+        }
+        return "fresh";
+      },
       getPublishOverride: (entityType: string, id: string) =>
         bufferRef.current.getPublishOverride(entityType, id),
       getReorderList: (entityType: string) =>
         bufferRef.current.getReorderList(entityType),
       isAutoTranslated: (section: string, field: string, locale: string) =>
         bufferRef.current.isAutoTranslated(section, field, locale),
+      isDismissed: (section: string, field: string, locale: string) =>
+        bufferRef.current.isDismissed(section, field, locale),
       isFieldDeleted: (section: string, keyPrefix: string) =>
         bufferRef.current.isFieldDeleted(section, keyPrefix),
       isPendingDeletion: (entityType: string, id: string) =>
@@ -566,6 +606,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       cancelFieldDeletion,
       clearPublishOverride,
       deleteField,
+      dismiss,
       markAutoTranslated,
       setPublishOverride,
       setReorderList,

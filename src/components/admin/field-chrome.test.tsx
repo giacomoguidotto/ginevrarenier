@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const MOTION_KEYS = new Set([
@@ -38,8 +38,10 @@ vi.mock("framer-motion", () => {
   return {
     AnimatePresence: ({ children }: { children: unknown }) => children,
     motion: {
+      button: motionComponent("button"),
       circle: motionComponent("circle"),
       rect: motionComponent("rect"),
+      span: motionComponent("span"),
     },
   };
 });
@@ -63,6 +65,7 @@ describe("FieldChrome", () => {
   it("renders outline rect with correct dimensions", () => {
     const { container } = render(
       <FieldChrome
+        fieldStatus="fresh"
         focused={false}
         height={100}
         staleLocale={null}
@@ -87,10 +90,17 @@ describe("FieldChrome", () => {
 
   it("applies focused styles when focused", () => {
     const { container: focused } = render(
-      <FieldChrome focused={true} height={100} staleLocale={null} width={200} />
+      <FieldChrome
+        fieldStatus="fresh"
+        focused={true}
+        height={100}
+        staleLocale={null}
+        width={200}
+      />
     );
     const { container: unfocused } = render(
       <FieldChrome
+        fieldStatus="fresh"
         focused={false}
         height={100}
         staleLocale={null}
@@ -112,12 +122,52 @@ describe("FieldChrome", () => {
     expect(unfocusedRects[1].getAttribute("opacity")).toBe("1");
   });
 
-  it("renders stale-locale dot when provided and omits when null", () => {
-    const { container: withLocale } = render(
-      <FieldChrome focused={false} height={100} staleLocale="it" width={200} />
-    );
-    const { container: withoutLocale } = render(
+  it("renders warning SemanticDot when fieldStatus is stale", () => {
+    const { container } = render(
       <FieldChrome
+        fieldStatus="stale"
+        focused={false}
+        height={100}
+        staleLocale="it"
+        width={200}
+      />
+    );
+
+    const dot = container.querySelector("[data-slot='semantic-dot']");
+    expect(dot).not.toBeNull();
+    expect((dot as HTMLElement).style.backgroundColor).toBe(
+      "oklch(0.82 0.17 80)"
+    );
+
+    const tooltip = container.querySelector("[data-slot='tooltip-content']");
+    expect(tooltip?.textContent).toBe("IT was not modified");
+  });
+
+  it("renders info SemanticDot when fieldStatus is system-filled", () => {
+    const { container } = render(
+      <FieldChrome
+        fieldStatus="system-filled"
+        focused={false}
+        height={100}
+        staleLocale="it"
+        width={200}
+      />
+    );
+
+    const dot = container.querySelector("[data-slot='semantic-dot']");
+    expect(dot).not.toBeNull();
+    expect((dot as HTMLElement).style.backgroundColor).toBe(
+      "oklch(0.65 0.18 250)"
+    );
+
+    const tooltip = container.querySelector("[data-slot='tooltip-content']");
+    expect(tooltip?.textContent).toBe("Auto-translated");
+  });
+
+  it("renders no dot when fieldStatus is fresh", () => {
+    const { container } = render(
+      <FieldChrome
+        fieldStatus="fresh"
         focused={false}
         height={100}
         staleLocale={null}
@@ -125,21 +175,48 @@ describe("FieldChrome", () => {
       />
     );
 
-    expect(withLocale.querySelector("circle")).not.toBeNull();
-    expect(
-      withLocale.querySelector("[data-slot='tooltip-content']")?.textContent
-    ).toBe("IT was not modified");
+    expect(container.querySelector("[data-slot='semantic-dot']")).toBeNull();
+  });
 
-    expect(withoutLocale.querySelector("circle")).toBeNull();
-    expect(
-      withoutLocale.querySelector("[data-slot='tooltip-content']")
-    ).toBeNull();
+  it("renders no dot when fieldStatus is dismissed", () => {
+    const { container } = render(
+      <FieldChrome
+        fieldStatus="dismissed"
+        focused={false}
+        height={100}
+        staleLocale="it"
+        width={200}
+      />
+    );
+
+    expect(container.querySelector("[data-slot='semantic-dot']")).toBeNull();
+  });
+
+  it("calls onDismiss when stale dot is clicked", () => {
+    const onDismiss = vi.fn();
+    const { container } = render(
+      <FieldChrome
+        fieldStatus="stale"
+        focused={false}
+        height={100}
+        onDismiss={onDismiss}
+        staleLocale="it"
+        width={200}
+      />
+    );
+
+    const dot = container.querySelector("[data-slot='semantic-dot']");
+    expect(dot).not.toBeNull();
+    expect(dot?.tagName.toLowerCase()).toBe("button");
+    fireEvent.click(dot as Element);
+    expect(onDismiss).toHaveBeenCalledOnce();
   });
 
   it("does not render when unmounted", () => {
     function Harness({ show }: { show: boolean }) {
       return show ? (
         <FieldChrome
+          fieldStatus="fresh"
           focused={false}
           height={100}
           staleLocale={null}

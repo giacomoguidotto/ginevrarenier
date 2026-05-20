@@ -1,37 +1,49 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 import { useId } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { SemanticDot } from "@/components/ui/semantic-dot";
+import type { FieldStatus } from "./staleness-engine";
 
 const SPRING = { type: "spring" as const, stiffness: 200, damping: 25 };
 
 interface FieldChromeProps {
-  autoTranslated?: boolean;
+  fieldStatus: FieldStatus;
   focused: boolean;
   height: number;
+  onDismiss?: () => void;
   staleLocale: string | null;
   width: number;
 }
 
 export function FieldChrome({
-  autoTranslated,
+  fieldStatus,
   focused,
   height,
+  onDismiss,
   staleLocale,
   width,
 }: FieldChromeProps) {
   const id = useId();
   const patternId = `chrome-hatching${id}`;
-  const r = 4;
   const inset = 0.5;
   const rectW = Math.max(0, width - 2 * inset);
   const rectH = Math.max(0, height - 2 * inset);
   const perimeter = 2 * (rectW + rectH);
+
+  let dot: ReactNode = null;
+  if (fieldStatus === "stale" && staleLocale !== null) {
+    dot = (
+      <SemanticDot
+        action={onDismiss}
+        label={`${staleLocale.toUpperCase()} was not modified`}
+        state="warning"
+      />
+    );
+  } else if (fieldStatus === "system-filled") {
+    dot = <SemanticDot label="Auto-translated" state="info" />;
+  }
 
   return (
     <>
@@ -95,70 +107,19 @@ export function FieldChrome({
           x={inset}
           y={inset}
         />
-
-        {staleLocale !== null && (
-          <motion.circle
-            animate={{ opacity: 1, scale: 1 }}
-            cx={width - r - 2}
-            cy={r + 2}
-            exit={{ opacity: 0, scale: 0 }}
-            fill="oklch(0.82 0.17 80)"
-            initial={{ opacity: 0, scale: 0 }}
-            r={r}
-            transition={SPRING}
-          />
-        )}
-        {autoTranslated && staleLocale === null && (
-          <motion.circle
-            animate={{ opacity: 1, scale: 1 }}
-            cx={width - r - 2}
-            cy={r + 2}
-            exit={{ opacity: 0, scale: 0 }}
-            fill="oklch(0.62 0.17 250)"
-            initial={{ opacity: 0, scale: 0 }}
-            r={r}
-            transition={SPRING}
-          />
-        )}
       </svg>
 
-      {staleLocale !== null && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span
-              style={{
-                position: "absolute",
-                right: 2,
-                top: 2,
-                width: r * 2,
-                height: r * 2,
-                borderRadius: "50%",
-              }}
-            />
-          </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={4}>
-            {staleLocale.toUpperCase()} was not modified
-          </TooltipContent>
-        </Tooltip>
-      )}
-      {autoTranslated && staleLocale === null && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span
-              style={{
-                position: "absolute",
-                right: 2,
-                top: 2,
-                width: r * 2,
-                height: r * 2,
-                borderRadius: "50%",
-              }}
-            />
-          </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={4}>
-            Auto-translated
-          </TooltipContent>
-        </Tooltip>
+      {dot !== null && (
+        <div
+          style={{
+            position: "absolute",
+            right: 2,
+            top: 2,
+            pointerEvents: "auto",
+          }}
+        >
+          {dot}
+        </div>
       )}
     </>
   );
