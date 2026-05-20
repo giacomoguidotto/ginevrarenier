@@ -32,7 +32,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ChangeSummary } from "./draft-buffer";
+import type { ChangeSummary, EntityRef } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
 import { getAllSectionLabels } from "./page-boundary";
 import {
@@ -403,7 +403,13 @@ export function EditToolbar({
 }
 
 function formatEntityType(entityType: string) {
-  return entityType === "post" ? "Post" : "Project";
+  if (entityType === "post") {
+    return "Post";
+  }
+  if (entityType === "timeline-entry") {
+    return "Timeline Entry";
+  }
+  return "Project";
 }
 
 function formatEntityRef(
@@ -416,6 +422,48 @@ function formatEntityRef(
     return label;
   }
   return formatEntityType(entityType);
+}
+
+function filterEntityTextEdits(
+  summary: ChangeSummary
+): ChangeSummary["textEdits"] {
+  const entityIds = new Set<string>();
+  for (const ref of summary.createdEntities) {
+    if (ref.entityType === "timeline-entry") {
+      entityIds.add(ref.id);
+    }
+  }
+  for (const ref of summary.pendingDeletions) {
+    if (ref.entityType === "timeline-entry") {
+      entityIds.add(ref.id);
+    }
+  }
+  if (entityIds.size === 0) {
+    return summary.textEdits;
+  }
+
+  return summary.textEdits.filter((edit) => {
+    if (edit.section !== "essence.timeline") {
+      return true;
+    }
+    const dot = edit.field.indexOf(".");
+    if (dot === -1) {
+      return true;
+    }
+    return !entityIds.has(edit.field.slice(0, dot));
+  });
+}
+
+function filterEntityRefs(
+  refs: EntityRef[],
+  exclude: Set<string>
+): EntityRef[] {
+  if (exclude.size === 0) {
+    return refs;
+  }
+  return refs.filter(
+    (ref) => ref.entityType !== "timeline-entry" || !exclude.has(ref.id)
+  );
 }
 
 function StaleFieldsWarning({
@@ -468,14 +516,39 @@ export function SaveConfirmDialog({
   const summary = open ? changeSummary() : null;
   const sectionLabels =
     sectionLabelsProp ?? (open ? getAllSectionLabels() : new Map());
-  const hasTextEdits = summary && summary.textEdits.length > 0;
-  const hasCreations = summary && summary.createdEntities.length > 0;
-  const hasDeletions = summary && summary.pendingDeletions.length > 0;
+
+  const textEdits = summary ? filterEntityTextEdits(summary) : [];
+  const cancelledIds = summary
+    ? new Set(
+        summary.createdEntities
+          .filter(
+            (c) =>
+              c.entityType === "timeline-entry" &&
+              summary.pendingDeletions.some(
+                (d) => d.entityType === "timeline-entry" && d.id === c.id
+              )
+          )
+          .map((c) => c.id)
+      )
+    : new Set<string>();
+  const createdEntities = summary
+    ? filterEntityRefs(summary.createdEntities, cancelledIds)
+    : [];
+  const pendingDeletions = summary
+    ? filterEntityRefs(summary.pendingDeletions, cancelledIds)
+    : [];
+
+  const hasTextEdits = textEdits.length > 0;
+  const hasCreations = createdEntities.length > 0;
+  const hasDeletions = pendingDeletions.length > 0;
   const hasPublishOverrides = summary && summary.publishOverrides.length > 0;
   const hasReorder = summary && summary.reorderedEntityTypes.length > 0;
 
   const undismissedStaleFields = summary
-    ? getUndismissedStaleFields(summary)
+    ? getUndismissedStaleFields({
+        ...summary,
+        textEdits,
+      })
     : [];
 
   return (
@@ -489,7 +562,7 @@ export function SaveConfirmDialog({
         </DialogHeader>
         <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
           {hasTextEdits
-            ? summary.textEdits.map((edit) => (
+            ? textEdits.map((edit) => (
                 <li
                   className="flex items-baseline gap-2"
                   key={`${edit.section}\0${edit.field}\0${edit.locale}`}
@@ -513,7 +586,7 @@ export function SaveConfirmDialog({
             </li>
           ) : null}
           {hasCreations
-            ? summary?.createdEntities.map((ref) => (
+            ? createdEntities.map((ref) => (
                 <li
                   className="flex items-baseline gap-2 text-emerald-500"
                   key={`create\0${ref.entityType}\0${ref.id}`}
@@ -526,7 +599,7 @@ export function SaveConfirmDialog({
               ))
             : null}
           {hasDeletions
-            ? summary?.pendingDeletions.map((ref) => (
+            ? pendingDeletions.map((ref) => (
                 <li
                   className="flex items-baseline gap-2 text-destructive"
                   key={`delete\0${ref.entityType}\0${ref.id}`}
@@ -603,10 +676,13 @@ function DiscardConfirmDialog({
   const sectionLabels = open
     ? getAllSectionLabels()
     : new Map<string, string>();
-  const editCount =
-    (summary?.textEdits.length ?? 0) + (summary?.imageSwaps.length ?? 0);
-  const creationCount = summary?.createdEntities.length ?? 0;
-  const hasCreations = creationCount > 0;
+
+  const textEdits = summary ? filterEntityTextEdits(summary) : [];
+  const editCount = textEdits.length + (summary?.imageSwaps.length ?? 0);
+  const dbCreations = summary
+    ? summary.createdEntities.filter((e) => e.entityType !== "timeline-entry")
+    : [];
+  const hasCreations = summary ? summary.createdEntities.length > 0 : false;
 
   return (
     <Dialog onOpenChange={(v) => !v && onCancel()} open={open}>
@@ -620,8 +696,8 @@ function DiscardConfirmDialog({
           </DialogDescription>
         </DialogHeader>
         <ul className="max-h-60 space-y-1 overflow-y-auto text-sm">
-          {summary && summary.textEdits.length > 0
-            ? summary.textEdits.map((edit) => (
+          {textEdits.length > 0
+            ? textEdits.map((edit) => (
                 <li
                   className="flex items-baseline gap-2"
                   key={`${edit.section}\0${edit.field}\0${edit.locale}`}
@@ -661,11 +737,11 @@ function DiscardConfirmDialog({
               ))
             : null}
         </ul>
-        {hasCreations ? (
+        {dbCreations.length > 0 ? (
           <p className="text-destructive text-xs">
-            {creationCount} newly created{" "}
-            {creationCount === 1 ? "entity" : "entities"} will be permanently
-            deleted from the database.
+            {dbCreations.length} newly created{" "}
+            {dbCreations.length === 1 ? "entity" : "entities"} will be
+            permanently deleted from the database.
           </p>
         ) : null}
         <DialogFooter>

@@ -46,6 +46,29 @@ describe("formatEditLabel", () => {
       )
     ).toBe("Essence: Achievements / years.title");
   });
+
+  it("resolves entity label from field prefix when registered", () => {
+    const labels = new Map([
+      ["essence.timeline", "Essence: Timeline"],
+      ["timeline-entry:qymwph", "Timeline Entry: 2022"],
+    ]);
+    expect(
+      formatEditLabel(
+        { section: "essence.timeline", field: "qymwph.title" },
+        labels
+      )
+    ).toBe("Timeline Entry: 2022 / title");
+  });
+
+  it("resolves entity label for description field", () => {
+    const labels = new Map([["timeline-entry:abc123", "Timeline Entry: 2025"]]);
+    expect(
+      formatEditLabel(
+        { section: "essence.timeline", field: "abc123.description" },
+        labels
+      )
+    ).toBe("Timeline Entry: 2025 / description");
+  });
 });
 
 function edit(section: string, field: string, locale: string): TextEdit {

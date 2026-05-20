@@ -19,6 +19,7 @@ import {
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
+import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
@@ -194,10 +195,20 @@ function generateId() {
 function useTimelineEntries() {
   const section = "essence.timeline";
   const { data } = useSection();
-  const { write, deleteField, isFieldDeleted, sectionChanges } =
-    useDraftBufferOps();
+  const {
+    read,
+    write,
+    deleteField,
+    isFieldDeleted,
+    sectionChanges,
+    trackCreation,
+    trackDeletion,
+  } = useDraftBufferOps();
   const resetSignal = useDraftBufferReset();
   const newIdsRef = useRef(new Set<string>());
+  const [deletedLabels, setDeletedLabels] = useState<
+    { id: string; year: string }[]
+  >([]);
 
   const derive = useCallback(
     () =>
@@ -214,6 +225,7 @@ function useTimelineEntries() {
   if (data !== prevDataRef.current || resetSignal !== prevResetRef.current) {
     if (resetSignal !== prevResetRef.current) {
       newIdsRef.current = new Set();
+      setDeletedLabels([]);
     }
     prevDataRef.current = data;
     prevResetRef.current = resetSignal;
@@ -226,26 +238,48 @@ function useTimelineEntries() {
     for (const w of createEntryWrites(id, year)) {
       write(section, w.field, w.locale, w.value);
     }
+    trackCreation("timeline-entry", id);
     newIdsRef.current.add(id);
     setEntries((prev) => [...prev, { id }]);
-  }, [write]);
+  }, [write, trackCreation]);
 
   const handleDelete = useCallback(
     (id: string) => {
+      if (!newIdsRef.current.has(id)) {
+        const year =
+          read(section, `${id}.year`, "en") ?? data?.[`${id}.year`]?.en ?? "";
+        setDeletedLabels((prev) => [...prev, { id, year }]);
+        trackDeletion("timeline-entry", id);
+      }
       deleteField(section, id);
       newIdsRef.current.delete(id);
       setEntries((prev) => prev.filter((e) => e.id !== id));
     },
-    [deleteField]
+    [deleteField, trackDeletion, read, data]
   );
 
-  return { entries, handleAdd, handleDelete, newIds: newIdsRef.current };
+  return {
+    entries,
+    handleAdd,
+    handleDelete,
+    newIds: newIdsRef.current,
+    deletedLabels,
+  };
+}
+
+function DeletedEntryLabel({ id, year }: { id: string; year: string }) {
+  usePageBoundaryRegistration(
+    `timeline-entry:${id}`,
+    `Timeline Entry: ${year}`
+  );
+  return null;
 }
 
 function EssenceTimeline() {
   const { enable } = useChromeEnabler();
   const { isEditMode } = useEditMode();
-  const { entries, handleAdd, handleDelete, newIds } = useTimelineEntries();
+  const { entries, handleAdd, handleDelete, newIds, deletedLabels } =
+    useTimelineEntries();
 
   return (
     <section className="bg-charcoal py-24">
@@ -267,6 +301,10 @@ function EssenceTimeline() {
 
         <div className="relative">
           <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
+
+          {deletedLabels.map(({ id, year }) => (
+            <DeletedEntryLabel id={id} key={`label-${id}`} year={year} />
+          ))}
 
           {entries.map(({ id }, index) => (
             <ChromeEnablerProvider key={id}>
@@ -320,6 +358,17 @@ function TimelineEntryInner({
 }) {
   const { isEditMode } = useEditMode();
   const { enable } = useChromeEnabler();
+  const { data } = useSection();
+  const { read } = useDraftBufferOps();
+
+  const year =
+    read("essence.timeline", `${id}.year`, "en") ??
+    data?.[`${id}.year`]?.en ??
+    "";
+  usePageBoundaryRegistration(
+    `timeline-entry:${id}`,
+    `Timeline Entry: ${year}`
+  );
 
   const animateProps = isNew
     ? { animate: { opacity: 1, x: 0 } }

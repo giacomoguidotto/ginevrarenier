@@ -20,6 +20,17 @@ export function formatEditLabel(
   edit: { section: string; field: string },
   sectionLabels: ReadonlyMap<string, string>
 ): string {
+  const dot = edit.field.indexOf(".");
+  if (dot !== -1) {
+    const prefix = edit.field.slice(0, dot);
+    const suffix = `:${prefix}`;
+    for (const [key, entityLabel] of sectionLabels) {
+      if (key.endsWith(suffix)) {
+        return `${entityLabel} / ${edit.field.slice(dot + 1)}`;
+      }
+    }
+  }
+
   const label = sectionLabels.get(edit.section) ?? edit.section;
   return `${label} / ${humanizeFieldName(edit.field)}`;
 }
