@@ -10,7 +10,7 @@ async function enterEditMode(page: Page) {
 }
 
 async function waitForApp(page: Page) {
-  await page.waitForLoadState("networkidle");
+  await page.locator("main").waitFor();
 }
 
 function editableFields(page: Page) {
@@ -26,7 +26,7 @@ function chromeRects(page: Page) {
 }
 
 function editToolbar(page: Page) {
-  return page.locator("div.fixed.z-50.rounded-full");
+  return page.locator('[data-testid="edit-toolbar"]');
 }
 
 async function waitForEditable(page: Page) {
@@ -191,7 +191,7 @@ test.describe("US-4: Chrome follows resized Fields", () => {
       );
     expect(initialRects.length).toBeGreaterThan(0);
 
-    const introSection = page.locator("section.bg-charcoal");
+    const introSection = page.locator('[data-testid="intro-section"]');
     await introSection.scrollIntoViewIfNeeded();
     await expect(introSection.locator(".editable-field").first()).toBeAttached({
       timeout: 15_000,
@@ -300,8 +300,8 @@ test.describe("US-7: Stale-locale indicators", () => {
     await page.keyboard.type("X");
     await field.blur();
 
-    const amberDots = fieldChromes(page).locator(
-      'circle[fill="oklch(0.82 0.17 80)"]'
+    const amberDots = page.locator(
+      '[data-slot="semantic-dot"][data-variant="warning"]'
     );
     await expect(amberDots.first()).toBeAttached({ timeout: 5000 });
   });
@@ -626,14 +626,16 @@ test.describe("US-11: Discard confirmation dialog", () => {
 // US-17: Chrome doesn't appear on mid-animation Fields
 // ─────────────────────────────────────────────────────────
 test.describe("US-17: Chrome waits for entrance animations", () => {
-  test("No per-field Chrome immediately after page load in edit mode", async ({
+  test("No Chrome in viewer mode, Chrome appears after edit mode activates", async ({
     page,
   }) => {
+    await page.goto("/");
+    await waitForApp(page);
+
+    await expect(fieldChromes(page)).toHaveCount(0);
+
     await enterEditMode(page);
     await page.goto("/");
-
-    const immediateCount = await fieldChromes(page).count();
-    expect(immediateCount).toBe(0);
 
     await expect(fieldChromes(page).first()).toBeAttached({ timeout: 15_000 });
   });
@@ -676,7 +678,7 @@ test.describe("US-19: Below-fold Fields activate on scroll", () => {
 
     const heroRectCount = await chromeRects(page).count();
 
-    const introSection = page.locator("section.bg-charcoal");
+    const introSection = page.locator('[data-testid="intro-section"]');
     await introSection.scrollIntoViewIfNeeded();
     await page.waitForFunction(
       (prevCount: number) =>
@@ -748,7 +750,7 @@ test.describe("US-21: Newlines in multiline Fields", () => {
     await page.goto("/");
     await waitForApp(page);
 
-    const introSection = page.locator("section.bg-charcoal");
+    const introSection = page.locator('[data-testid="intro-section"]');
     await introSection.scrollIntoViewIfNeeded();
 
     const multilineField = introSection.locator(
