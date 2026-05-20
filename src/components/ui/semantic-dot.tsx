@@ -33,6 +33,7 @@ export function SemanticDot({ state, label, action }: SemanticDotProps) {
   const motionProps = {
     animate: { opacity: 1, scale: 1 },
     "data-slot": "semantic-dot",
+    "data-variant": state,
     exit: { opacity: 0, scale: 0 },
     initial: { opacity: 0, scale: 0 },
     transition: SPRING,

@@ -249,6 +249,7 @@ export function EditToolbar({
   return (
     <div
       className="fixed z-50 flex items-center gap-1 rounded-full border border-foreground/20 bg-background/80 px-2 py-1.5 shadow-lg backdrop-blur-md"
+      data-testid="edit-toolbar"
       ref={toolbarRef}
       style={{
         left: position.x,
