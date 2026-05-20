@@ -16,7 +16,6 @@ vi.mock("next-intl", () => ({
 const saveMock = vi.fn(async () => {});
 const discardMock = vi.fn();
 let mockHasChanges = false;
-let mockEditedLocales = new Set<string>();
 
 vi.mock("./draft-buffer-context", () => ({
   DraftBufferProvider: ({ children }: { children: ReactNode }) => children,
@@ -26,16 +25,21 @@ vi.mock("./draft-buffer-context", () => ({
     editedLocales: () => new Set<string>(),
   }),
   useDraftBufferReset: () => 0,
+  useEditVersion: () => 0,
   useDraftBufferState: () => ({
     hasChanges: mockHasChanges,
-    editedLocales: mockEditedLocales,
     save: saveMock,
     discard: discardMock,
     changeSummary: () => ({
-      textEdits: [],
-      imageSwaps: [],
+      autoTranslations: [],
       createdEntities: [],
+      dismissals: [],
+      fieldDeletions: [],
+      imageSwaps: [],
       pendingDeletions: [],
+      publishOverrides: [],
+      reorderedEntityTypes: [],
+      textEdits: [],
     }),
   }),
 }));
@@ -44,7 +48,6 @@ vi.mock("./page-changes-context", () => ({
   PageChangesProvider: ({ children }: { children: ReactNode }) => children,
   usePageChanges: () => ({
     hasChanges: false,
-    editedLocales: new Set<string>(),
     // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
     save: async () => {},
     // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
@@ -59,7 +62,6 @@ import { EditToolbarWrapper } from "./edit-toolbar-wrapper";
 beforeEach(() => {
   localStorage.clear();
   mockHasChanges = false;
-  mockEditedLocales = new Set<string>();
   saveMock.mockClear();
   discardMock.mockClear();
 });
@@ -85,7 +87,6 @@ function Providers({ children }: { children: ReactNode }) {
 describe("EditToolbarWrapper without PageChanges", () => {
   it("reports hasChanges from DraftBuffer only", async () => {
     mockHasChanges = true;
-    mockEditedLocales = new Set(["en"]);
 
     const { getByTestId, getByText } = render(
       <Providers>

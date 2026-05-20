@@ -1,6 +1,7 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
+import { AnimatePresence } from "framer-motion";
 import {
   ArrowUpDown,
   Eye,
@@ -24,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SemanticDot } from "@/components/ui/semantic-dot";
 import {
   Tooltip,
   TooltipContent,
@@ -36,6 +38,7 @@ import {
   formatEditLabel,
   getUndismissedStaleFields,
 } from "./save-confirmation";
+import { staleCountByLocale } from "./staleness-queries";
 import { useExitGuard } from "./unsaved-changes-guard";
 
 const STORAGE_KEY = "edit-toolbar-position";
@@ -70,31 +73,39 @@ function getInitialPosition(): Position {
   return { x: 20, y: window.innerHeight - 80 };
 }
 
-function buildLangTooltip(
-  enNeedsAttention: boolean,
-  itNeedsAttention: boolean
-): React.ReactNode {
-  if (!(enNeedsAttention || itNeedsAttention)) {
+interface StaleField {
+  field: string;
+  locale: string;
+  section: string;
+}
+
+function buildLangTooltip(counts: Map<string, number>): React.ReactNode {
+  const enCount = counts.get("en") ?? 0;
+  const itCount = counts.get("it") ?? 0;
+  if (enCount === 0 && itCount === 0) {
     return "Switch language";
   }
-  const hint =
-    enNeedsAttention && itNeedsAttention
-      ? "EN & IT are missing some changes"
-      : `${enNeedsAttention ? "EN" : "IT"} is missing some changes`;
+  const parts: string[] = [];
+  if (enCount > 0) {
+    parts.push(`EN has ${enCount} stale ${enCount === 1 ? "field" : "fields"}`);
+  }
+  if (itCount > 0) {
+    parts.push(`IT has ${itCount} stale ${itCount === 1 ? "field" : "fields"}`);
+  }
   return (
     <span className="flex flex-col items-center">
       <span>Switch language</span>
-      <span className="text-[10px] opacity-60">{hint}</span>
+      <span className="text-[10px] opacity-60">{parts.join(", ")}</span>
     </span>
   );
 }
 
 interface EditToolbarProps {
   changeSummary: () => ChangeSummary;
-  editedLocales: Set<string>;
   hasChanges: boolean;
   onDiscard: () => void | Promise<void>;
   onSave: () => void | Promise<void>;
+  staleFields: StaleField[];
 }
 
 function ToolbarButton({
@@ -134,7 +145,7 @@ function ToolbarButton({
 export function EditToolbar({
   changeSummary,
   hasChanges,
-  editedLocales,
+  staleFields,
   onSave,
   onDiscard,
 }: EditToolbarProps) {
@@ -220,14 +231,15 @@ export function EditToolbar({
     setEditingLocale(editingLocale === "en" ? "it" : "en");
   }, [editingLocale, setEditingLocale]);
 
-  const enNeedsAttention = hasChanges && !editedLocales.has("en");
-  const itNeedsAttention = hasChanges && !editedLocales.has("it");
+  const counts = staleCountByLocale(staleFields);
+  const enStale = (counts.get("en") ?? 0) > 0;
+  const itStale = (counts.get("it") ?? 0) > 0;
 
   if (!isEditMode) {
     return null;
   }
 
-  const langTooltip = buildLangTooltip(enNeedsAttention, itNeedsAttention);
+  const langTooltip = buildLangTooltip(counts);
 
   return (
     <div
@@ -258,7 +270,7 @@ export function EditToolbar({
         label={langTooltip}
         onClick={switchLocale}
       >
-        <span className="relative">
+        <span className="relative flex items-center gap-0.5">
           <span
             className={
               editingLocale === "en" ? "text-foreground" : "text-foreground/40"
@@ -266,12 +278,17 @@ export function EditToolbar({
           >
             EN
           </span>
-          {enNeedsAttention ? (
-            <span className="absolute -top-1 -right-1.5 h-1.5 w-1.5 rounded-full bg-amber-400" />
-          ) : null}
+          <AnimatePresence>
+            {enStale ? (
+              <SemanticDot
+                label={`EN has ${counts.get("en")} stale ${counts.get("en") === 1 ? "field" : "fields"}`}
+                state="warning"
+              />
+            ) : null}
+          </AnimatePresence>
         </span>
         <span className="text-foreground/20">|</span>
-        <span className="relative">
+        <span className="relative flex items-center gap-0.5">
           <span
             className={
               editingLocale === "it" ? "text-foreground" : "text-foreground/40"
@@ -279,9 +296,14 @@ export function EditToolbar({
           >
             IT
           </span>
-          {itNeedsAttention ? (
-            <span className="absolute -top-1 -right-1.5 h-1.5 w-1.5 rounded-full bg-amber-400" />
-          ) : null}
+          <AnimatePresence>
+            {itStale ? (
+              <SemanticDot
+                label={`IT has ${counts.get("it")} stale ${counts.get("it") === 1 ? "field" : "fields"}`}
+                state="warning"
+              />
+            ) : null}
+          </AnimatePresence>
         </span>
       </ToolbarButton>
 
