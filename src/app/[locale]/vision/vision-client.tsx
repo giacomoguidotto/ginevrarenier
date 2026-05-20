@@ -22,7 +22,7 @@ import type { Preloaded } from "convex/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
@@ -53,19 +53,41 @@ function SortableProjectCard({
 
   const pendingDeletion = isPendingDeletion("project", project._id);
 
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      id: project._id,
-      disabled: !isEditMode || pendingDeletion,
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: project._id,
+    disabled: !isEditMode || pendingDeletion,
+  });
+
+  const wasDraggingRef = useRef(false);
+  useEffect(() => {
+    if (isDragging) {
+      wasDraggingRef.current = true;
+    }
+  }, [isDragging]);
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (wasDraggingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      wasDraggingRef.current = false;
+    }
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const card = (
+  return (
     <div
+      onClickCapture={handleClickCapture}
       ref={setNodeRef}
       style={style}
       {...(isEditMode ? { ...attributes, ...listeners } : {})}
@@ -79,8 +101,6 @@ function SortableProjectCard({
       />
     </div>
   );
-
-  return card;
 }
 
 export function VisionClient({
