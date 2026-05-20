@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 const LOCALE_PATTERN = /EN.*IT|IT.*EN/;
+const STALE_FIELD_WARNING = /undismissed stale field/;
 
 async function enterEditMode(page: Page) {
   await page.addInitScript(() => {
@@ -303,6 +304,190 @@ test.describe("US-7: Stale-locale indicators", () => {
       'circle[fill="oklch(0.82 0.17 80)"]'
     );
     await expect(amberDots.first()).toBeAttached({ timeout: 5000 });
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// Progressive locale staleness: three-tier disclosure
+// ─────────────────────────────────────────────────────────
+test.describe("Progressive locale staleness", () => {
+  function fieldSemanticDots(page: Page) {
+    return page.locator("[data-field-chrome] + div [data-slot='semantic-dot']");
+  }
+
+  function localeToggleDots(page: Page) {
+    return editToolbar(page)
+      .locator('button[aria-label="Switch language"]')
+      .locator("[data-slot='semantic-dot']");
+  }
+
+  function navStaleDots(page: Page) {
+    return page.locator("header nav [data-slot='semantic-dot']");
+  }
+
+  function localeButton(page: Page) {
+    return editToolbar(page)
+      .locator("button")
+      .filter({ hasText: LOCALE_PATTERN });
+  }
+
+  async function editFieldAndBlur(
+    page: Page,
+    field: ReturnType<typeof editableFields>,
+    text: string
+  ) {
+    await field.click();
+    await page.keyboard.type(text);
+    await field.blur();
+  }
+
+  async function switchLocale(page: Page) {
+    await localeButton(page).click();
+  }
+
+  test("Editing EN then switching to IT shows amber dots on locale toggle, nav link, and per-field chrome", async ({
+    page,
+  }) => {
+    await enterEditMode(page);
+    await page.goto("/en");
+    await waitForApp(page);
+    await waitForChromeRects(page);
+
+    await editFieldAndBlur(page, editableFields(page).first(), "X");
+
+    await expect(localeToggleDots(page).first()).toBeAttached({
+      timeout: 5000,
+    });
+
+    await switchLocale(page);
+
+    await expect(navStaleDots(page).first()).toBeAttached({ timeout: 5000 });
+    await expect(fieldSemanticDots(page).first()).toBeAttached({
+      timeout: 5000,
+    });
+  });
+
+  test("Editing the stale locale clears all amber dots", async ({ page }) => {
+    await enterEditMode(page);
+    await page.goto("/en");
+    await waitForApp(page);
+    await waitForChromeRects(page);
+
+    const field = editableFields(page).first();
+    await editFieldAndBlur(page, field, "X");
+
+    await switchLocale(page);
+
+    await editFieldAndBlur(page, field, "Y");
+
+    await expect(localeToggleDots(page)).toHaveCount(0, { timeout: 5000 });
+    await expect(navStaleDots(page)).toHaveCount(0, { timeout: 5000 });
+    await expect(fieldSemanticDots(page)).toHaveCount(0, { timeout: 5000 });
+  });
+
+  test("Dismissing a stale dot hides it, re-editing source restores it", async ({
+    page,
+  }) => {
+    await enterEditMode(page);
+    await page.goto("/en");
+    await waitForApp(page);
+    await waitForChromeRects(page);
+
+    const field = editableFields(page).first();
+    await editFieldAndBlur(page, field, "X");
+
+    await switchLocale(page);
+
+    const dots = fieldSemanticDots(page);
+    await expect(dots.first()).toBeAttached({ timeout: 5000 });
+
+    await dots.first().click();
+    await expect(dots).toHaveCount(0, { timeout: 5000 });
+
+    await switchLocale(page);
+    await editFieldAndBlur(page, field, "Z");
+
+    await switchLocale(page);
+    await expect(fieldSemanticDots(page).first()).toBeAttached({
+      timeout: 5000,
+    });
+  });
+
+  test("Auto-translate shows info dots, manual edit clears them", async ({
+    page,
+  }) => {
+    await enterEditMode(page);
+    await page.goto("/en");
+    await waitForApp(page);
+    await waitForChromeRects(page);
+
+    const fields = editableFields(page);
+    await editFieldAndBlur(page, fields.first(), "A");
+    await editFieldAndBlur(page, fields.nth(1), "B");
+
+    await switchLocale(page);
+
+    const translateButton = editToolbar(page).getByText("Translate");
+    await expect(translateButton).toBeVisible({ timeout: 5000 });
+    await translateButton.click();
+
+    const dots = fieldSemanticDots(page);
+    await page.waitForFunction(
+      (sel) => document.querySelectorAll(sel).length >= 2,
+      "[data-field-chrome] + div [data-slot='semantic-dot']",
+      { timeout: 15_000 }
+    );
+    const countAfterTranslate = await dots.count();
+    expect(countAfterTranslate).toBeGreaterThanOrEqual(2);
+
+    await editFieldAndBlur(page, fields.first(), "C");
+    await expect(dots).toHaveCount(countAfterTranslate - 1, {
+      timeout: 5000,
+    });
+  });
+
+  test("Save dialog shows stale field warning when undismissed stale fields exist", async ({
+    page,
+  }) => {
+    await enterEditMode(page);
+    await page.goto("/en");
+    await waitForApp(page);
+    await waitForChromeRects(page);
+
+    await editFieldAndBlur(page, editableFields(page).first(), "X");
+
+    const saveButton = editToolbar(page).getByText("Save");
+    await expect(saveButton).toBeVisible({ timeout: 5000 });
+    await saveButton.click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await expect(dialog.getByText("Save changes")).toBeVisible();
+    await expect(dialog.getByText(STALE_FIELD_WARNING)).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
+  test("Creating an entity (structural operation) produces no staleness warnings", async ({
+    page,
+  }) => {
+    await enterEditMode(page);
+    await page.goto("/en/essence");
+    await waitForApp(page);
+    await waitForChromeRects(page);
+
+    const dotsBefore = await fieldSemanticDots(page).count();
+
+    const addButton = page.getByRole("button", { name: "Add Timeline Entry" });
+    await addButton.scrollIntoViewIfNeeded();
+    await addButton.click();
+
+    const chromesBefore = await fieldChromes(page).count();
+    await expect(fieldChromes(page)).not.toHaveCount(chromesBefore, {
+      timeout: 10_000,
+    });
+
+    expect(await fieldSemanticDots(page).count()).toBe(dotsBefore);
   });
 });
 
