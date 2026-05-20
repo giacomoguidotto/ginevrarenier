@@ -38,7 +38,10 @@ export function ProjectCard({
 
   if (isEditMode) {
     return (
-      <Section name={`project:${project._id}`}>
+      <Section
+        label={`Project: ${project.title.en}`}
+        name={`project:${project._id}`}
+      >
         <ChromeEnablerProvider>
           <CardContent
             index={index}
@@ -190,7 +193,20 @@ function CardContent({
         </button>
       )}
 
-      {isEditMode && !pendingDeletion && (
+      {isEditMode && !pendingDeletion && publishOverride === true && (
+        <button
+          className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
+          data-testid="card-cancel-publish-button"
+          onClick={handleTogglePublish}
+          onPointerDown={(e) => e.stopPropagation()}
+          type="button"
+        >
+          <Undo2 className="h-3 w-3" />
+          Cancel publish
+        </button>
+      )}
+
+      {isEditMode && !pendingDeletion && publishOverride !== true && (
         <div
           className="absolute top-6 right-6 z-10 flex items-center gap-1.5"
           onPointerDown={(e) => e.stopPropagation()}
