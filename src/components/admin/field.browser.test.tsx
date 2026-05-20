@@ -123,6 +123,8 @@ vi.mock("./draft-buffer-context", () => ({
       bufferStore.current?.read(section, field, locale),
     write: (section: string, field: string, locale: string, value: string) =>
       bufferStore.current?.write(section, field, locale, value),
+    isAutoTranslated: (section: string, field: string, locale: string) =>
+      bufferStore.current?.isAutoTranslated(section, field, locale) ?? false,
   }),
   useDraftBufferReset: () => 0,
   useDraftBufferState: () => ({

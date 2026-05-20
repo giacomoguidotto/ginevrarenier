@@ -11,6 +11,7 @@ import {
 const SPRING = { type: "spring" as const, stiffness: 200, damping: 25 };
 
 interface FieldChromeProps {
+  autoTranslated?: boolean;
   focused: boolean;
   height: number;
   staleLocale: string | null;
@@ -18,6 +19,7 @@ interface FieldChromeProps {
 }
 
 export function FieldChrome({
+  autoTranslated,
   focused,
   height,
   staleLocale,
@@ -106,6 +108,18 @@ export function FieldChrome({
             transition={SPRING}
           />
         )}
+        {autoTranslated && staleLocale === null && (
+          <motion.circle
+            animate={{ opacity: 1, scale: 1 }}
+            cx={width - r - 2}
+            cy={r + 2}
+            exit={{ opacity: 0, scale: 0 }}
+            fill="oklch(0.62 0.17 250)"
+            initial={{ opacity: 0, scale: 0 }}
+            r={r}
+            transition={SPRING}
+          />
+        )}
       </svg>
 
       {staleLocale !== null && (
@@ -124,6 +138,25 @@ export function FieldChrome({
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4}>
             {staleLocale.toUpperCase()} was not modified
+          </TooltipContent>
+        </Tooltip>
+      )}
+      {autoTranslated && staleLocale === null && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              style={{
+                position: "absolute",
+                right: 2,
+                top: 2,
+                width: r * 2,
+                height: r * 2,
+                borderRadius: "50%",
+              }}
+            />
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={4}>
+            Auto-translated
           </TooltipContent>
         </Tooltip>
       )}

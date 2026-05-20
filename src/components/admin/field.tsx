@@ -44,7 +44,7 @@ export function Field({
   const { isEditMode, editingLocale } = useEditMode();
   const pageLocale = useLocale() as Locale;
   const locale = isEditMode ? editingLocale : pageLocale;
-  const { read, write, editedLocales } = useDraftBufferOps();
+  const { read, write, editedLocales, isAutoTranslated } = useDraftBufferOps();
   useDraftBufferReset();
   useEditVersion();
   const { enabled } = useChromeEnabler();
@@ -157,10 +157,12 @@ export function Field({
     const [editedLoc] = edited;
     staleLocale = locales.find((l) => l !== editedLoc) ?? null;
   }
+  const autoTranslated = isAutoTranslated(section, name, locale);
 
   const showChrome = enabled && isEditMode;
   const chrome = showChrome ? (
     <FieldChrome
+      autoTranslated={autoTranslated}
       focused={focused}
       height={dims.height}
       staleLocale={staleLocale}
