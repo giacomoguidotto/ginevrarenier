@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { PageBoundary } from "@/components/admin/page-boundary";
 import { ConnectClient } from "./connect-client";
 
 interface Props {
@@ -20,5 +21,9 @@ export default async function ConnectPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <ConnectClient />;
+  return (
+    <PageBoundary page="connect">
+      <ConnectClient />
+    </PageBoundary>
+  );
 }

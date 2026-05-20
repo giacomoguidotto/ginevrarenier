@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { PageBoundary } from "@/components/admin/page-boundary";
 import { FeaturedWork } from "@/components/home/featured-work";
 import { Hero } from "@/components/home/hero";
 import { IntroSection } from "@/components/home/intro-section";
@@ -12,10 +13,10 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <>
+    <PageBoundary page="home">
       <Hero />
       <IntroSection />
       <FeaturedWork />
-    </>
+    </PageBoundary>
   );
 }

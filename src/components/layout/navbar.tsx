@@ -3,6 +3,7 @@
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import {
+  AnimatePresence,
   motion,
   useMotionValue,
   useScroll,
@@ -16,6 +17,10 @@ import {
   useEditVersion,
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
+import { usePageRegistry } from "@/components/admin/page-boundary";
+import { pageHasStaleFields } from "@/components/admin/staleness-queries";
+import { useStaleFields } from "@/components/admin/use-stale-fields";
+import { SemanticDot } from "@/components/ui/semantic-dot";
 import type { Locale } from "@/i18n/config";
 import { Link, usePathname } from "@/i18n/routing";
 
@@ -63,10 +68,12 @@ function MagneticLink({
   href,
   label,
   isActive,
+  children,
 }: {
   href: "/" | "/vision" | "/reflections" | "/essence" | "/connect";
   label: string;
   isActive: boolean;
+  children?: React.ReactNode;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const x = useMotionValue(0);
@@ -97,7 +104,7 @@ function MagneticLink({
   return (
     <motion.div style={{ x: springX, y: springY }}>
       <Link
-        className="relative px-4 py-2 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
+        className="relative flex items-center gap-1 px-4 py-2 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
         href={href}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -108,6 +115,7 @@ function MagneticLink({
         >
           {label}
         </span>
+        {children}
         {isActive ? (
           <motion.div
             className="absolute right-4 bottom-0 left-4 h-px bg-foreground"
@@ -120,17 +128,40 @@ function MagneticLink({
   );
 }
 
+function NavStaleDot({
+  pageKey,
+  staleFields,
+}: {
+  pageKey: string;
+  staleFields: { section: string; field: string; locale: string }[];
+}) {
+  const { editingLocale } = useEditMode();
+  const sections = usePageRegistry(pageKey);
+  if (!pageHasStaleFields(staleFields, sections, editingLocale)) {
+    return null;
+  }
+  return <SemanticDot label={`${pageKey} has stale fields`} state="warning" />;
+}
+
 function DesktopNavItem({
   link,
   isActive,
   fallback,
+  staleFields,
 }: {
   link: (typeof navLinkKeys)[number];
   isActive: boolean;
   fallback: string;
+  staleFields: { section: string; field: string; locale: string }[];
 }) {
   const label = useNavLabel(link.key, fallback);
-  return <MagneticLink href={link.href} isActive={isActive} label={label} />;
+  return (
+    <MagneticLink href={link.href} isActive={isActive} label={label}>
+      <AnimatePresence>
+        <NavStaleDot pageKey={link.key} staleFields={staleFields} />
+      </AnimatePresence>
+    </MagneticLink>
+  );
 }
 
 function MobileNavItem({
@@ -140,6 +171,7 @@ function MobileNavItem({
   index,
   isMenuOpen,
   onClose,
+  staleFields,
 }: {
   link: (typeof navLinkKeys)[number];
   isActive: boolean;
@@ -147,6 +179,7 @@ function MobileNavItem({
   index: number;
   isMenuOpen: boolean;
   onClose: () => void;
+  staleFields: { section: string; field: string; locale: string }[];
 }) {
   const label = useNavLabel(link.key, fallback);
   return (
@@ -159,13 +192,16 @@ function MobileNavItem({
       transition={{ duration: 0.3, delay: index * 0.1 }}
     >
       <Link
-        className={`font-light text-3xl uppercase tracking-widest ${
+        className={`inline-flex items-center gap-2 font-light text-3xl uppercase tracking-widest ${
           isActive ? "text-foreground" : "text-muted-foreground"
         }`}
         href={link.href}
         onClick={onClose}
       >
         {label}
+        <AnimatePresence>
+          <NavStaleDot pageKey={link.key} staleFields={staleFields} />
+        </AnimatePresence>
       </Link>
     </motion.div>
   );
@@ -176,6 +212,7 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { scrollY } = useScroll();
   const navBackground = useTransform(scrollY, [0, 100], [0, 1]);
+  const staleFields = useStaleFields();
 
   const t = useTranslations("common.nav");
 
@@ -211,6 +248,7 @@ export function Navbar() {
                 isActive={pathname === link.href}
                 key={link.href}
                 link={link}
+                staleFields={staleFields}
               />
             ))}
           </div>
@@ -268,6 +306,7 @@ export function Navbar() {
               key={link.href}
               link={link}
               onClose={() => setIsMenuOpen(false)}
+              staleFields={staleFields}
             />
           ))}
         </nav>
