@@ -96,4 +96,14 @@ export function usePageRegistry(page: string): ReadonlyMap<string, string> {
   return useSyncExternalStore(subscribe, getSnapshot, () => emptyMap);
 }
 
+export function getAllSectionLabels(): ReadonlyMap<string, string> {
+  const merged = new Map<string, string>();
+  for (const sections of pageRegistry.values()) {
+    for (const [name, label] of sections) {
+      merged.set(name, label);
+    }
+  }
+  return merged;
+}
+
 const emptyMap: ReadonlyMap<string, string> = new Map();

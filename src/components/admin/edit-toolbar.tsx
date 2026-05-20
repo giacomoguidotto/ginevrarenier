@@ -31,6 +31,11 @@ import {
 } from "@/components/ui/tooltip";
 import type { ChangeSummary } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
+import { getAllSectionLabels } from "./page-boundary";
+import {
+  formatEditLabel,
+  getUndismissedStaleFields,
+} from "./save-confirmation";
 import { useExitGuard } from "./unsaved-changes-guard";
 
 const STORAGE_KEY = "edit-toolbar-position";
@@ -358,68 +363,68 @@ export function EditToolbar({
   );
 }
 
-function formatEditLabel(edit: { section: string; field: string }) {
-  return `${edit.section} / ${edit.field}`;
-}
-
-interface SingleLocaleWarning {
-  field: string;
-  key: string;
-  missingLocale: string;
-  section: string;
-}
-
-function detectSingleLocaleEdits(
-  textEdits: ChangeSummary["textEdits"]
-): SingleLocaleWarning[] {
-  const localesByField = new Map<string, Set<string>>();
-  for (const edit of textEdits) {
-    const k = `${edit.section}\0${edit.field}`;
-    let set = localesByField.get(k);
-    if (!set) {
-      set = new Set();
-      localesByField.set(k, set);
-    }
-    set.add(edit.locale);
-  }
-  const warnings: SingleLocaleWarning[] = [];
-  for (const [k, locales] of localesByField) {
-    const [section, field] = k.split("\0");
-    if (locales.has("en") && !locales.has("it")) {
-      warnings.push({ key: k, section, field, missingLocale: "it" });
-    } else if (locales.has("it") && !locales.has("en")) {
-      warnings.push({ key: k, section, field, missingLocale: "en" });
-    }
-  }
-  return warnings;
-}
-
 function formatEntityType(entityType: string) {
   return entityType === "post" ? "Post" : "Project";
 }
 
-function SaveConfirmDialog({
+function StaleFieldsWarning({
+  staleFields,
+  sectionLabels,
+}: {
+  staleFields: { section: string; field: string; locale: string }[];
+  sectionLabels: ReadonlyMap<string, string>;
+}) {
+  if (staleFields.length === 0) {
+    return null;
+  }
+  return (
+    <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-amber-400 text-xs">
+      <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <div>
+        <p className="font-medium">
+          {staleFields.length === 1
+            ? "1 undismissed stale field:"
+            : `${staleFields.length} undismissed stale fields:`}
+        </p>
+        <ul className="mt-1 space-y-0.5">
+          {staleFields.map((sf) => (
+            <li key={`${sf.section}\0${sf.field}\0${sf.locale}`}>
+              <span className="font-mono">{sf.locale.toUpperCase()}</span>{" "}
+              missing for {formatEditLabel(sf, sectionLabels)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export function SaveConfirmDialog({
   open,
   onConfirm,
   onCancel,
   changeSummary,
   loading,
+  sectionLabels: sectionLabelsProp,
 }: {
   open: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   changeSummary: () => ChangeSummary;
   loading: boolean;
+  sectionLabels?: ReadonlyMap<string, string>;
 }) {
   const summary = open ? changeSummary() : null;
+  const sectionLabels =
+    sectionLabelsProp ?? (open ? getAllSectionLabels() : new Map());
   const hasTextEdits = summary && summary.textEdits.length > 0;
   const hasCreations = summary && summary.createdEntities.length > 0;
   const hasDeletions = summary && summary.pendingDeletions.length > 0;
   const hasPublishOverrides = summary && summary.publishOverrides.length > 0;
   const hasReorder = summary && summary.reorderedEntityTypes.length > 0;
 
-  const singleLocaleWarnings = hasTextEdits
-    ? detectSingleLocaleEdits(summary.textEdits)
+  const undismissedStaleFields = summary
+    ? getUndismissedStaleFields(summary)
     : [];
 
   return (
@@ -441,7 +446,7 @@ function SaveConfirmDialog({
                   <span className="font-mono text-muted-foreground text-xs">
                     {edit.locale.toUpperCase()}
                   </span>
-                  <span>{formatEditLabel(edit)}</span>
+                  <span>{formatEditLabel(edit, sectionLabels)}</span>
                 </li>
               ))
             : null}
@@ -508,28 +513,10 @@ function SaveConfirmDialog({
               ))
             : null}
         </ul>
-        {singleLocaleWarnings.length > 0 ? (
-          <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-amber-400 text-xs">
-            <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <div>
-              <p className="font-medium">
-                {singleLocaleWarnings.length === 1
-                  ? "1 field was edited in only one language:"
-                  : `${singleLocaleWarnings.length} fields were edited in only one language:`}
-              </p>
-              <ul className="mt-1 space-y-0.5">
-                {singleLocaleWarnings.map((w) => (
-                  <li key={w.key}>
-                    <span className="font-mono">
-                      {w.missingLocale.toUpperCase()}
-                    </span>{" "}
-                    missing for {w.section} / {w.field}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        ) : null}
+        <StaleFieldsWarning
+          sectionLabels={sectionLabels}
+          staleFields={undismissedStaleFields}
+        />
         <DialogFooter>
           <Button onClick={onCancel} variant="outline">
             Cancel
@@ -557,6 +544,9 @@ function DiscardConfirmDialog({
   loading: boolean;
 }) {
   const summary = open ? changeSummary() : null;
+  const sectionLabels = open
+    ? getAllSectionLabels()
+    : new Map<string, string>();
   const editCount =
     (summary?.textEdits.length ?? 0) + (summary?.imageSwaps.length ?? 0);
   const creationCount = summary?.createdEntities.length ?? 0;
@@ -584,7 +574,7 @@ function DiscardConfirmDialog({
                     {edit.locale.toUpperCase()}
                   </span>
                   <span className="line-through opacity-60">
-                    {formatEditLabel(edit)}
+                    {formatEditLabel(edit, sectionLabels)}
                   </span>
                 </li>
               ))
