@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { ChangeSummary, EntityRef } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
+import { formatEntityRef, formatEntityType } from "./entity-descriptors";
 import { getAllSectionLabels } from "./page-boundary";
 import {
   formatEditLabel,
@@ -400,28 +401,6 @@ export function EditToolbar({
       />
     </div>
   );
-}
-
-function formatEntityType(entityType: string) {
-  if (entityType === "post") {
-    return "Post";
-  }
-  if (entityType === "timeline-entry") {
-    return "Timeline Entry";
-  }
-  return "Project";
-}
-
-function formatEntityRef(
-  entityType: string,
-  id: string,
-  sectionLabels: ReadonlyMap<string, string>
-) {
-  const label = sectionLabels.get(`${entityType}:${id}`);
-  if (label) {
-    return label;
-  }
-  return formatEntityType(entityType);
 }
 
 function filterEntityTextEdits(

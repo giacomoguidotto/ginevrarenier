@@ -22,13 +22,13 @@ import type {
 } from "./draft-buffer";
 import { createDraftBuffer } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
+import { routeSection } from "./entity-descriptors";
 import { createImageAssets } from "./image-assets";
 import { deleteCloudinaryImage, uploadImage } from "./image-upload";
 import {
   buildEntityUpdates,
   groupFieldDeletions,
   mergeSiteContent,
-  routeSection,
 } from "./save-routing";
 import type { FieldStatus } from "./staleness-engine";
 
@@ -222,6 +222,41 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const reorderProjects = useMutation(api.projects.reorder);
   const removeProject = useMutation(api.projects.remove);
   const removeBlogPost = useMutation(api.blogPosts.remove);
+
+  const entityMutations = useMemo(
+    () =>
+      new Map<
+        string,
+        {
+          update: (args: never) => Promise<unknown>;
+          remove: (args: { id: string }) => Promise<unknown>;
+          reorder?: (args: { ids: string[] }) => Promise<unknown>;
+        }
+      >([
+        [
+          "project",
+          {
+            update: updateProject as never,
+            remove: removeProject as never,
+            reorder: reorderProjects as never,
+          },
+        ],
+        [
+          "post",
+          {
+            update: updateBlogPost as never,
+            remove: removeBlogPost as never,
+          },
+        ],
+      ]),
+    [
+      updateProject,
+      updateBlogPost,
+      reorderProjects,
+      removeProject,
+      removeBlogPost,
+    ]
+  );
 
   const schedulePersist = useCallback(() => {
     if (persistTimerRef.current) {
@@ -426,13 +461,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
   const removeEntity = useCallback(
     async (ref: EntityRef) => {
-      if (ref.entityType === "project") {
-        await removeProject({ id: ref.id as never });
-      } else if (ref.entityType === "post") {
-        await removeBlogPost({ id: ref.id as never });
+      const mutations = entityMutations.get(ref.entityType);
+      if (mutations) {
+        await mutations.remove({ id: ref.id });
       }
     },
-    [removeProject, removeBlogPost]
+    [entityMutations]
   );
 
   const save = useCallback(async () => {
@@ -450,16 +484,14 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       const fields = grouped.get(sectionName) ?? {};
       const route = routeSection(sectionName);
 
-      if (route.kind === "project") {
-        await updateProject({
-          id: route.id as never,
-          ...buildEntityUpdates(fields),
-        } as Parameters<typeof updateProject>[0]);
-      } else if (route.kind === "post") {
-        await updateBlogPost({
-          id: route.id as never,
-          ...buildEntityUpdates(fields),
-        } as Parameters<typeof updateBlogPost>[0]);
+      if (route.kind === "entity") {
+        const mutations = entityMutations.get(route.descriptor.type);
+        if (mutations) {
+          await mutations.update({
+            id: route.id,
+            ...buildEntityUpdates(fields),
+          } as never);
+        }
       } else {
         const existing =
           allContent?.find((c) => c.section === sectionName)?.content ?? {};
@@ -472,29 +504,25 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     }
 
     for (const ovr of bufferRef.current.publishOverrides()) {
-      if (ovr.entityType === "project") {
-        await updateProject({
-          id: ovr.id as never,
+      const mutations = entityMutations.get(ovr.entityType);
+      if (mutations) {
+        await mutations.update({
+          id: ovr.id,
           published: ovr.published,
-        } as Parameters<typeof updateProject>[0]);
-      } else if (ovr.entityType === "post") {
-        await updateBlogPost({
-          id: ovr.id as never,
-          published: ovr.published,
-        } as Parameters<typeof updateBlogPost>[0]);
+        } as never);
       }
     }
 
     const pendingDeletionIds = new Set(
       bufferRef.current.deletions().map((d) => d.id)
     );
-    const projectReorder = bufferRef.current.getReorderList("project");
-    if (projectReorder) {
-      await reorderProjects({
-        ids: projectReorder.filter(
-          (id) => !pendingDeletionIds.has(id)
-        ) as never,
-      });
+    for (const [entityType, mutations] of entityMutations) {
+      const reorderList = bufferRef.current.getReorderList(entityType);
+      if (mutations.reorder && reorderList) {
+        await mutations.reorder({
+          ids: reorderList.filter((id) => !pendingDeletionIds.has(id)) as never,
+        });
+      }
     }
 
     for (const ref of bufferRef.current.deletions()) {
@@ -507,14 +535,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
     clearPersistedState();
-  }, [
-    allContent,
-    upsertSiteContent,
-    updateProject,
-    updateBlogPost,
-    reorderProjects,
-    removeEntity,
-  ]);
+  }, [allContent, upsertSiteContent, entityMutations, removeEntity]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
