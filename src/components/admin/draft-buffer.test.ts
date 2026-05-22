@@ -735,4 +735,66 @@ describe("Draft Buffer", () => {
       expect(summary.reorderedEntityTypes).toEqual(["project"]);
     });
   });
+
+  describe("Social Link CRUD through buffer", () => {
+    it("writes social link fields at fixed en locale and reads them back", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("social-link:sl1", "platform", "en", "github");
+      buffer.write("social-link:sl1", "href", "en", "https://github.com/u");
+
+      expect(buffer.read("social-link:sl1", "platform", "en")).toBe("github");
+      expect(buffer.read("social-link:sl1", "href", "en")).toBe(
+        "https://github.com/u"
+      );
+    });
+
+    it("groups social link changes by section for save", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("social-link:sl1", "platform", "en", "github");
+      buffer.write("social-link:sl1", "href", "en", "https://github.com/u");
+      buffer.write("social-link:sl2", "platform", "en", "twitter");
+
+      const grouped = buffer.changes();
+      expect(grouped.get("social-link:sl1")).toEqual({
+        platform: { en: "github" },
+        href: { en: "https://github.com/u" },
+      });
+      expect(grouped.get("social-link:sl2")).toEqual({
+        platform: { en: "twitter" },
+      });
+    });
+
+    it("tracks social link creation and deletion", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("social-link", "sl1");
+      buffer.trackDeletion("social-link", "sl2");
+
+      expect(buffer.isSessionCreated("social-link", "sl1")).toBe(true);
+      expect(buffer.isPendingDeletion("social-link", "sl2")).toBe(true);
+
+      const summary = buffer.changeSummary();
+      expect(summary.createdEntities).toContainEqual({
+        entityType: "social-link",
+        id: "sl1",
+      });
+      expect(summary.pendingDeletions).toContainEqual({
+        entityType: "social-link",
+        id: "sl2",
+      });
+    });
+
+    it("tracks social link reorder", () => {
+      const buffer = createDraftBuffer();
+      buffer.setReorderList("social-link", ["sl3", "sl1", "sl2"]);
+
+      expect(buffer.getReorderList("social-link")).toEqual([
+        "sl3",
+        "sl1",
+        "sl2",
+      ]);
+      expect(buffer.changeSummary().reorderedEntityTypes).toContain(
+        "social-link"
+      );
+    });
+  });
 });

@@ -1,14 +1,52 @@
 "use client";
 
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { api } from "convex/_generated/api";
+import type { Doc } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { Check, MapPin, Send } from "lucide-react";
+import {
+  Check,
+  GripVertical,
+  MapPin,
+  Plus,
+  Send,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type FormEvent, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
+import { PlainField } from "@/components/admin/plain-field";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { useLocalized, useSocialLinks } from "@/lib/hooks";
@@ -34,6 +72,7 @@ export function ConnectClient() {
 
   const t = useTranslations("connect");
   const { links: socials } = useSocialLinks();
+  const { isEditMode } = useEditMode();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -223,79 +262,88 @@ export function ConnectClient() {
               initial={{ opacity: 0, x: 30 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              {/* Direct Contact */}
-              <div>
-                <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
-                  {t("info.directContact")}
-                </h3>
-                <div className="space-y-4">
-                  {socials
-                    .filter((s) => s.platform === "email")
-                    .map((item) => {
-                      const Icon = getSocialIcon(item.platform);
-                      return (
-                        <div className="flex items-start gap-4" key={item._id}>
-                          <Icon className="mt-1 h-5 w-5 text-foreground/60" />
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              {t("info.email")}
-                            </p>
-                            <a
-                              className="text-foreground text-lg transition-colors hover:text-foreground/80"
-                              href={item.href}
+              {isEditMode ? (
+                <SocialLinksAdmin socials={socials} />
+              ) : (
+                <>
+                  {/* Direct Contact */}
+                  <div>
+                    <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
+                      {t("info.directContact")}
+                    </h3>
+                    <div className="space-y-4">
+                      {socials
+                        .filter((s) => s.platform === "email")
+                        .map((item) => {
+                          const Icon = getSocialIcon(item.platform);
+                          return (
+                            <div
+                              className="flex items-start gap-4"
+                              key={item._id}
                             >
-                              {item.value}
-                            </a>
-                          </div>
+                              <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+                              <div>
+                                <p className="text-muted-foreground text-sm">
+                                  {t("info.email")}
+                                </p>
+                                <a
+                                  className="text-foreground text-lg transition-colors hover:text-foreground/80"
+                                  href={item.href}
+                                >
+                                  {item.value}
+                                </a>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      <div className="flex items-start gap-4">
+                        <MapPin className="mt-1 h-5 w-5 text-foreground/60" />
+                        <div>
+                          <p className="text-muted-foreground text-sm">
+                            {t("info.basedIn")}
+                          </p>
+                          <p className="text-foreground text-lg">
+                            {t("info.location")}
+                          </p>
                         </div>
-                      );
-                    })}
-                  <div className="flex items-start gap-4">
-                    <MapPin className="mt-1 h-5 w-5 text-foreground/60" />
-                    <div>
-                      <p className="text-muted-foreground text-sm">
-                        {t("info.basedIn")}
-                      </p>
-                      <p className="text-foreground text-lg">
-                        {t("info.location")}
-                      </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Social */}
-              <div>
-                <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
-                  {t("info.followAlong")}
-                </h3>
-                <div className="space-y-4">
-                  {socials
-                    .filter((s) => s.platform !== "email")
-                    .map((item) => {
-                      const Icon = getSocialIcon(item.platform);
-                      return (
-                        <a
-                          className="flex items-start gap-4 transition-colors"
-                          href={item.href}
-                          key={item._id}
-                          rel="noopener noreferrer"
-                          target="_blank"
-                        >
-                          <Icon className="mt-1 h-5 w-5 text-foreground/60" />
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              {item.label}
-                            </p>
-                            <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
-                              {item.value}
-                            </p>
-                          </div>
-                        </a>
-                      );
-                    })}
-                </div>
-              </div>
+                  {/* Social */}
+                  <div>
+                    <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
+                      {t("info.followAlong")}
+                    </h3>
+                    <div className="space-y-4">
+                      {socials
+                        .filter((s) => s.platform !== "email")
+                        .map((item) => {
+                          const Icon = getSocialIcon(item.platform);
+                          return (
+                            <a
+                              className="flex items-start gap-4 transition-colors"
+                              href={item.href}
+                              key={item._id}
+                              rel="noopener noreferrer"
+                              target="_blank"
+                            >
+                              <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+                              <div>
+                                <p className="text-muted-foreground text-sm">
+                                  {item.label}
+                                </p>
+                                <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
+                                  {item.value}
+                                </p>
+                              </div>
+                            </a>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Availability */}
               <div className="rounded-lg border border-border bg-card p-6">
@@ -359,6 +407,224 @@ function ConnectHeader() {
           name="description"
         />
       </motion.div>
+    </div>
+  );
+}
+
+function SortableSocialLinkCard({ link }: { link: Doc<"socialLinks"> }) {
+  const { isPendingDeletion, trackDeletion, cancelDeletion } =
+    useDraftBufferOps();
+  useEditVersion();
+
+  const pendingDeletion = isPendingDeletion("social-link", link._id);
+  const section = `social-link:${link._id}`;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: link._id,
+    disabled: pendingDeletion,
+  });
+
+  const wasDraggingRef = useRef(false);
+  useEffect(() => {
+    if (isDragging) {
+      wasDraggingRef.current = true;
+    }
+  }, [isDragging]);
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (wasDraggingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      wasDraggingRef.current = false;
+    }
+  };
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const Icon = getSocialIcon(link.platform);
+
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 ${
+        pendingDeletion ? "opacity-40" : ""
+      }`}
+      onClickCapture={handleClickCapture}
+      ref={setNodeRef}
+      style={style}
+    >
+      <button
+        aria-label="Drag to reorder"
+        className="cursor-grab text-foreground/30 hover:text-foreground/60 active:cursor-grabbing"
+        type="button"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <Icon className="h-5 w-5 shrink-0 text-foreground/60" />
+
+      <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Platform
+          </p>
+          <PlainField
+            className="text-foreground text-sm"
+            name="platform"
+            section={section}
+            sourceValue={link.platform}
+          />
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Label
+          </p>
+          <PlainField
+            className="text-foreground text-sm"
+            name="label"
+            section={section}
+            sourceValue={link.label}
+          />
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Value
+          </p>
+          <PlainField
+            className="text-foreground text-sm"
+            name="value"
+            section={section}
+            sourceValue={link.value}
+          />
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Href
+          </p>
+          <PlainField
+            className="truncate text-foreground text-sm"
+            name="href"
+            section={section}
+            sourceValue={link.href}
+          />
+        </div>
+      </div>
+
+      {pendingDeletion ? (
+        <button
+          aria-label="Undo delete"
+          className="shrink-0 text-foreground/40 transition-colors hover:text-foreground"
+          onClick={() => cancelDeletion("social-link", link._id)}
+          type="button"
+        >
+          <Undo2 className="h-4 w-4" />
+        </button>
+      ) : (
+        <button
+          aria-label="Delete social link"
+          className="shrink-0 text-foreground/30 transition-colors hover:text-destructive"
+          onClick={() => trackDeletion("social-link", link._id)}
+          type="button"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SocialLinksAdmin({ socials }: { socials: Doc<"socialLinks">[] }) {
+  const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();
+  useEditVersion();
+  const createSocialLink = useMutation(api.socialLinks.create);
+
+  const reorderList = getReorderList("social-link");
+  const displayLinks = reorderList
+    ? reorderList
+        .map((id) => socials.find((l) => l._id === id))
+        .filter((l): l is Doc<"socialLinks"> => l !== undefined)
+        .concat(socials.filter((l) => !reorderList.includes(l._id)))
+    : socials;
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) {
+        return;
+      }
+      const oldIndex = displayLinks.findIndex((l) => l._id === active.id);
+      const newIndex = displayLinks.findIndex((l) => l._id === over.id);
+      if (oldIndex === -1 || newIndex === -1) {
+        return;
+      }
+      const reordered = [...displayLinks];
+      const [moved] = reordered.splice(oldIndex, 1);
+      reordered.splice(newIndex, 0, moved);
+      setReorderList(
+        "social-link",
+        reordered.map((l) => l._id)
+      );
+    },
+    [displayLinks, setReorderList]
+  );
+
+  const handleCreate = useCallback(async () => {
+    const id = await createSocialLink({
+      platform: "website",
+      href: "https://example.com",
+      label: "Website",
+      value: "example.com",
+    });
+    trackCreation("social-link", id);
+  }, [createSocialLink, trackCreation]);
+
+  return (
+    <div>
+      <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
+        Social Links
+      </h3>
+      <DndContext
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+      >
+        <SortableContext
+          items={displayLinks.map((l) => l._id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {displayLinks.map((link) => (
+              <SortableSocialLinkCard key={link._id} link={link} />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+      <button
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-foreground/15 border-dashed py-3 text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+        onClick={handleCreate}
+        type="button"
+      >
+        <Plus className="h-4 w-4" />
+        <span className="text-sm">Add social link</span>
+      </button>
     </div>
   );
 }

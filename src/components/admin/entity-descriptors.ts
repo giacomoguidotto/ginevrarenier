@@ -114,11 +114,24 @@ const photoDescriptor: EntityDescriptor = {
   localized: false,
 };
 
+const socialLinkDescriptor: EntityDescriptor = {
+  type: "social-link",
+  label: "Social Link",
+  formatRef: makeFormatRef("social-link", "Social Link"),
+  mutations: {
+    update: api.socialLinks.update as never,
+    remove: api.socialLinks.remove as never,
+  },
+  reorder: { mutation: api.socialLinks.reorder as never },
+  localized: false,
+};
+
 const registry = new Map<string, EntityDescriptor>([
   ["project", projectDescriptor],
   ["post", postDescriptor],
   ["achievement", achievementDescriptor],
   ["photo", photoDescriptor],
+  ["social-link", socialLinkDescriptor],
 ]);
 
 export function getDescriptor(

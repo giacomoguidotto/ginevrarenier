@@ -255,6 +255,9 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const removeAchievement = useMutation(api.achievements.remove);
   const removePhoto = useMutation(api.projectImages.remove);
   const reorderPhotos = useMutation(api.projectImages.reorder);
+  const updateSocialLink = useMutation(api.socialLinks.update);
+  const removeSocialLink = useMutation(api.socialLinks.remove);
+  const reorderSocialLinks = useMutation(api.socialLinks.reorder);
 
   const entityMutations = useMemo(
     () =>
@@ -295,6 +298,14 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
             reorder: reorderPhotos as never,
           },
         ],
+        [
+          "social-link",
+          {
+            update: updateSocialLink as never,
+            remove: removeSocialLink as never,
+            reorder: reorderSocialLinks as never,
+          },
+        ],
       ]),
     [
       updateProject,
@@ -306,6 +317,9 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       removeAchievement,
       removePhoto,
       reorderPhotos,
+      updateSocialLink,
+      removeSocialLink,
+      reorderSocialLinks,
     ]
   );
 
@@ -562,7 +576,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
           if (mutations?.update) {
             const updates = route.descriptor.buildUpdates
               ? route.descriptor.buildUpdates(fields)
-              : buildEntityUpdates(fields);
+              : buildEntityUpdates(fields, route.descriptor.localized);
             await mutations.update({ id: route.id, ...updates } as never);
           }
         } else {
