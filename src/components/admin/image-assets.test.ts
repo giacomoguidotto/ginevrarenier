@@ -96,3 +96,49 @@ describe("Image Assets", () => {
     expect(assets.trackedAssets()).toEqual([]);
   });
 });
+
+describe("Image Assets — Pending Deletions", () => {
+  it("tracks a pending deletion and returns it", () => {
+    const assets = createImageAssets(stubConfig());
+    assets.trackPendingDeletion("img_old");
+    expect(assets.pendingDeletionAssets()).toEqual(["img_old"]);
+  });
+
+  it("cancelPendingDeletion removes the asset from pending", () => {
+    const assets = createImageAssets(stubConfig());
+    assets.trackPendingDeletion("img_old");
+    assets.cancelPendingDeletion("img_old");
+    expect(assets.pendingDeletionAssets()).toEqual([]);
+  });
+
+  it("savePendingDeletions deletes all pending assets from Cloudinary", async () => {
+    const config = stubConfig();
+    config.deleteAsset.mockResolvedValue(undefined);
+    const assets = createImageAssets(config);
+    assets.trackPendingDeletion("img_1");
+    assets.trackPendingDeletion("img_2");
+    await assets.savePendingDeletions();
+    expect(config.deleteAsset).toHaveBeenCalledWith("img_1");
+    expect(config.deleteAsset).toHaveBeenCalledWith("img_2");
+    expect(config.deleteAsset).toHaveBeenCalledTimes(2);
+    expect(assets.pendingDeletionAssets()).toEqual([]);
+  });
+
+  it("clearPendingDeletions clears without deleting from Cloudinary", () => {
+    const config = stubConfig();
+    const assets = createImageAssets(config);
+    assets.trackPendingDeletion("img_1");
+    assets.clearPendingDeletions();
+    expect(assets.pendingDeletionAssets()).toEqual([]);
+    expect(config.deleteAsset).not.toHaveBeenCalled();
+  });
+
+  it("pending deletions persist via serialization", () => {
+    const assets = createImageAssets(stubConfig());
+    assets.trackPendingDeletion("img_a");
+    assets.trackPendingDeletion("img_b");
+    const serialized = assets.pendingDeletionAssets();
+    const restored = createImageAssets(stubConfig(), [], serialized);
+    expect(restored.pendingDeletionAssets()).toEqual(["img_a", "img_b"]);
+  });
+});

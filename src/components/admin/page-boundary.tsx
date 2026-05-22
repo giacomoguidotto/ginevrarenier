@@ -106,4 +106,8 @@ export function getAllSectionLabels(): ReadonlyMap<string, string> {
   return merged;
 }
 
+export function usePageBoundary() {
+  return useContext(PageBoundaryContext);
+}
+
 const emptyMap: ReadonlyMap<string, string> = new Map();

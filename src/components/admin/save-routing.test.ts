@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDescriptor, routeSection } from "./entity-descriptors";
+import { buildEntityUpdates } from "./save-routing";
 
 describe("routeSection", () => {
   it("routes project: prefix to entity route with project descriptor", () => {
@@ -40,5 +41,21 @@ describe("routeSection", () => {
       kind: "siteContent",
       section: "essence.achievements",
     });
+  });
+});
+
+describe("buildEntityUpdates", () => {
+  it("treats coverImageUrl as a scalar field like slug", () => {
+    const result = buildEntityUpdates({
+      coverImageUrl: { en: "https://cdn/cover.jpg" },
+    });
+    expect(result).toEqual({ coverImageUrl: "https://cdn/cover.jpg" });
+  });
+
+  it("preserves localized fields as objects", () => {
+    const result = buildEntityUpdates({
+      title: { en: "Hello", it: "Ciao" },
+    });
+    expect(result).toEqual({ title: { en: "Hello", it: "Ciao" } });
   });
 });

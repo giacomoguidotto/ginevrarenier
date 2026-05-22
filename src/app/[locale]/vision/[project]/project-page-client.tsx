@@ -117,6 +117,7 @@ export function ProjectPageClient() {
               images={rawImages}
               projectId={projectId as Id<"projects">}
               projectSlug={slug}
+              projectTitle={projectTitle?.en ?? ""}
             />
           ) : null}
 

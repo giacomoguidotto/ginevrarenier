@@ -41,6 +41,7 @@ const PERSIST_DEBOUNCE_MS = 300;
 interface PersistedState {
   buffer: SerializedDraftBuffer;
   imageAssets: string[];
+  pendingDeletionAssets?: string[];
 }
 
 function loadPersistedState(): PersistedState | null {
@@ -116,7 +117,9 @@ interface DraftBufferOps {
 }
 
 interface ImageAssetsOps {
+  cancelPendingDeletion: (publicId: string) => void;
   trackAsset: (publicId: string) => void;
+  trackPendingDeletion: (publicId: string) => void;
   upload: (
     file: File,
     folder: string
@@ -161,7 +164,9 @@ const OpsContext = createContext<DraftBufferOps>({
 });
 
 const ImageAssetsContext = createContext<ImageAssetsOps>({
+  cancelPendingDeletion: noop,
   trackAsset: noop,
+  trackPendingDeletion: noop,
   upload: () => Promise.resolve({ url: "", publicId: "" }),
 });
 
@@ -185,6 +190,23 @@ const StateContext = createContext<DraftBufferState>({
   discard: noop,
 });
 
+async function saveEntityDeletions(
+  buffer: Buffer,
+  imageAssets: Assets,
+  removeEntity: (ref: EntityRef) => Promise<unknown>
+) {
+  await imageAssets.savePendingDeletions();
+
+  for (const ref of buffer.deletions()) {
+    const result = await removeEntity(ref);
+    if (ref.entityType === "project" && Array.isArray(result)) {
+      for (const publicId of result) {
+        await deleteCloudinaryImage(publicId);
+      }
+    }
+  }
+}
+
 export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const bufferRef = useRef<Buffer>(null as unknown as Buffer);
   const imageAssetsRef = useRef<Assets>(null as unknown as Assets);
@@ -198,11 +220,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       bufferRef.current = createDraftBuffer(persisted.buffer);
       imageAssetsRef.current = createImageAssets(
         { upload: uploadImage, deleteAsset: deleteCloudinaryImage },
-        persisted.imageAssets
+        persisted.imageAssets,
+        persisted.pendingDeletionAssets
       );
       return (
         bufferRef.current.hasChanges() ||
-        imageAssetsRef.current.trackedAssets().length > 0
+        imageAssetsRef.current.trackedAssets().length > 0 ||
+        imageAssetsRef.current.pendingDeletionAssets().length > 0
       );
     }
     bufferRef.current = createDraftBuffer();
@@ -229,13 +253,15 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const removeBlogPost = useMutation(api.blogPosts.remove);
   const updateAchievement = useMutation(api.achievements.update);
   const removeAchievement = useMutation(api.achievements.remove);
+  const removePhoto = useMutation(api.projectImages.remove);
+  const reorderPhotos = useMutation(api.projectImages.reorder);
 
   const entityMutations = useMemo(
     () =>
       new Map<
         string,
         {
-          update: (args: never) => Promise<unknown>;
+          update?: (args: never) => Promise<unknown>;
           remove: (args: { id: string }) => Promise<unknown>;
           reorder?: (args: { ids: string[] }) => Promise<unknown>;
         }
@@ -262,6 +288,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
             remove: removeAchievement as never,
           },
         ],
+        [
+          "photo",
+          {
+            remove: removePhoto as never,
+            reorder: reorderPhotos as never,
+          },
+        ],
       ]),
     [
       updateProject,
@@ -271,6 +304,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       removeBlogPost,
       updateAchievement,
       removeAchievement,
+      removePhoto,
+      reorderPhotos,
     ]
   );
 
@@ -283,6 +318,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         const state: PersistedState = {
           buffer: bufferRef.current.serialize(),
           imageAssets: imageAssetsRef.current.trackedAssets(),
+          pendingDeletionAssets: imageAssetsRef.current.pendingDeletionAssets(),
         };
         localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
       } catch {
@@ -324,6 +360,28 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     (publicId: string) => {
       imageAssetsRef.current.trackAsset(publicId);
       setHasChanges(true);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const trackPendingDeletion = useCallback(
+    (publicId: string) => {
+      imageAssetsRef.current.trackPendingDeletion(publicId);
+      setHasChanges(true);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const cancelPendingDeletion = useCallback(
+    (publicId: string) => {
+      imageAssetsRef.current.cancelPendingDeletion(publicId);
+      setHasChanges(
+        bufferRef.current.hasChanges() ||
+          imageAssetsRef.current.trackedAssets().length > 0 ||
+          imageAssetsRef.current.pendingDeletionAssets().length > 0
+      );
       schedulePersist();
     },
     [schedulePersist]
@@ -476,11 +534,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   );
 
   const removeEntity = useCallback(
-    async (ref: EntityRef) => {
+    (ref: EntityRef): Promise<unknown> => {
       const mutations = entityMutations.get(ref.entityType);
       if (mutations) {
-        await mutations.remove({ id: ref.id });
+        return mutations.remove({ id: ref.id });
       }
+      return Promise.resolve();
     },
     [entityMutations]
   );
@@ -500,7 +559,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
         if (route.kind === "entity") {
           const mutations = entityMutations.get(route.descriptor.type);
-          if (mutations) {
+          if (mutations?.update) {
             const updates = route.descriptor.buildUpdates
               ? route.descriptor.buildUpdates(fields)
               : buildEntityUpdates(fields);
@@ -525,7 +584,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
     for (const ovr of bufferRef.current.publishOverrides()) {
       const mutations = entityMutations.get(ovr.entityType);
-      if (mutations) {
+      if (mutations?.update) {
         await mutations.update({
           id: ovr.id,
           published: ovr.published,
@@ -545,9 +604,11 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    for (const ref of bufferRef.current.deletions()) {
-      await removeEntity(ref);
-    }
+    await saveEntityDeletions(
+      bufferRef.current,
+      imageAssetsRef.current,
+      removeEntity
+    );
 
     bufferRef.current.discard();
     imageAssetsRef.current.clearTracked();
@@ -559,6 +620,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
+    imageAssetsRef.current.clearPendingDeletions();
 
     for (const ref of bufferRef.current.creations()) {
       await removeEntity(ref);
@@ -672,8 +734,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   );
 
   const imageOps = useMemo(
-    () => ({ trackAsset, upload: uploadAsset }),
-    [trackAsset, uploadAsset]
+    () => ({
+      cancelPendingDeletion,
+      trackAsset,
+      trackPendingDeletion,
+      upload: uploadAsset,
+    }),
+    [cancelPendingDeletion, trackAsset, trackPendingDeletion, uploadAsset]
   );
 
   const state = useMemo(
