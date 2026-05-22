@@ -74,7 +74,10 @@ function buildAchievementUpdates(
     if (field === "startYear" || field === "endYear") {
       const val = locales.en ?? locales.it;
       if (val !== undefined) {
-        updates[field] = Number.parseInt(val, 10);
+        const num = Number.parseInt(val, 10);
+        if (!Number.isNaN(num)) {
+          updates[field] = num;
+        }
       }
     } else {
       updates[field] = locales as { en: string; it: string };

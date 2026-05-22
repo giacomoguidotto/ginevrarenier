@@ -372,11 +372,25 @@ function AchievementEntry({
 
       <div className="flex flex-col gap-2">
         {isEditMode ? (
-          <Field
-            as="span"
-            className="block text-cream/60 text-sm uppercase tracking-widest"
-            name="startYear"
-          />
+          <div className="text-cream/60 text-sm uppercase tracking-widest">
+            <div className="inline-flex items-baseline gap-2">
+              <Field
+                as="span"
+                className="min-h-[1.2em] min-w-[4ch]"
+                maxLength={4}
+                name="startYear"
+                numericOnly
+              />
+              <span className="shrink-0 text-cream/30">—</span>
+              <Field
+                as="span"
+                className="min-h-[1.2em] min-w-[4ch] text-cream/40"
+                maxLength={4}
+                name="endYear"
+                numericOnly
+              />
+            </div>
+          </div>
         ) : (
           <span className="block text-cream/60 text-sm uppercase tracking-widest">
             {displayYear}

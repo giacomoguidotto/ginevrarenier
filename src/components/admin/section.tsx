@@ -69,16 +69,11 @@ export function Section({
     };
   } else if (route.kind === "achievement" && achievement) {
     const yearStr = String(achievement.startYear);
+    const endYearStr =
+      achievement.endYear == null ? "" : String(achievement.endYear);
     data = {
       startYear: { en: yearStr, it: yearStr },
-      ...(achievement.endYear == null
-        ? {}
-        : {
-            endYear: {
-              en: String(achievement.endYear),
-              it: String(achievement.endYear),
-            },
-          }),
+      endYear: { en: endYearStr, it: endYearStr },
       title: achievement.title,
       description: achievement.description,
     };

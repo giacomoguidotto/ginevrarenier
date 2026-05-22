@@ -137,7 +137,7 @@ describe("Section with virtual sections", () => {
       it: "Prima Fotocamera",
     });
     expect(data.description).toEqual({ en: "Inherited", it: "Ereditato" });
-    expect(data.endYear).toBeUndefined();
+    expect(data.endYear).toEqual({ en: "", it: "" });
   });
 
   it("includes endYear when achievement has a date range", () => {
