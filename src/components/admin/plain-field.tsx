@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { locales } from "@/i18n/config";
 import {
   useDraftBufferOps,
   useDraftBufferReset,
@@ -9,8 +10,6 @@ import {
 import { useEditMode } from "./edit-mode-context";
 
 type PlainFieldElement = "h1" | "h2" | "h3" | "p" | "span" | "blockquote";
-
-const FIXED_LOCALE = "en";
 
 interface PlainFieldProps {
   as?: PlainFieldElement;
@@ -33,7 +32,7 @@ export function PlainField({
   useEditVersion();
   const elRef = useRef<HTMLElement>(null);
 
-  const draftValue = read(section, name, FIXED_LOCALE);
+  const draftValue = read(section, name, locales[0]);
   const displayValue = draftValue ?? sourceValue;
 
   useEffect(() => {
@@ -45,9 +44,13 @@ export function PlainField({
   const handleInput = () => {
     const text = elRef.current?.textContent ?? "";
     if (text !== sourceValue) {
-      write(section, name, FIXED_LOCALE, text);
+      for (const l of locales) {
+        write(section, name, l, text);
+      }
     } else if (draftValue !== undefined) {
-      removeEdit(section, name, FIXED_LOCALE);
+      for (const l of locales) {
+        removeEdit(section, name, l);
+      }
     }
   };
 

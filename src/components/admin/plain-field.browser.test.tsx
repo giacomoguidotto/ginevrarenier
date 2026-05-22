@@ -98,7 +98,7 @@ describe("PlainField", () => {
     expect(el.getAttribute("contenteditable")).toBe("plaintext-only");
   });
 
-  it("writes to buffer at fixed locale en on input", async () => {
+  it("writes to buffer at all locales on input", async () => {
     const { getByTestId, container } = render(<TestHarness />);
     await act(() => getByTestId("toggle").click());
 
@@ -111,10 +111,14 @@ describe("PlainField", () => {
     expect(bufferStore.current?.read("social-link:sl1", "platform", "en")).toBe(
       "new-value"
     );
+    expect(bufferStore.current?.read("social-link:sl1", "platform", "it")).toBe(
+      "new-value"
+    );
   });
 
-  it("removes edit when value matches sourceValue", async () => {
+  it("removes edit from all locales when value matches sourceValue", async () => {
     bufferStore.current?.write("social-link:sl1", "platform", "en", "edited");
+    bufferStore.current?.write("social-link:sl1", "platform", "it", "edited");
     const { getByTestId, container } = render(
       <TestHarness sourceValue="hello" />
     );
@@ -129,9 +133,12 @@ describe("PlainField", () => {
     expect(
       bufferStore.current?.read("social-link:sl1", "platform", "en")
     ).toBeUndefined();
+    expect(
+      bufferStore.current?.read("social-link:sl1", "platform", "it")
+    ).toBeUndefined();
   });
 
-  it("always writes at locale en regardless of editing locale", async () => {
+  it("writes to all locales regardless of editing locale", async () => {
     const { getByTestId, container } = render(<TestHarness />);
     await act(() => getByTestId("toggle").click());
     await act(() => getByTestId("switch-locale").click());
@@ -146,9 +153,9 @@ describe("PlainField", () => {
     expect(bufferStore.current?.read("social-link:sl1", "platform", "en")).toBe(
       "written-while-it"
     );
-    expect(
-      bufferStore.current?.read("social-link:sl1", "platform", "it")
-    ).toBeUndefined();
+    expect(bufferStore.current?.read("social-link:sl1", "platform", "it")).toBe(
+      "written-while-it"
+    );
   });
 
   it("does not render chrome or staleness dots", async () => {
