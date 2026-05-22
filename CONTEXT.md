@@ -6,6 +6,10 @@ A bilingual (EN/IT) photography portfolio with an inline editing system that let
 
 ### Content
 
+**Entity**:
+Any named content unit the Admin manages with full lifecycle (create, read, update, delete) during an Edit Session. All Entity operations route through the Draft Buffer. Each Entity type is described by a descriptor that declares its capabilities (publish, reorder, slug derivation, etc.) and backend routing. Storage mechanism varies by type (own table, siteContent fields, reference table) but is abstracted behind the descriptor.
+_Avoid_: Item, resource, object, record
+
 **Project**:
 A photography project with a gallery of images, bilingual metadata, and a publication state.
 _Avoid_: Album, collection, gallery (gallery refers to the UI grid, not the data entity)
@@ -30,9 +34,21 @@ _Avoid_: Block, region, zone
 A single editable content element within a Section. Renders as a native DOM element (`h1`, `p`, `span`) that becomes `contentEditable="plaintext-only"` during an Edit Session. Always writes to the Draft Buffer — there is no immediate-commit path.
 _Avoid_: Input, slot, cell
 
-**Derived Entry**:
-A group of related Fields within a Section, identified by a shared key prefix (e.g., `abc123.year`, `abc123.title`, `abc123.description`). Not a database entity — the entry list is derived at runtime by scanning siteContent keys for a pattern (e.g., `*.title`). Sorted by a data value (e.g., year) rather than an explicit order field. Can be added by writing new prefixed keys to the Draft Buffer and removed via Field Deletion.
-_Avoid_: Row, record, sub-entity, nested object
+**Achievement**:
+A milestone or accomplishment on the artist's timeline, displayed in the Essence page. Has a date range (`startYear`, optional `endYear`), a title, and a description. Stored in its own table with a generated ID. Ordered by `startYear`. Multiple Achievements may share the same year.
+_Avoid_: Timeline entry (legacy name), milestone, award
+
+**Selected Work**:
+A reference to a Project that appears in the Featured Projects section on the home page. Does not own content — points to an existing Project via its ID. Ordered explicitly by the Admin. A Project may appear at most once in the selection.
+_Avoid_: Featured project, highlight, pick
+
+**Photo**:
+An image within a Project's gallery. Stored with a Cloudinary URL and public ID. Ordered explicitly within its parent Project. One Photo per Project may be designated as the cover image.
+_Avoid_: Project image, gallery image (gallery refers to the UI grid)
+
+**Artist Image**:
+A singleton portrait image associated with a specific page section (Home or Essence). Supports full CRUD: upload creates it, the Admin can replace or delete it, and the empty state is a valid "no image" state. Identified by its Cloudinary public ID. No ordering (singleton per slot).
+_Avoid_: Portrait, hero image, site image
 
 **Published / Unpublished**:
 Visibility state of a Project or Post. Unpublished entities exist in the database but are hidden from the public site. Newly created entities start as Unpublished.
@@ -105,10 +121,14 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 
 - A **Section** contains one or more **Fields**
 - A **Field** displays one **Localized Text** value, resolved to the active locale
-- A **Project** has a gallery of images and bilingual metadata; each metadata field is a **Field**
+- A **Project** has a gallery of **Photos** and bilingual metadata; each metadata field is a **Field**
+- A **Photo** is a child **Entity** of a **Project** — scoped to its parent for CRUD and display
 - A **Post** has bilingual content edited via BlockNote, distinct from the **Field** primitive
-- The **Draft Buffer** accumulates changes from **Fields**, **Publish Overrides**, reorder intents, **Field Deletions**, **Pending Deletions**, and **Session-Created Entities**
-- A **Section** may contain **Derived Entries** — groups of **Fields** sharing a key prefix, discovered at runtime rather than declared in code
+- A **Selected Work** references a **Project** — it does not own content
+- An **Achievement** is a standalone **Entity** with bilingual title/description and a year range
+- An **Artist Image** is a singleton **Entity** — one per page slot (Home, Essence)
+- The **Draft Buffer** accumulates changes from **Fields**, **Publish Overrides**, reorder intents, **Pending Deletions**, and **Session-Created Entities** for all **Entity** types
+- Each **Entity** type is described by an **Entity Descriptor** declaring its capabilities and backend routing
 - **Chrome** is rendered by each **Field** as a DOM child — it reads **Draft Buffer** state but owns none
 - **Chrome** renders semantic dots: warning (amber) for **Stale Fields**, info (blue) for system-filled content
 - **Image Assets** are tracked by the **Draft Buffer** and cleaned up on discard
