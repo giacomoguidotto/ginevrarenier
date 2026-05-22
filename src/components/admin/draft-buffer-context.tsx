@@ -260,6 +260,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const updateSocialLink = useMutation(api.socialLinks.update);
   const removeSocialLink = useMutation(api.socialLinks.remove);
   const reorderSocialLinks = useMutation(api.socialLinks.reorder);
+  const removeSelectedWork = useMutation(api.selectedWorks.remove);
+  const reorderSelectedWorks = useMutation(api.selectedWorks.reorder);
+  const selectedWorks = useQuery(
+    api.selectedWorks.list,
+    isEditMode && isAuthenticated ? {} : "skip"
+  );
 
   const entityMutations = useMemo(
     () =>
@@ -308,6 +314,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
             reorder: reorderSocialLinks as never,
           },
         ],
+        [
+          "selectedWork",
+          {
+            remove: removeSelectedWork as never,
+            reorder: reorderSelectedWorks as never,
+          },
+        ],
       ]),
     [
       updateProject,
@@ -322,6 +335,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       updateSocialLink,
       removeSocialLink,
       reorderSocialLinks,
+      removeSelectedWork,
+      reorderSelectedWorks,
     ]
   );
 
@@ -434,11 +449,18 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const trackDeletion = useCallback(
     (entityType: string, id: string) => {
       bufferRef.current.trackDeletion(entityType, id);
+      if (entityType === "project" && selectedWorks) {
+        for (const sw of selectedWorks) {
+          if (sw.projectId === id) {
+            bufferRef.current.trackDeletion("selectedWork", sw._id);
+          }
+        }
+      }
       setHasChanges(true);
       setEditVersion((v) => v + 1);
       schedulePersist();
     },
-    [schedulePersist]
+    [schedulePersist, selectedWorks]
   );
 
   const cancelDeletion = useCallback(

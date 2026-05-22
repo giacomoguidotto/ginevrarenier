@@ -88,6 +88,13 @@ export default defineSchema({
    *
    * External social media and contact links.
    */
+  selectedWorks: defineTable({
+    projectId: v.id("projects"),
+    order: v.number(),
+  })
+    .index("by_order", ["order"])
+    .index("by_project", ["projectId"]),
+
   socialLinks: defineTable({
     platform: v.string(),
     href: v.string(),

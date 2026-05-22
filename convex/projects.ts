@@ -145,9 +145,16 @@ export const remove = adminMutation({
       .query("projectImages")
       .withIndex("by_project", (q) => q.eq("projectId", id))
       .collect();
-
     for (const image of images) {
       await ctx.db.delete(image._id);
+    }
+
+    const selectedWorks = await ctx.db
+      .query("selectedWorks")
+      .withIndex("by_project", (q) => q.eq("projectId", id))
+      .collect();
+    for (const sw of selectedWorks) {
+      await ctx.db.delete(sw._id);
     }
 
     await ctx.db.delete(id);
