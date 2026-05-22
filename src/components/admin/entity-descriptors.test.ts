@@ -43,6 +43,18 @@ describe("Entity Descriptor Registry", () => {
     });
     expect(d?.reorder).toBeDefined();
   });
+
+  it("returns a descriptor for 'social-link'", () => {
+    const d = getDescriptor("social-link");
+    expect(d).toMatchObject({
+      type: "social-link",
+      label: "Social Link",
+      localized: false,
+    });
+    expect(d?.reorder).toBeDefined();
+    expect(d?.publish).toBeUndefined();
+    expect(d?.parent).toBeUndefined();
+  });
 });
 
 describe("formatEntityRef", () => {
@@ -77,6 +89,12 @@ describe("formatEntityRef", () => {
   it("falls back to 'Photo' when no section label for photo", () => {
     expect(formatEntityRef("photo", "img1", new Map())).toBe("Photo");
   });
+
+  it("returns descriptor label for social-link", () => {
+    expect(formatEntityRef("social-link", "abc", new Map())).toBe(
+      "Social Link"
+    );
+  });
 });
 
 describe("formatEntityType", () => {
@@ -87,6 +105,10 @@ describe("formatEntityType", () => {
 
   it("returns humanized fallback for timeline-entry", () => {
     expect(formatEntityType("timeline-entry")).toBe("Timeline Entry");
+  });
+
+  it("returns descriptor label for social-link", () => {
+    expect(formatEntityType("social-link")).toBe("Social Link");
   });
 });
 
@@ -128,6 +150,15 @@ describe("routeSection (descriptor-based)", () => {
     expect(route).toEqual({
       kind: "siteContent",
       section: "essence.achievements",
+    });
+  });
+
+  it("routes social-link: prefix to entity route with social-link descriptor", () => {
+    const route = routeSection("social-link:sl123");
+    expect(route).toEqual({
+      kind: "entity",
+      descriptor: getDescriptor("social-link"),
+      id: "sl123",
     });
   });
 });

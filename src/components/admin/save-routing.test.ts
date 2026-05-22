@@ -58,4 +58,33 @@ describe("buildEntityUpdates", () => {
     });
     expect(result).toEqual({ title: { en: "Hello", it: "Ciao" } });
   });
+
+  it("keeps locale maps for localized entities", () => {
+    const fields = {
+      title: { en: "Hello", it: "Ciao" },
+      description: { en: "World" },
+    };
+    expect(buildEntityUpdates(fields, true)).toEqual({
+      title: { en: "Hello", it: "Ciao" },
+      description: { en: "World" },
+    });
+  });
+
+  it("extracts slug as plain string for localized entities", () => {
+    const fields = { slug: { en: "my-slug" } };
+    expect(buildEntityUpdates(fields, true)).toEqual({ slug: "my-slug" });
+  });
+
+  it("extracts plain strings for non-localized entities", () => {
+    const fields = {
+      platform: { en: "github" },
+      href: { en: "https://github.com/user" },
+      label: { en: "GitHub" },
+    };
+    expect(buildEntityUpdates(fields, false)).toEqual({
+      platform: "github",
+      href: "https://github.com/user",
+      label: "GitHub",
+    });
+  });
 });
