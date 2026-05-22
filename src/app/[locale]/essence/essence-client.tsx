@@ -1,5 +1,8 @@
 "use client";
 
+import { api } from "convex/_generated/api";
+import type { Doc } from "convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
 import {
   AnimatePresence,
   motion,
@@ -12,10 +15,7 @@ import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
-import {
-  useDraftBufferOps,
-  useDraftBufferReset,
-} from "@/components/admin/draft-buffer-context";
+import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
@@ -24,7 +24,7 @@ import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
 import { useLocalized } from "@/lib/hooks";
-import { createEntryWrites, deriveBufferedEntries } from "./timeline-entries";
+import { formatYearRange } from "./year-range";
 
 const achievementIcons = [Camera, Award, Globe];
 const achievementKeys = ["years", "recognition", "countries"] as const;
@@ -188,98 +188,61 @@ function EssenceAchievements() {
   );
 }
 
-function generateId() {
-  return Math.random().toString(36).slice(2, 8);
-}
+function useAchievements() {
+  const achievements = useQuery(api.achievements.list) ?? [];
+  const { trackCreation, trackDeletion, isPendingDeletion, isSessionCreated } =
+    useDraftBufferOps();
+  const createAchievement = useMutation(api.achievements.create);
 
-function useTimelineEntries() {
-  const section = "essence.timeline";
-  const { data } = useSection();
-  const {
-    read,
-    write,
-    deleteField,
-    isFieldDeleted,
-    sectionChanges,
-    trackCreation,
-    trackDeletion,
-  } = useDraftBufferOps();
-  const resetSignal = useDraftBufferReset();
-  const newIdsRef = useRef(new Set<string>());
-  const [deletedLabels, setDeletedLabels] = useState<
-    { id: string; year: string }[]
-  >([]);
+  const [localCreations, setLocalCreations] = useState<string[]>([]);
 
-  const derive = useCallback(
-    () =>
-      deriveBufferedEntries(data, sectionChanges(section), (prefix) =>
-        isFieldDeleted(section, prefix)
-      ),
-    [data, sectionChanges, isFieldDeleted]
-  );
-
-  const [entries, setEntries] = useState(() => derive());
-  const prevDataRef = useRef(data);
-  const prevResetRef = useRef(resetSignal);
-
-  if (data !== prevDataRef.current || resetSignal !== prevResetRef.current) {
-    if (resetSignal !== prevResetRef.current) {
-      newIdsRef.current = new Set();
-      setDeletedLabels([]);
-    }
-    prevDataRef.current = data;
-    prevResetRef.current = resetSignal;
-    setEntries(derive());
-  }
-
-  const handleAdd = useCallback(() => {
-    const id = generateId();
-    const year = new Date().getFullYear().toString();
-    for (const w of createEntryWrites(id, year)) {
-      write(section, w.field, w.locale, w.value);
-    }
-    trackCreation("timeline-entry", id);
-    newIdsRef.current.add(id);
-    setEntries((prev) => [...prev, { id }]);
-  }, [write, trackCreation]);
+  const handleAdd = useCallback(async () => {
+    const year = new Date().getFullYear();
+    const id = await createAchievement({
+      startYear: year,
+      title: { en: "", it: "" },
+      description: { en: "", it: "" },
+    });
+    trackCreation("achievement", id);
+    setLocalCreations((prev) => [...prev, id]);
+  }, [createAchievement, trackCreation]);
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (!newIdsRef.current.has(id)) {
-        const year =
-          read(section, `${id}.year`, "en") ?? data?.[`${id}.year`]?.en ?? "";
-        setDeletedLabels((prev) => [...prev, { id, year }]);
-        trackDeletion("timeline-entry", id);
-      }
-      deleteField(section, id);
-      newIdsRef.current.delete(id);
-      setEntries((prev) => prev.filter((e) => e.id !== id));
+      trackDeletion("achievement", id);
     },
-    [deleteField, trackDeletion, read, data]
+    [trackDeletion]
+  );
+
+  const visible = achievements.filter(
+    (a) => !isPendingDeletion("achievement", a._id)
   );
 
   return {
-    entries,
+    achievements: visible,
     handleAdd,
     handleDelete,
-    newIds: newIdsRef.current,
-    deletedLabels,
+    isSessionCreated: (id: string) => isSessionCreated("achievement", id),
+    localCreations,
   };
 }
 
-function DeletedEntryLabel({ id, year }: { id: string; year: string }) {
-  usePageBoundaryRegistration(
-    `timeline-entry:${id}`,
-    `Timeline Entry: ${year}`
-  );
+function DeletedAchievementLabel({ id, year }: { id: string; year: string }) {
+  usePageBoundaryRegistration(`achievement:${id}`, `Achievement: ${year}`);
   return null;
 }
 
 function EssenceTimeline() {
   const { enable } = useChromeEnabler();
   const { isEditMode } = useEditMode();
-  const { entries, handleAdd, handleDelete, newIds, deletedLabels } =
-    useTimelineEntries();
+  const allAchievements = useQuery(api.achievements.list) ?? [];
+  const { achievements, handleAdd, handleDelete, isSessionCreated } =
+    useAchievements();
+  const { isPendingDeletion } = useDraftBufferOps();
+
+  const deletedAchievements = allAchievements.filter((a) =>
+    isPendingDeletion("achievement", a._id)
+  );
 
   return (
     <section className="bg-charcoal py-24">
@@ -302,18 +265,27 @@ function EssenceTimeline() {
         <div className="relative">
           <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
 
-          {deletedLabels.map(({ id, year }) => (
-            <DeletedEntryLabel id={id} key={`label-${id}`} year={year} />
+          {deletedAchievements.map((a) => (
+            <DeletedAchievementLabel
+              id={a._id}
+              key={`label-${a._id}`}
+              year={formatYearRange(a.startYear, a.endYear)}
+            />
           ))}
 
-          {entries.map(({ id }, index) => (
-            <ChromeEnablerProvider key={id}>
-              <TimelineEntryInner
-                id={id}
-                index={index}
-                isNew={newIds.has(id)}
-                onDelete={handleDelete}
-              />
+          {achievements.map((achievement, index) => (
+            <ChromeEnablerProvider key={achievement._id}>
+              <Section
+                label={`Achievement: ${formatYearRange(achievement.startYear, achievement.endYear)}`}
+                name={`achievement:${achievement._id}`}
+              >
+                <AchievementEntry
+                  achievement={achievement}
+                  index={index}
+                  isNew={isSessionCreated(achievement._id)}
+                  onDelete={handleDelete}
+                />
+              </Section>
             </ChromeEnablerProvider>
           ))}
 
@@ -333,7 +305,7 @@ function EssenceTimeline() {
                     type="button"
                   >
                     <Plus className="h-4 w-4" />
-                    Add Timeline Entry
+                    Add Achievement
                   </button>
                 </div>
               </motion.div>
@@ -345,29 +317,37 @@ function EssenceTimeline() {
   );
 }
 
-function TimelineEntryInner({
-  id,
+function AchievementEntry({
+  achievement,
   index,
   isNew,
   onDelete,
 }: {
-  id: string;
+  achievement: Doc<"achievements">;
   index: number;
   isNew: boolean;
   onDelete: (id: string) => void;
 }) {
   const { isEditMode } = useEditMode();
   const { enable } = useChromeEnabler();
-  const { data } = useSection();
   const { read } = useDraftBufferOps();
 
-  const year =
-    read("essence.timeline", `${id}.year`, "en") ??
-    data?.[`${id}.year`]?.en ??
-    "";
+  const draftStartYear = read(
+    `achievement:${achievement._id}`,
+    "startYear",
+    "en"
+  );
+  const draftEndYear = read(`achievement:${achievement._id}`, "endYear", "en");
+  const displayYear = draftStartYear
+    ? formatYearRange(
+        Number.parseInt(draftStartYear, 10),
+        draftEndYear ? Number.parseInt(draftEndYear, 10) : achievement.endYear
+      )
+    : formatYearRange(achievement.startYear, achievement.endYear);
+
   usePageBoundaryRegistration(
-    `timeline-entry:${id}`,
-    `Timeline Entry: ${year}`
+    `achievement:${achievement._id}`,
+    `Achievement: ${displayYear}`
   );
 
   const animateProps = isNew
@@ -391,21 +371,23 @@ function TimelineEntryInner({
       />
 
       <div className="flex flex-col gap-2">
-        <Field
-          as="span"
-          className="block text-cream/60 text-sm uppercase tracking-widest"
-          name={`${id}.year`}
-        />
-        <Field
-          as="h3"
-          className="font-light text-cream text-xl"
-          name={`${id}.title`}
-        />
+        {isEditMode ? (
+          <Field
+            as="span"
+            className="block text-cream/60 text-sm uppercase tracking-widest"
+            name="startYear"
+          />
+        ) : (
+          <span className="block text-cream/60 text-sm uppercase tracking-widest">
+            {displayYear}
+          </span>
+        )}
+        <Field as="h3" className="font-light text-cream text-xl" name="title" />
         <Field
           as="p"
           className="text-muted-foreground"
           multiline
-          name={`${id}.description`}
+          name="description"
         />
       </div>
       <AnimatePresence>
@@ -419,7 +401,7 @@ function TimelineEntryInner({
           >
             <button
               className="mt-2 inline-flex items-center gap-1 rounded border border-red-500/30 px-2 py-1 text-red-400 text-xs transition-colors hover:bg-red-500/10"
-              onClick={() => onDelete(id)}
+              onClick={() => onDelete(achievement._id)}
               type="button"
             >
               <Trash2 className="h-3 w-3" />

@@ -227,6 +227,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const reorderProjects = useMutation(api.projects.reorder);
   const removeProject = useMutation(api.projects.remove);
   const removeBlogPost = useMutation(api.blogPosts.remove);
+  const updateAchievement = useMutation(api.achievements.update);
+  const removeAchievement = useMutation(api.achievements.remove);
 
   const entityMutations = useMemo(
     () =>
@@ -253,6 +255,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
             remove: removeBlogPost as never,
           },
         ],
+        [
+          "achievement",
+          {
+            update: updateAchievement as never,
+            remove: removeAchievement as never,
+          },
+        ],
       ]),
     [
       updateProject,
@@ -260,6 +269,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       reorderProjects,
       removeProject,
       removeBlogPost,
+      updateAchievement,
+      removeAchievement,
     ]
   );
 
@@ -474,39 +485,43 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [entityMutations]
   );
 
-  const save = useCallback(async () => {
-    const grouped = bufferRef.current.changes();
-    const deletionsBySection = groupFieldDeletions(
-      bufferRef.current.fieldDeletions()
-    );
+  const saveSections = useCallback(
+    async (buffer: Buffer) => {
+      const grouped = buffer.changes();
+      const deletionsBySection = groupFieldDeletions(buffer.fieldDeletions());
+      const touchedSections = new Set([
+        ...grouped.keys(),
+        ...deletionsBySection.keys(),
+      ]);
 
-    const touchedSections = new Set([
-      ...grouped.keys(),
-      ...deletionsBySection.keys(),
-    ]);
+      for (const sectionName of touchedSections) {
+        const fields = grouped.get(sectionName) ?? {};
+        const route = routeSection(sectionName);
 
-    for (const sectionName of touchedSections) {
-      const fields = grouped.get(sectionName) ?? {};
-      const route = routeSection(sectionName);
-
-      if (route.kind === "entity") {
-        const mutations = entityMutations.get(route.descriptor.type);
-        if (mutations) {
-          await mutations.update({
-            id: route.id,
-            ...buildEntityUpdates(fields),
-          } as never);
+        if (route.kind === "entity") {
+          const mutations = entityMutations.get(route.descriptor.type);
+          if (mutations) {
+            const updates = route.descriptor.buildUpdates
+              ? route.descriptor.buildUpdates(fields)
+              : buildEntityUpdates(fields);
+            await mutations.update({ id: route.id, ...updates } as never);
+          }
+        } else {
+          const existing =
+            allContent?.find((c) => c.section === sectionName)?.content ?? {};
+          await upsertSiteContent({
+            section: sectionName,
+            content: mergeSiteContent(fields, existing),
+            deleteKeyPrefixes: deletionsBySection.get(sectionName),
+          });
         }
-      } else {
-        const existing =
-          allContent?.find((c) => c.section === sectionName)?.content ?? {};
-        await upsertSiteContent({
-          section: sectionName,
-          content: mergeSiteContent(fields, existing),
-          deleteKeyPrefixes: deletionsBySection.get(sectionName),
-        });
       }
-    }
+    },
+    [allContent, upsertSiteContent, entityMutations]
+  );
+
+  const save = useCallback(async () => {
+    await saveSections(bufferRef.current);
 
     for (const ovr of bufferRef.current.publishOverrides()) {
       const mutations = entityMutations.get(ovr.entityType);
@@ -540,7 +555,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
     clearPersistedState();
-  }, [allContent, upsertSiteContent, entityMutations, removeEntity]);
+  }, [saveSections, entityMutations, removeEntity]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
