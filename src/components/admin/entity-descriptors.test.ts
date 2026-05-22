@@ -32,6 +32,17 @@ describe("Entity Descriptor Registry", () => {
   it("returns undefined for timeline-entry (not migrated yet)", () => {
     expect(getDescriptor("timeline-entry")).toBeUndefined();
   });
+
+  it("returns a descriptor for 'photo' with parent relationship to project", () => {
+    const d = getDescriptor("photo");
+    expect(d).toMatchObject({
+      type: "photo",
+      label: "Photo",
+      localized: false,
+      parent: { entityType: "project" },
+    });
+    expect(d?.reorder).toBeDefined();
+  });
 });
 
 describe("formatEntityRef", () => {
@@ -54,6 +65,17 @@ describe("formatEntityRef", () => {
     expect(formatEntityRef("timeline-entry", "abc", new Map())).toBe(
       "Timeline Entry"
     );
+  });
+
+  it("shows parent context for photo: 'Photo in Project Title'", () => {
+    const labels = new Map([["photo:img1", "Photo in Venetian Light"]]);
+    expect(formatEntityRef("photo", "img1", labels)).toBe(
+      "Photo in Venetian Light"
+    );
+  });
+
+  it("falls back to 'Photo' when no section label for photo", () => {
+    expect(formatEntityRef("photo", "img1", new Map())).toBe("Photo");
   });
 });
 
@@ -84,6 +106,15 @@ describe("routeSection (descriptor-based)", () => {
       kind: "entity",
       descriptor: getDescriptor("post"),
       id: "xyz789",
+    });
+  });
+
+  it("routes photo: prefix to entity route with photo descriptor", () => {
+    const route = routeSection("photo:img123");
+    expect(route).toEqual({
+      kind: "entity",
+      descriptor: getDescriptor("photo"),
+      id: "img123",
     });
   });
 

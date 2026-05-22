@@ -61,10 +61,9 @@ export const remove = adminMutation({
   handler: async (ctx, { id }) => {
     const image = await ctx.db.get(id);
     if (!image) {
-      return;
+      return null;
     }
 
-    // If this image was the cover, clear it or set next image
     const project = await ctx.db.get(image.projectId);
     if (project?.coverImageUrl === image.url) {
       const remaining = await ctx.db
@@ -81,5 +80,7 @@ export const remove = adminMutation({
     }
 
     await ctx.db.delete(id);
+
+    return image.cloudinaryPublicId;
   },
 });

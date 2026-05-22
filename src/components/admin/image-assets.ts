@@ -10,9 +10,11 @@ export interface ImageAssetsConfig {
 
 export function createImageAssets(
   config: ImageAssetsConfig,
-  initialTracked?: string[]
+  initialTracked?: string[],
+  initialPendingDeletions?: string[]
 ) {
   const tracked = new Set<string>(initialTracked);
+  const pendingDeletions = new Set<string>(initialPendingDeletions);
 
   return {
     trackAsset(publicId: string): void {
@@ -42,6 +44,24 @@ export function createImageAssets(
         await config.deleteAsset(publicId);
       }
       tracked.clear();
+    },
+    trackPendingDeletion(publicId: string): void {
+      pendingDeletions.add(publicId);
+    },
+    cancelPendingDeletion(publicId: string): void {
+      pendingDeletions.delete(publicId);
+    },
+    pendingDeletionAssets(): string[] {
+      return [...pendingDeletions];
+    },
+    async savePendingDeletions(): Promise<void> {
+      for (const publicId of pendingDeletions) {
+        await config.deleteAsset(publicId);
+      }
+      pendingDeletions.clear();
+    },
+    clearPendingDeletions(): void {
+      pendingDeletions.clear();
     },
   };
 }

@@ -11,10 +11,21 @@ const authMiddleware = clerkConfigured
   : null;
 
 export function proxy(request: Parameters<typeof intlMiddleware>[0]) {
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+
   if (authMiddleware) {
+    if (isApiRoute) {
+      // biome-ignore lint/suspicious/noExplicitAny: NextFetchEvent stub for proxy entry
+      return clerkMiddleware()(request, {} as any);
+    }
     // biome-ignore lint/suspicious/noExplicitAny: NextFetchEvent stub for proxy entry
     return authMiddleware(request, {} as any);
   }
+
+  if (isApiRoute) {
+    return;
+  }
+
   return intlMiddleware(request);
 }
 

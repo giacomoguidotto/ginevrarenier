@@ -16,29 +16,39 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+  let result: { secure_url: string; public_id: string };
+  try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-  const result = await new Promise<{
-    secure_url: string;
-    public_id: string;
-  }>((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        {
-          folder: folder ?? "ginevrarenier",
-          resource_type: "image",
-        },
-        (error, uploadResult) => {
-          if (error) {
-            reject(error);
-          } else if (uploadResult) {
-            resolve(uploadResult);
+    result = await new Promise<{
+      secure_url: string;
+      public_id: string;
+    }>((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder: folder ?? "ginevrarenier",
+            resource_type: "image",
+          },
+          (error, uploadResult) => {
+            if (error) {
+              reject(error);
+            } else if (uploadResult) {
+              resolve(uploadResult);
+            }
           }
-        }
-      )
-      .end(buffer);
-  });
+        )
+        .end(buffer);
+    });
+  } catch (err) {
+    console.error("[cloudinary/upload] Upload failed:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json(
+      { error: `Cloudinary upload failed: ${message}` },
+      { status: 502 }
+    );
+  }
 
   return NextResponse.json({
     url: result.secure_url,

@@ -141,7 +141,6 @@ export const setCover = adminMutation({
 export const remove = adminMutation({
   args: { id: v.id("projects") },
   handler: async (ctx, { id }) => {
-    // Delete all images belonging to this project
     const images = await ctx.db
       .query("projectImages")
       .withIndex("by_project", (q) => q.eq("projectId", id))
@@ -152,5 +151,7 @@ export const remove = adminMutation({
     }
 
     await ctx.db.delete(id);
+
+    return images.map((img) => img.cloudinaryPublicId);
   },
 });

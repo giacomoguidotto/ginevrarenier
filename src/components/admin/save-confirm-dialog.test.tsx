@@ -302,6 +302,71 @@ describe("SaveConfirmDialog", () => {
     expect(screen.queryByText(TMP_YEAR_RE)).toBeNull();
   });
 
+  it("shows new photo with parent context", () => {
+    const summary = makeSummary({
+      createdEntities: [{ entityType: "photo", id: "img1" }],
+    });
+    const labels = new Map([["photo:img1", "Photo in Venetian Light"]]);
+
+    render(
+      <SaveConfirmDialog
+        changeSummary={() => summary}
+        loading={false}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        open
+        sectionLabels={labels}
+      />
+    );
+
+    expect(screen.getByText("New Photo in Venetian Light")).toBeTruthy();
+  });
+
+  it("shows photo deletion with parent context", () => {
+    const summary = makeSummary({
+      pendingDeletions: [{ entityType: "photo", id: "img2" }],
+    });
+    const labels = new Map([["photo:img2", "Photo in Venetian Light"]]);
+
+    render(
+      <SaveConfirmDialog
+        changeSummary={() => summary}
+        loading={false}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        open
+        sectionLabels={labels}
+      />
+    );
+
+    const items = screen.getAllByText(
+      (_content, el) => el?.textContent === "Delete Photo in Venetian Light"
+    );
+    expect(items.length).toBeGreaterThan(0);
+  });
+
+  it("shows photo reorder with arrow icon", () => {
+    const summary = makeSummary({
+      reorderedEntityTypes: ["photo"],
+    });
+
+    render(
+      <SaveConfirmDialog
+        changeSummary={() => summary}
+        loading={false}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        open
+        sectionLabels={new Map()}
+      />
+    );
+
+    const items = screen.getAllByText(
+      (_content, el) => el?.textContent === "Reorder Photos"
+    );
+    expect(items.length).toBeGreaterThan(0);
+  });
+
   it("lists each undismissed stale field with human-readable label", () => {
     const summary = makeSummary({
       textEdits: [

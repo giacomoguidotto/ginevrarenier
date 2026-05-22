@@ -101,10 +101,24 @@ const achievementDescriptor: EntityDescriptor = {
   localized: true,
 };
 
+const photoDescriptor: EntityDescriptor = {
+  type: "photo",
+  label: "Photo",
+  formatRef: makeFormatRef("photo", "Photo"),
+  mutations: {
+    update: undefined as never,
+    remove: api.projectImages.remove as never,
+  },
+  reorder: { mutation: api.projectImages.reorder as never },
+  parent: { entityType: "project" },
+  localized: false,
+};
+
 const registry = new Map<string, EntityDescriptor>([
   ["project", projectDescriptor],
   ["post", postDescriptor],
   ["achievement", achievementDescriptor],
+  ["photo", photoDescriptor],
 ]);
 
 export function getDescriptor(

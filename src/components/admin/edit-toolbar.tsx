@@ -553,17 +553,6 @@ export function SaveConfirmDialog({
                 </li>
               ))
             : null}
-          {summary && summary.imageSwaps.length > 0 ? (
-            <li className="flex items-baseline gap-2">
-              <span className="font-mono text-muted-foreground text-xs">
-                IMG
-              </span>
-              <span>
-                {summary.imageSwaps.length} image{" "}
-                {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
-              </span>
-            </li>
-          ) : null}
           {hasCreations
             ? createdEntities.map((ref) => (
                 <li

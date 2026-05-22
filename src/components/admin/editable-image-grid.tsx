@@ -22,17 +22,22 @@ import { CSS } from "@dnd-kit/utilities";
 import { api } from "convex/_generated/api";
 import type { Doc, Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
-import { ImageIcon, Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Plus, RotateCcw, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+  useImageAssets,
+} from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
-import { deleteCloudinaryImage, uploadImage } from "./image-upload";
+import { usePageBoundary } from "./page-boundary";
 
 type ProjectImage = Doc<"projectImages">;
 
@@ -54,17 +59,37 @@ function DropZone({
   );
 }
 
+function imageClassName(isDragging: boolean, pendingDeletion: boolean) {
+  if (isDragging) {
+    return "opacity-30";
+  }
+  if (pendingDeletion) {
+    return "cursor-default opacity-40 grayscale";
+  }
+  return "cursor-grab active:cursor-grabbing";
+}
+
 function SortableImage({
   image,
   onDelete,
   onSetCover,
+  onCancelDeletion,
+  pendingDeletion,
 }: {
   image: ProjectImage;
   onDelete: () => void;
   onSetCover: () => void;
+  onCancelDeletion: () => void;
+  pendingDeletion: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: image._id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: image._id, disabled: pendingDeletion });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -75,7 +100,7 @@ function SortableImage({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className="group relative cursor-grab break-inside-avoid overflow-hidden rounded-lg active:cursor-grabbing"
+          className={`group relative break-inside-avoid overflow-hidden rounded-lg ${imageClassName(isDragging, pendingDeletion)}`}
           ref={setNodeRef}
           style={style}
           {...attributes}
@@ -89,20 +114,34 @@ function SortableImage({
             src={image.url}
             width={800}
           />
+          {pendingDeletion ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <Trash2 className="h-6 w-6 text-red-400" />
+            </div>
+          ) : null}
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={onSetCover}>
-          <ImageIcon className="mr-2 h-4 w-4" />
-          Set as cover
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="text-red-400 focus:text-red-400"
-          onClick={onDelete}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete
-        </ContextMenuItem>
+        {pendingDeletion ? (
+          <ContextMenuItem onClick={onCancelDeletion}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Cancel deletion
+          </ContextMenuItem>
+        ) : (
+          <>
+            <ContextMenuItem onClick={onSetCover}>
+              <ImageIcon className="mr-2 h-4 w-4" />
+              Set as cover
+            </ContextMenuItem>
+            <ContextMenuItem
+              className="text-red-400 focus:text-red-400"
+              onClick={onDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </ContextMenuItem>
+          </>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -156,22 +195,60 @@ interface EditableImageGridProps {
   images: ProjectImage[];
   projectId: Id<"projects">;
   projectSlug: string;
+  projectTitle: string;
 }
 
 export function EditableImageGrid({
   images,
   projectId,
   projectSlug,
+  projectTitle,
 }: EditableImageGridProps) {
   const { isEditMode } = useEditMode();
+  const boundary = usePageBoundary();
+  const {
+    trackCreation,
+    trackDeletion,
+    cancelDeletion,
+    isPendingDeletion,
+    setReorderList,
+    getReorderList,
+    write,
+  } = useDraftBufferOps();
+  const { upload, trackPendingDeletion, cancelPendingDeletion } =
+    useImageAssets();
+  useEditVersion();
+
   const addImage = useMutation(api.projectImages.add);
-  const removeImage = useMutation(api.projectImages.remove);
-  const reorderImages = useMutation(api.projectImages.reorder);
-  const setCover = useMutation(api.projects.setCover);
+
+  useEffect(() => {
+    if (!boundary) {
+      return;
+    }
+    const ids: string[] = [];
+    for (const image of images) {
+      const key = `photo:${image._id}`;
+      boundary.register(key, `Photo in ${projectTitle}`);
+      ids.push(key);
+    }
+    return () => {
+      for (const key of ids) {
+        boundary.deregister(key);
+      }
+    };
+  }, [boundary, images, projectTitle]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const reorderList = getReorderList("photo");
+  const displayImages = reorderList
+    ? reorderList
+        .map((id) => images.find((img) => img._id === id))
+        .filter((img): img is ProjectImage => img !== undefined)
+        .concat(images.filter((img) => !reorderList.includes(img._id)))
+    : images;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -193,70 +270,101 @@ export function EditableImageGrid({
         return;
       }
 
-      const draggedImage = images.find((img) => img._id === active.id);
+      const draggedImage = displayImages.find((img) => img._id === active.id);
 
-      // Drop on trash zone
       if (over.id === "drop-trash" && draggedImage) {
-        deleteCloudinaryImage(draggedImage.cloudinaryPublicId);
-        removeImage({ id: draggedImage._id });
+        trackDeletion("photo", draggedImage._id);
+        trackPendingDeletion(draggedImage.cloudinaryPublicId);
         return;
       }
 
-      // Drop on cover zone
       if (over.id === "drop-cover" && draggedImage) {
-        setCover({
-          projectId,
-          imageId: draggedImage._id as Id<"projectImages">,
-        });
+        write(`project:${projectId}`, "coverImageUrl", "en", draggedImage.url);
         return;
       }
 
-      // Reorder
       if (active.id === over.id) {
         return;
       }
-      const oldIndex = images.findIndex((img) => img._id === active.id);
-      const newIndex = images.findIndex((img) => img._id === over.id);
+      const oldIndex = displayImages.findIndex((img) => img._id === active.id);
+      const newIndex = displayImages.findIndex((img) => img._id === over.id);
       if (oldIndex === -1 || newIndex === -1) {
         return;
       }
-      const reordered = [...images];
+      const reordered = [...displayImages];
       const [moved] = reordered.splice(oldIndex, 1);
       reordered.splice(newIndex, 0, moved);
-      reorderImages({ ids: reordered.map((img) => img._id) });
+      setReorderList(
+        "photo",
+        reordered.map((img) => img._id)
+      );
     },
-    [images, reorderImages, removeImage, setCover, projectId]
+    [
+      displayImages,
+      setReorderList,
+      trackDeletion,
+      trackPendingDeletion,
+      write,
+      projectId,
+    ]
   );
 
   const handleUpload = useCallback(
     async (files: FileList) => {
       setUploading(true);
-      for (const file of files) {
-        const result = await uploadImage(file, `ginevrarenier/${projectSlug}`);
-        await addImage({
-          projectId,
-          url: result.url,
-          cloudinaryPublicId: result.publicId,
-        });
+      try {
+        for (const file of files) {
+          const result = await upload(file, `ginevrarenier/${projectSlug}`);
+          const imageId = await addImage({
+            projectId,
+            url: result.url,
+            cloudinaryPublicId: result.publicId,
+          });
+          trackCreation("photo", imageId);
+
+          const currentReorder = getReorderList("photo");
+          if (currentReorder) {
+            setReorderList("photo", [...currentReorder, imageId]);
+          }
+        }
+      } catch (err) {
+        console.error("[editable-image-grid] Image upload failed:", err);
+      } finally {
+        setUploading(false);
       }
-      setUploading(false);
     },
-    [projectId, projectSlug, addImage]
+    [
+      projectId,
+      projectSlug,
+      addImage,
+      upload,
+      trackCreation,
+      getReorderList,
+      setReorderList,
+    ]
   );
 
   const handleDelete = useCallback(
-    async (image: ProjectImage) => {
-      await deleteCloudinaryImage(image.cloudinaryPublicId);
-      await removeImage({ id: image._id });
+    (image: ProjectImage) => {
+      trackDeletion("photo", image._id);
+      trackPendingDeletion(image.cloudinaryPublicId);
     },
-    [removeImage]
+    [trackDeletion, trackPendingDeletion]
+  );
+
+  const handleCancelDeletion = useCallback(
+    (image: ProjectImage) => {
+      cancelDeletion("photo", image._id);
+      cancelPendingDeletion(image.cloudinaryPublicId);
+    },
+    [cancelDeletion, cancelPendingDeletion]
   );
 
   const handleSetCover = useCallback(
-    (imageId: Id<"projectImages">) => {
-      setCover({ projectId, imageId });
+    (image: ProjectImage) => {
+      write(`project:${projectId}`, "coverImageUrl", "en", image.url);
     },
-    [projectId, setCover]
+    [projectId, write]
   );
 
   const handleFileDrop = useCallback(
@@ -274,7 +382,7 @@ export function EditableImageGrid({
   }
 
   const activeImage = activeId
-    ? images.find((img) => img._id === activeId)
+    ? displayImages.find((img) => img._id === activeId)
     : null;
   const isDragging = activeId !== null;
 
@@ -290,16 +398,18 @@ export function EditableImageGrid({
         <CoverDropZone active={isDragging} />
 
         <SortableContext
-          items={images.map((img) => img._id)}
+          items={displayImages.map((img) => img._id)}
           strategy={rectSortingStrategy}
         >
           <div className="columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3">
-            {images.map((image) => (
+            {displayImages.map((image) => (
               <SortableImage
                 image={image}
                 key={image._id}
+                onCancelDeletion={() => handleCancelDeletion(image)}
                 onDelete={() => handleDelete(image)}
-                onSetCover={() => handleSetCover(image._id)}
+                onSetCover={() => handleSetCover(image)}
+                pendingDeletion={isPendingDeletion("photo", image._id)}
               />
             ))}
 

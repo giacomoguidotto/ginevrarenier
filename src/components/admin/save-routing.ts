@@ -22,8 +22,8 @@ export function buildEntityUpdates(
 ): Record<string, unknown> {
   const updates: Record<string, unknown> = {};
   for (const [field, locales] of Object.entries(fields)) {
-    if (field === "slug") {
-      updates.slug = locales.en ?? locales.it;
+    if (field === "slug" || field === "coverImageUrl") {
+      updates[field] = locales.en ?? locales.it;
     } else {
       updates[field] = locales as { en: string; it: string };
     }
