@@ -14,9 +14,11 @@ vi.mock("next-intl", () => ({
   useLocale: () => "en",
 }));
 
+import { DRAFT_BUFFER_VERSION } from "./draft-buffer";
 import {
   DraftBufferProvider,
   useDraftBufferOps,
+  useDraftBufferState,
   useEditVersion,
 } from "./draft-buffer-context";
 import { EditModeProvider } from "./edit-mode-context";
@@ -318,5 +320,67 @@ describe("DraftBuffer reactivity — parent-to-child prop chain", () => {
     });
 
     expect(getByTestId("chain-publish").textContent).toBe("publish");
+  });
+});
+
+function HasChangesProbe() {
+  const { hasChanges } = useDraftBufferState();
+  return <span data-testid="has-changes">{String(hasChanges)}</span>;
+}
+
+function persistBuffer(buffer: Record<string, unknown>) {
+  localStorage.setItem("edit-mode-active", "true");
+  localStorage.setItem(
+    "draft-buffer-state",
+    JSON.stringify({ buffer, imageAssets: [] })
+  );
+}
+
+const bufferWithEdits = {
+  store: [["hero\0title\0en", "Hello"]],
+  creations: [],
+  deletions: [],
+  fieldDels: [],
+  publishOverrides: [],
+  reorderLists: [],
+  dismissals: [],
+  autoTranslations: [],
+};
+
+describe("DraftBuffer — version gating on localStorage hydration", () => {
+  it("discards legacy v1 buffer (no version field)", () => {
+    persistBuffer(bufferWithEdits);
+
+    const { getByTestId } = render(
+      <Providers>
+        <HasChangesProbe />
+      </Providers>
+    );
+
+    expect(getByTestId("has-changes").textContent).toBe("false");
+  });
+
+  it("discards buffer with mismatched version", () => {
+    persistBuffer({ ...bufferWithEdits, version: 99 });
+
+    const { getByTestId } = render(
+      <Providers>
+        <HasChangesProbe />
+      </Providers>
+    );
+
+    expect(getByTestId("has-changes").textContent).toBe("false");
+  });
+
+  it("accepts buffer with current version", () => {
+    persistBuffer({ ...bufferWithEdits, version: DRAFT_BUFFER_VERSION });
+
+    const { getByTestId } = render(
+      <Providers>
+        <HasChangesProbe />
+      </Providers>
+    );
+
+    expect(getByTestId("has-changes").textContent).toBe("true");
   });
 });

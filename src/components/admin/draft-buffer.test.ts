@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDraftBuffer } from "./draft-buffer";
+import { createDraftBuffer, DRAFT_BUFFER_VERSION } from "./draft-buffer";
 
 describe("Draft Buffer", () => {
   it("reads back a written value", () => {
@@ -417,10 +417,19 @@ describe("Draft Buffer", () => {
       ]);
     });
 
+    it("serialize includes current version number", () => {
+      const buffer = createDraftBuffer();
+      buffer.write("hero", "title", "en", "Hello");
+      const serialized = buffer.serialize();
+      expect(serialized.version).toBe(2);
+      expect(DRAFT_BUFFER_VERSION).toBe(2);
+    });
+
     it("empty buffer serializes to empty arrays", () => {
       const buffer = createDraftBuffer();
       const serialized = buffer.serialize();
       expect(serialized).toEqual({
+        version: DRAFT_BUFFER_VERSION,
         store: [],
         creations: [],
         deletions: [],
