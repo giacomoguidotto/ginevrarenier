@@ -3,13 +3,8 @@ import { internalMutation } from "./_generated/server";
 export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
-    // Check if already seeded
-    const existing = await ctx.db.query("siteContent").first();
-    if (existing) {
-      return;
-    }
-
     // --- Site Content ---
+    const existing = await ctx.db.query("siteContent").first();
     const sections = [
       {
         section: "hero",
@@ -118,33 +113,6 @@ export const seed = internalMutation({
             en: "A Path Immersed in Light",
             it: "Un Cammino Immersa nella Luce",
           },
-          "2022.year": { en: "2022", it: "2022" },
-          "2022.title": {
-            en: "First Camera",
-            it: "Prima Fotocamera",
-          },
-          "2022.description": {
-            en: "I inherited my first DSLR camera from my grandmother, passing down a passion that will last a lifetime.",
-            it: "Ho ereditato la mia prima reflex digitale da mia nonna, tramandandomi una passione che durerà per tutta la mia vita.",
-          },
-          "2024.year": { en: "2024", it: "2024" },
-          "2024.title": {
-            en: "Beyond Borders",
-            it: "Oltre i Confini",
-          },
-          "2024.description": {
-            en: "Immersed in landscapes never seen before, I began capturing horizons that spoke a new language. Each shot a discovery, each light a revelation.",
-            it: "Immerso in paesaggi mai visti prima, ho iniziato a catturare orizzonti che parlavano una lingua nuova. Ogni scatto una scoperta, ogni luce una rivelazione.",
-          },
-          "2025.year": { en: "2025", it: "2025" },
-          "2025.title": {
-            en: "At CPF Bauer",
-            it: "Alla CPF Bauer",
-          },
-          "2025.description": {
-            en: "After Venice, I chose to push further. Milan welcomed me with a leap into the unknown, toward the vision I was seeking.",
-            it: "Dopo Venezia, ho scelto di spingermi oltre. Milano mi ha accolta con un salto nel vuoto, verso la visione che stavo cercando.",
-          },
         },
       },
       {
@@ -239,33 +207,64 @@ export const seed = internalMutation({
       },
     ];
 
-    for (const { section, content } of sections) {
-      await ctx.db.insert("siteContent", {
-        section,
-        content: JSON.stringify(content),
-      });
+    if (!existing) {
+      for (const { section, content } of sections) {
+        await ctx.db.insert("siteContent", {
+          section,
+          content: JSON.stringify(content),
+        });
+      }
     }
 
     // --- Social Links ---
     const existingSocial = await ctx.db.query("socialLinks").first();
-    if (existingSocial) {
-      return;
+    if (!existingSocial) {
+      await ctx.db.insert("socialLinks", {
+        platform: "instagram",
+        href: "https://www.instagram.com/ginevra.renier/",
+        label: "Instagram",
+        value: "@ginevrarenier",
+        order: 0,
+      });
+
+      await ctx.db.insert("socialLinks", {
+        platform: "email",
+        href: "mailto:ginevrarenier@gmail.com",
+        label: "Email",
+        value: "ginevrarenier@gmail.com",
+        order: 1,
+      });
     }
 
-    await ctx.db.insert("socialLinks", {
-      platform: "instagram",
-      href: "https://www.instagram.com/ginevra.renier/",
-      label: "Instagram",
-      value: "@ginevrarenier",
-      order: 0,
-    });
+    // --- Achievements (timeline entries) ---
+    const existingAchievement = await ctx.db.query("achievements").first();
+    if (!existingAchievement) {
+      await ctx.db.insert("achievements", {
+        startYear: 2022,
+        title: { en: "First Camera", it: "Prima Fotocamera" },
+        description: {
+          en: "I inherited my first DSLR camera from my grandmother, passing down a passion that will last a lifetime.",
+          it: "Ho ereditato la mia prima reflex digitale da mia nonna, tramandandomi una passione che durerà per tutta la mia vita.",
+        },
+      });
 
-    await ctx.db.insert("socialLinks", {
-      platform: "email",
-      href: "mailto:ginevrarenier@gmail.com",
-      label: "Email",
-      value: "ginevrarenier@gmail.com",
-      order: 1,
-    });
+      await ctx.db.insert("achievements", {
+        startYear: 2024,
+        title: { en: "Beyond Borders", it: "Oltre i Confini" },
+        description: {
+          en: "Immersed in landscapes never seen before, I began capturing horizons that spoke a new language. Each shot a discovery, each light a revelation.",
+          it: "Immerso in paesaggi mai visti prima, ho iniziato a catturare orizzonti che parlavano una lingua nuova. Ogni scatto una scoperta, ogni luce una rivelazione.",
+        },
+      });
+
+      await ctx.db.insert("achievements", {
+        startYear: 2025,
+        title: { en: "At CPF Bauer", it: "Alla CPF Bauer" },
+        description: {
+          en: "After Venice, I chose to push further. Milan welcomed me with a leap into the unknown, toward the vision I was seeking.",
+          it: "Dopo Venezia, ho scelto di spingermi oltre. Milano mi ha accolta con un salto nel vuoto, verso la visione che stavo cercando.",
+        },
+      });
+    }
   },
 });
