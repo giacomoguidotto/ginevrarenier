@@ -59,6 +59,16 @@ function DropZone({
   );
 }
 
+function imageClassName(isDragging: boolean, pendingDeletion: boolean) {
+  if (isDragging) {
+    return "opacity-30";
+  }
+  if (pendingDeletion) {
+    return "cursor-default opacity-40 grayscale";
+  }
+  return "cursor-grab active:cursor-grabbing";
+}
+
 function SortableImage({
   image,
   onDelete,
@@ -72,8 +82,14 @@ function SortableImage({
   onCancelDeletion: () => void;
   pendingDeletion: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: image._id, disabled: pendingDeletion });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: image._id, disabled: pendingDeletion });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -84,11 +100,7 @@ function SortableImage({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className={`group relative break-inside-avoid overflow-hidden rounded-lg ${
-            pendingDeletion
-              ? "cursor-default opacity-40 grayscale"
-              : "cursor-grab active:cursor-grabbing"
-          }`}
+          className={`group relative break-inside-avoid overflow-hidden rounded-lg ${imageClassName(isDragging, pendingDeletion)}`}
           ref={setNodeRef}
           style={style}
           {...attributes}
@@ -300,21 +312,26 @@ export function EditableImageGrid({
   const handleUpload = useCallback(
     async (files: FileList) => {
       setUploading(true);
-      for (const file of files) {
-        const result = await upload(file, `ginevrarenier/${projectSlug}`);
-        const imageId = await addImage({
-          projectId,
-          url: result.url,
-          cloudinaryPublicId: result.publicId,
-        });
-        trackCreation("photo", imageId);
+      try {
+        for (const file of files) {
+          const result = await upload(file, `ginevrarenier/${projectSlug}`);
+          const imageId = await addImage({
+            projectId,
+            url: result.url,
+            cloudinaryPublicId: result.publicId,
+          });
+          trackCreation("photo", imageId);
 
-        const currentReorder = getReorderList("photo");
-        if (currentReorder) {
-          setReorderList("photo", [...currentReorder, imageId]);
+          const currentReorder = getReorderList("photo");
+          if (currentReorder) {
+            setReorderList("photo", [...currentReorder, imageId]);
+          }
         }
+      } catch (err) {
+        console.error("[editable-image-grid] Image upload failed:", err);
+      } finally {
+        setUploading(false);
       }
-      setUploading(false);
     },
     [
       projectId,

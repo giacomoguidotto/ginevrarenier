@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { PageBoundary } from "@/components/admin/page-boundary";
 import { ProjectPageClient } from "./project-page-client";
 
 interface Props {
@@ -9,5 +10,9 @@ export default async function ProjectPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <ProjectPageClient />;
+  return (
+    <PageBoundary page="project">
+      <ProjectPageClient />
+    </PageBoundary>
+  );
 }
