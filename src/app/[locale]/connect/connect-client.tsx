@@ -46,6 +46,7 @@ import {
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
+import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { PlainField } from "@/components/admin/plain-field";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -418,6 +419,8 @@ function SortableSocialLinkCard({ link }: { link: Doc<"socialLinks"> }) {
 
   const pendingDeletion = isPendingDeletion("social-link", link._id);
   const section = `social-link:${link._id}`;
+
+  usePageBoundaryRegistration(section, link.label);
 
   const {
     attributes,
