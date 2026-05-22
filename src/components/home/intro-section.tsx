@@ -7,9 +7,13 @@ import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
-import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
+import {
+  useDraftBufferOps,
+  useImageAssets,
+} from "@/components/admin/draft-buffer-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
+import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 
@@ -33,18 +37,56 @@ function IntroSectionContent() {
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   const { data } = useSection();
-  const { write } = useDraftBufferOps();
+  const { read, write, isPendingDeletion, trackDeletion, cancelDeletion } =
+    useDraftBufferOps();
+  const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   const { enable } = useChromeEnabler();
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
-  const portraitUrl = data?.portraitImage?.en || undefined;
+  const isDeleted = isPendingDeletion("artist-image-home", "intro");
+  const bufferedUrl = read("intro", "portraitImage", "en");
+  const portraitUrl = isDeleted
+    ? undefined
+    : (bufferedUrl === undefined ? data?.portraitImage?.en : bufferedUrl) ||
+      undefined;
+
+  usePageBoundaryRegistration("artist-image-home:intro", "Home Artist Image");
+
   const handlePortraitUpload = useCallback(
-    (url: string) => {
+    (url: string, publicId: string) => {
+      if (isPendingDeletion("artist-image-home", "intro")) {
+        cancelDeletion("artist-image-home", "intro");
+        const oldPublicId =
+          read("intro", "portraitImagePublicId", "en") ??
+          data?.portraitImagePublicId?.en;
+        if (oldPublicId) {
+          cancelPendingDeletion(oldPublicId);
+        }
+      }
       write("intro", "portraitImage", "en", url);
       write("intro", "portraitImage", "it", url);
+      write("intro", "portraitImagePublicId", "en", publicId);
+      write("intro", "portraitImagePublicId", "it", publicId);
     },
-    [write]
+    [
+      write,
+      read,
+      data,
+      isPendingDeletion,
+      cancelDeletion,
+      cancelPendingDeletion,
+    ]
   );
+
+  const handlePortraitDelete = useCallback(() => {
+    const publicId =
+      read("intro", "portraitImagePublicId", "en") ??
+      data?.portraitImagePublicId?.en;
+    if (publicId) {
+      trackPendingDeletion(publicId);
+    }
+    trackDeletion("artist-image-home", "intro");
+  }, [read, data, trackPendingDeletion, trackDeletion]);
 
   return (
     <section
@@ -101,7 +143,9 @@ function IntroSectionContent() {
             >
               <EditableImage
                 alt="Ginevra Renier"
+                deleteLabel="Home Artist Image"
                 folder="ginevrarenier/site"
+                onDelete={handlePortraitDelete}
                 onUpload={handlePortraitUpload}
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 src={portraitUrl}

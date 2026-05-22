@@ -624,6 +624,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       removeEntity
     );
 
+    await imageAssetsRef.current.savePendingDeletions();
     bufferRef.current.discard();
     imageAssetsRef.current.clearTracked();
     setHasChanges(false);

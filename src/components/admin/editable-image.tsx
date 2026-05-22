@@ -1,30 +1,39 @@
 "use client";
 
-import { Camera } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useImageAssets } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
 
 interface EditableImageProps {
   alt: string;
   className?: string;
+  deleteLabel?: string;
   fill?: boolean;
   folder: string;
+  onDelete?: () => void;
   onUpload: (url: string, publicId: string) => void;
   priority?: boolean;
   sizes?: string;
   src: string | undefined;
 }
 
-/**
- * Image that shows an upload overlay in edit mode.
- * Click to upload a new image via Cloudinary.
- */
 export function EditableImage({
   src,
   alt,
   onUpload,
+  onDelete,
+  deleteLabel,
   folder,
   fill = true,
   sizes,
@@ -34,6 +43,7 @@ export function EditableImage({
   const { isEditMode } = useEditMode();
   const { upload } = useImageAssets();
   const [uploading, setUploading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = useCallback(
@@ -79,6 +89,48 @@ export function EditableImage({
               </div>
             )}
           </button>
+          {src && onDelete ? (
+            <>
+              <button
+                className="absolute top-2 right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-destructive/80 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive hover:opacity-100 group-hover:opacity-100"
+                onClick={() => setConfirmOpen(true)}
+                type="button"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <Dialog
+                onOpenChange={(v) => !v && setConfirmOpen(false)}
+                open={confirmOpen}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete {deleteLabel ?? "image"}</DialogTitle>
+                    <DialogDescription>
+                      This image will be removed when you save. You can undo by
+                      discarding changes.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      onClick={() => setConfirmOpen(false)}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setConfirmOpen(false);
+                        onDelete();
+                      }}
+                      variant="destructive"
+                    >
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
+          ) : null}
           <input
             accept="image/*"
             className="hidden"

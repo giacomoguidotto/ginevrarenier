@@ -403,6 +403,11 @@ export function EditToolbar({
   );
 }
 
+const artistImageSections = new Map([
+  ["artist-image-home", "intro"],
+  ["artist-image-essence", "essence.hero"],
+]);
+
 function filterEntityTextEdits(
   summary: ChangeSummary
 ): ChangeSummary["textEdits"] {
@@ -417,11 +422,26 @@ function filterEntityTextEdits(
       entityIds.add(ref.id);
     }
   }
-  if (entityIds.size === 0) {
+
+  const deletedImageSections = new Set<string>();
+  for (const ref of summary.pendingDeletions) {
+    const section = artistImageSections.get(ref.entityType);
+    if (section) {
+      deletedImageSections.add(section);
+    }
+  }
+
+  if (entityIds.size === 0 && deletedImageSections.size === 0) {
     return summary.textEdits;
   }
 
   return summary.textEdits.filter((edit) => {
+    if (
+      deletedImageSections.has(edit.section) &&
+      edit.field.startsWith("portraitImage")
+    ) {
+      return false;
+    }
     if (edit.section !== "essence.timeline") {
       return true;
     }
