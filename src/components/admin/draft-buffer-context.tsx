@@ -20,7 +20,7 @@ import type {
   EntityRef,
   SerializedDraftBuffer,
 } from "./draft-buffer";
-import { createDraftBuffer } from "./draft-buffer";
+import { createDraftBuffer, DRAFT_BUFFER_VERSION } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
 import { createImageAssets } from "./image-assets";
 import { deleteCloudinaryImage, uploadImage } from "./image-upload";
@@ -57,7 +57,12 @@ function loadPersistedState(): PersistedState | null {
     if (!raw) {
       return null;
     }
-    return JSON.parse(raw) as PersistedState;
+    const parsed = JSON.parse(raw) as PersistedState;
+    if (parsed.buffer.version !== DRAFT_BUFFER_VERSION) {
+      localStorage.removeItem(PERSIST_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

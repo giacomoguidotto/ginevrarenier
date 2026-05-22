@@ -38,6 +38,8 @@ export interface EntityRef {
   id: string;
 }
 
+export const DRAFT_BUFFER_VERSION = 2;
+
 export interface SerializedDraftBuffer {
   autoTranslations?: string[];
   creations: string[];
@@ -47,6 +49,7 @@ export interface SerializedDraftBuffer {
   publishOverrides?: [string, boolean][];
   reorderLists?: [string, string[]][];
   store: [string, string][];
+  version: number;
 }
 
 export function createDraftBuffer(initial?: SerializedDraftBuffer) {
@@ -314,6 +317,7 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
     },
     serialize(): SerializedDraftBuffer {
       return {
+        version: DRAFT_BUFFER_VERSION,
         store: [...store.entries()],
         creations: [...creations],
         deletions: [...deletions],
