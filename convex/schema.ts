@@ -76,6 +76,13 @@ export default defineSchema({
     content: v.union(v.string(), v.record(v.string(), localizedText)),
   }).index("by_section", ["section"]),
 
+  achievements: defineTable({
+    startYear: v.number(),
+    endYear: v.optional(v.number()),
+    title: localizedText,
+    description: localizedText,
+  }).index("by_start_year", ["startYear"]),
+
   /**
    * Social links table
    *

@@ -2,6 +2,9 @@ import { api } from "convex/_generated/api";
 import type { FunctionReference } from "convex/server";
 
 export interface EntityDescriptor {
+  buildUpdates?: (
+    fields: Record<string, Record<string, string>>
+  ) => Record<string, unknown>;
   collection?: {
     list: FunctionReference<"query", "public">;
     getByKey?: FunctionReference<"query", "public">;
@@ -63,9 +66,45 @@ const postDescriptor: EntityDescriptor = {
   localized: true,
 };
 
+function buildAchievementUpdates(
+  fields: Record<string, Record<string, string>>
+): Record<string, unknown> {
+  const updates: Record<string, unknown> = {};
+  for (const [field, locales] of Object.entries(fields)) {
+    if (field === "startYear" || field === "endYear") {
+      const val = locales.en ?? locales.it;
+      if (val !== undefined) {
+        const num = Number.parseInt(val, 10);
+        if (!Number.isNaN(num)) {
+          updates[field] = num;
+        }
+      }
+    } else {
+      updates[field] = locales as { en: string; it: string };
+    }
+  }
+  return updates;
+}
+
+const achievementDescriptor: EntityDescriptor = {
+  type: "achievement",
+  label: "Achievement",
+  formatRef: makeFormatRef("achievement", "Achievement"),
+  buildUpdates: buildAchievementUpdates,
+  mutations: {
+    update: api.achievements.update as never,
+    remove: api.achievements.remove as never,
+  },
+  collection: {
+    list: api.achievements.list as never,
+  },
+  localized: true,
+};
+
 const registry = new Map<string, EntityDescriptor>([
   ["project", projectDescriptor],
   ["post", postDescriptor],
+  ["achievement", achievementDescriptor],
 ]);
 
 export function getDescriptor(

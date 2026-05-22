@@ -162,6 +162,8 @@
 
 /* Prevent browser contentEditable defaults from altering field layout */
 .editable-field {
+  display: block;
+  min-height: inherit;
   padding: 0;
   -webkit-appearance: none;
   appearance: none;

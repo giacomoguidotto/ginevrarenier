@@ -42,6 +42,12 @@ export function Section({
     api.blogPosts.getById,
     route.kind === "post" ? { id: route.id as Id<"blogPosts"> } : "skip"
   );
+  const achievement = useQuery(
+    api.achievements.getById,
+    route.kind === "achievement"
+      ? { id: route.id as Id<"achievements"> }
+      : "skip"
+  );
 
   usePageBoundaryRegistration(name, label ?? name);
 
@@ -60,6 +66,16 @@ export function Section({
     data = {
       title: post.title,
       excerpt: post.excerpt,
+    };
+  } else if (route.kind === "achievement" && achievement) {
+    const yearStr = String(achievement.startYear);
+    const endYearStr =
+      achievement.endYear == null ? "" : String(achievement.endYear);
+    data = {
+      startYear: { en: yearStr, it: yearStr },
+      endYear: { en: endYearStr, it: endYearStr },
+      title: achievement.title,
+      description: achievement.description,
     };
   }
 

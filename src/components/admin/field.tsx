@@ -24,10 +24,12 @@ interface FieldProps {
   className?: string;
   containerRef?: RefObject<HTMLElement | null>;
   maxHeight?: number;
+  maxLength?: number;
   maxLines?: number;
   maxWidth?: number;
   multiline?: boolean;
   name: string;
+  numericOnly?: boolean;
 }
 
 export function Field({
@@ -36,9 +38,11 @@ export function Field({
   className,
   containerRef,
   maxHeight,
+  maxLength,
   maxLines,
   maxWidth,
   multiline,
+  numericOnly,
 }: FieldProps) {
   const { name: section, data } = useSection();
   const { isEditMode, editingLocale } = useEditMode();
@@ -109,9 +113,11 @@ export function Field({
   const { style: constraintStyle } = useFieldConstraints(elRef, {
     active: isEditMode,
     maxHeight,
+    maxLength,
     maxLines,
     maxWidth,
     multiline,
+    numericOnly,
   });
 
   const prevLocaleRef = useRef(locale);

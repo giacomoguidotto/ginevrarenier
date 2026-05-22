@@ -35,6 +35,23 @@ vi.mock("convex/react", () => ({
         published: false,
       };
     }
+    if ("id" in args && args.id === "achievement-id-1") {
+      return {
+        _id: "achievement-id-1",
+        startYear: 2022,
+        title: { en: "First Camera", it: "Prima Fotocamera" },
+        description: { en: "Inherited", it: "Ereditato" },
+      };
+    }
+    if ("id" in args && args.id === "achievement-id-2") {
+      return {
+        _id: "achievement-id-2",
+        startYear: 2018,
+        endYear: 2020,
+        title: { en: "Studies", it: "Studi" },
+        description: { en: "Academy", it: "Accademia" },
+      };
+    }
     return;
   },
 }));
@@ -102,6 +119,42 @@ describe("Section with virtual sections", () => {
     );
     expect(data.title).toEqual({ en: "My Post", it: "Mio Post" });
     expect(data.excerpt).toEqual({ en: "Exc EN", it: "Exc IT" });
+  });
+
+  it("provides achievement entity data with year as localized text", () => {
+    render(
+      <Section label="Achievement: 2022" name="achievement:achievement-id-1">
+        <SectionConsumer />
+      </Section>
+    );
+
+    const data = JSON.parse(
+      screen.getByTestId("section-data").textContent ?? ""
+    );
+    expect(data.startYear).toEqual({ en: "2022", it: "2022" });
+    expect(data.title).toEqual({
+      en: "First Camera",
+      it: "Prima Fotocamera",
+    });
+    expect(data.description).toEqual({ en: "Inherited", it: "Ereditato" });
+    expect(data.endYear).toEqual({ en: "", it: "" });
+  });
+
+  it("includes endYear when achievement has a date range", () => {
+    render(
+      <Section
+        label="Achievement: 2018 — 2020"
+        name="achievement:achievement-id-2"
+      >
+        <SectionConsumer />
+      </Section>
+    );
+
+    const data = JSON.parse(
+      screen.getByTestId("section-data").textContent ?? ""
+    );
+    expect(data.startYear).toEqual({ en: "2018", it: "2018" });
+    expect(data.endYear).toEqual({ en: "2020", it: "2020" });
   });
 
   it("exposes label via context", () => {

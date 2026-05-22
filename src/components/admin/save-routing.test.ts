@@ -20,6 +20,15 @@ describe("routeSection", () => {
     });
   });
 
+  it("routes achievement: prefix to entity route with achievement descriptor", () => {
+    const route = routeSection("achievement:ach123");
+    expect(route).toEqual({
+      kind: "entity",
+      descriptor: getDescriptor("achievement"),
+      id: "ach123",
+    });
+  });
+
   it("routes unprefixed sections to siteContent", () => {
     const route = routeSection("hero");
     expect(route).toEqual({ kind: "siteContent", section: "hero" });
