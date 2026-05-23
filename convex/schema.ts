@@ -83,11 +83,6 @@ export default defineSchema({
     description: localizedText,
   }).index("by_start_year", ["startYear"]),
 
-  /**
-   * Social links table
-   *
-   * External social media and contact links.
-   */
   selectedWorks: defineTable({
     projectId: v.id("projects"),
     order: v.number(),
@@ -95,11 +90,14 @@ export default defineSchema({
     .index("by_order", ["order"])
     .index("by_project", ["projectId"]),
 
+  // Transition schema: handle is optional until migration populates it.
+  // After running socialLinks.migrateToHandles, narrow to { platform, handle, order }.
   socialLinks: defineTable({
     platform: v.string(),
-    href: v.string(),
-    label: v.string(),
-    value: v.string(),
+    handle: v.optional(v.string()),
+    href: v.optional(v.string()),
+    label: v.optional(v.string()),
+    value: v.optional(v.string()),
     order: v.number(),
   }).index("by_order", ["order"]),
 });
