@@ -1,5 +1,12 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { Resend } from "resend";
+import { internal } from "./_generated/api";
+import {
+  internalAction,
+  internalMutation,
+  internalQuery,
+  mutation,
+} from "./_generated/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,10 +65,93 @@ export const submit = mutation({
       throw new Error("Too many submissions, please try again later");
     }
 
-    await ctx.db.insert("inquiries", {
+    const inquiryId = await ctx.db.insert("inquiries", {
       ...args,
       emailStatus: "pending",
       attempts: 0,
+    });
+
+    await ctx.scheduler.runAfter(0, internal.inquiries.sendInquiryEmail, {
+      inquiryId,
+    });
+  },
+});
+
+export const getInquiry = internalQuery({
+  args: { inquiryId: v.id("inquiries") },
+  handler: async (ctx, args) => await ctx.db.get(args.inquiryId),
+});
+
+export const patchInquiry = internalMutation({
+  args: {
+    inquiryId: v.id("inquiries"),
+    emailStatus: v.optional(
+      v.union(v.literal("pending"), v.literal("sent"), v.literal("failed"))
+    ),
+    attempts: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { inquiryId, ...patch } = args;
+    await ctx.db.patch(inquiryId, patch);
+  },
+});
+
+const BACKOFF_DELAYS = [30_000, 120_000, 480_000];
+
+export const sendInquiryEmail = internalAction({
+  args: { inquiryId: v.id("inquiries") },
+  handler: async (ctx, args) => {
+    const inquiry = await ctx.runQuery(internal.inquiries.getInquiry, {
+      inquiryId: args.inquiryId,
+    });
+    if (!inquiry) {
+      throw new Error("Inquiry not found");
+    }
+
+    const artistEmail = process.env.ARTIST_EMAIL;
+    if (!artistEmail) {
+      throw new Error("ARTIST_EMAIL env var is not set");
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { error } = await resend.emails.send({
+      from: "noreply@ginevrarenier.com",
+      to: [artistEmail],
+      replyTo: inquiry.email,
+      subject: `New inquiry: ${inquiry.inquiryType} from ${inquiry.name}`,
+      text: [
+        `Name: ${inquiry.name}`,
+        `Email: ${inquiry.email}`,
+        `Type: ${inquiry.inquiryType}`,
+        `Message: ${inquiry.message}`,
+      ].join("\n"),
+    });
+
+    if (error) {
+      const newAttempts = inquiry.attempts + 1;
+      if (newAttempts <= BACKOFF_DELAYS.length) {
+        await ctx.runMutation(internal.inquiries.patchInquiry, {
+          inquiryId: args.inquiryId,
+          attempts: newAttempts,
+        });
+        await ctx.scheduler.runAfter(
+          BACKOFF_DELAYS[newAttempts - 1],
+          internal.inquiries.sendInquiryEmail,
+          { inquiryId: args.inquiryId }
+        );
+      } else {
+        await ctx.runMutation(internal.inquiries.patchInquiry, {
+          inquiryId: args.inquiryId,
+          emailStatus: "failed",
+          attempts: newAttempts,
+        });
+      }
+      return;
+    }
+
+    await ctx.runMutation(internal.inquiries.patchInquiry, {
+      inquiryId: args.inquiryId,
+      emailStatus: "sent",
     });
   },
 });
