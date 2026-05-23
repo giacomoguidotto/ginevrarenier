@@ -1,4 +1,4 @@
-# Ginevra Renier | Photography
+# Ginevra Renier Studio
 
 Some people write letters. I built a website. ❤️
 
