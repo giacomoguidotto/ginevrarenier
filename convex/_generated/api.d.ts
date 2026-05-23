@@ -10,6 +10,7 @@
 
 import type * as achievements from "../achievements.js";
 import type * as blogPosts from "../blogPosts.js";
+import type * as emails_inquiryEmail from "../emails/inquiryEmail.js";
 import type * as functions from "../functions.js";
 import type * as inquiries from "../inquiries.js";
 import type * as projectImages from "../projectImages.js";
@@ -29,6 +30,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   achievements: typeof achievements;
   blogPosts: typeof blogPosts;
+  "emails/inquiryEmail": typeof emails_inquiryEmail;
   functions: typeof functions;
   inquiries: typeof inquiries;
   projectImages: typeof projectImages;
