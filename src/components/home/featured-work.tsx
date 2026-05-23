@@ -1,19 +1,23 @@
 "use client";
 
+import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
+import { useConvexAuth, useQuery } from "convex/react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Link } from "@/i18n/routing";
-import { useLocalized, useProjects } from "@/lib/hooks";
+import { useLocalized } from "@/lib/hooks";
 
 function ProjectCard({
   project,
@@ -96,73 +100,103 @@ export function FeaturedWork() {
   );
 }
 
+function useSelectedWorks() {
+  const { isEditMode } = useEditMode();
+  const { isAuthenticated } = useConvexAuth();
+
+  const publishedWorks = useQuery(
+    api.selectedWorks.listPublished,
+    isEditMode ? "skip" : {}
+  );
+
+  const adminSelectedWorks = useQuery(
+    api.selectedWorks.list,
+    isEditMode && isAuthenticated ? {} : "skip"
+  );
+  const allProjects = useQuery(
+    api.projects.list,
+    isEditMode && isAuthenticated ? {} : "skip"
+  );
+
+  return useMemo(() => {
+    if (isEditMode && adminSelectedWorks && allProjects) {
+      const projectMap = new Map(allProjects.map((p) => [p._id, p]));
+      return adminSelectedWorks
+        .map((sw) => projectMap.get(sw.projectId))
+        .filter((p): p is Doc<"projects"> => p != null);
+    }
+    return publishedWorks ?? [];
+  }, [isEditMode, adminSelectedWorks, allProjects, publishedWorks]);
+}
+
 function FeaturedWorkContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("common");
-  const { projects } = useProjects();
+  const { isEditMode } = useEditMode();
   const { enable } = useChromeEnabler();
-
-  const featured = projects.slice(0, 5);
+  const featured = useSelectedWorks();
 
   return (
-    <section className="relative bg-background py-32">
-      {/* Section Header */}
-      <div className="mx-auto mb-16 max-w-7xl px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          onAnimationComplete={enable}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          whileInView={{ opacity: 1, y: 0 }}
+    <CollapsibleSection visible={featured.length > 0 || isEditMode}>
+      <section className="relative bg-background py-32">
+        {/* Section Header */}
+        <div className="mx-auto mb-16 max-w-7xl px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            onAnimationComplete={enable}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <Field
+              as="p"
+              className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
+              name="label"
+            />
+            <div className="flex items-end justify-between">
+              <Field as="h2" className="text-foreground" name="title" />
+              <Link
+                className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
+                href="/vision"
+              >
+                <span>{t("viewAll")}</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Horizontal Scroll Container */}
+        <div
+          className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-8"
+          ref={containerRef}
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
         >
-          <Field
-            as="p"
-            className="mb-4 text-foreground/60 text-sm uppercase tracking-widest"
-            name="label"
-          />
-          <div className="flex items-end justify-between">
-            <Field as="h2" className="text-foreground" name="title" />
-            <Link
-              className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
-              href="/vision"
-            >
-              <span>{t("viewAll")}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </motion.div>
-      </div>
+          {/* Spacer for centering first item */}
+          <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
 
-      {/* Horizontal Scroll Container */}
-      <div
-        className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-8"
-        ref={containerRef}
-        style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        {/* Spacer for centering first item */}
-        <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
+          {featured.map((project, index) => (
+            <ProjectCard index={index} key={project._id} project={project} />
+          ))}
 
-        {featured.map((project, index) => (
-          <ProjectCard index={index} key={project._id} project={project} />
-        ))}
+          {/* Spacer for centering last item */}
+          <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
+        </div>
 
-        {/* Spacer for centering last item */}
-        <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
-      </div>
-
-      {/* Mobile View All Link */}
-      <div className="mt-8 text-center md:hidden">
-        <Link
-          className="inline-flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
-          href="/vision"
-        >
-          <span>{t("viewAllProjects")}</span>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </section>
+        {/* Mobile View All Link */}
+        <div className="mt-8 text-center md:hidden">
+          <Link
+            className="inline-flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
+            href="/vision"
+          >
+            <span>{t("viewAllProjects")}</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+    </CollapsibleSection>
   );
 }

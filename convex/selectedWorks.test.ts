@@ -101,6 +101,92 @@ describe("selectedWorks.reorder", () => {
   });
 });
 
+async function publishProject(
+  admin: ReturnType<typeof asAdmin>,
+  projectId: ReturnType<typeof createProject> extends Promise<infer T>
+    ? T
+    : never
+) {
+  await admin.mutation(api.projects.update, { id: projectId, published: true });
+}
+
+describe("selectedWorks.listPublished", () => {
+  it("returns hydrated project data for published selected works", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const projectId = await createProject(admin, "Solstice");
+    await admin.mutation(api.projects.update, {
+      id: projectId,
+      published: true,
+      subtitle: { en: "A light study", it: "Uno studio di luce" },
+      coverImageUrl: "https://example.com/cover.jpg",
+    });
+    await admin.mutation(api.selectedWorks.create, { projectId });
+
+    const result = await t.query(api.selectedWorks.listPublished, {});
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      _id: projectId,
+      title: { en: "Solstice", it: "Solstice" },
+      subtitle: { en: "A light study", it: "Uno studio di luce" },
+      coverImageUrl: "https://example.com/cover.jpg",
+      published: true,
+    });
+    expect(result[0].slug).toBeDefined();
+  });
+
+  it("excludes selected works whose project is unpublished", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const published = await createProject(admin, "Published");
+    const unpublished = await createProject(admin, "Draft");
+    await publishProject(admin, published);
+    await admin.mutation(api.selectedWorks.create, { projectId: published });
+    await admin.mutation(api.selectedWorks.create, { projectId: unpublished });
+
+    const result = await t.query(api.selectedWorks.listPublished, {});
+
+    expect(result).toHaveLength(1);
+    expect(result[0]._id).toBe(published);
+  });
+
+  it("returns results in selectedWorks order, not project creation order", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const p1 = await createProject(admin, "First Created");
+    const p2 = await createProject(admin, "Second Created");
+    const p3 = await createProject(admin, "Third Created");
+    await publishProject(admin, p1);
+    await publishProject(admin, p2);
+    await publishProject(admin, p3);
+    const sw1 = await admin.mutation(api.selectedWorks.create, {
+      projectId: p1,
+    });
+    const sw2 = await admin.mutation(api.selectedWorks.create, {
+      projectId: p2,
+    });
+    const sw3 = await admin.mutation(api.selectedWorks.create, {
+      projectId: p3,
+    });
+    await admin.mutation(api.selectedWorks.reorder, {
+      ids: [sw3, sw1, sw2],
+    });
+
+    const result = await t.query(api.selectedWorks.listPublished, {});
+
+    expect(result.map((p) => p._id)).toEqual([p3, p1, p2]);
+  });
+
+  it("returns empty array when no selected works exist", async () => {
+    const t = convexTest(schema, modules);
+
+    const result = await t.query(api.selectedWorks.listPublished, {});
+
+    expect(result).toEqual([]);
+  });
+});
+
 describe("cascade on project deletion", () => {
   it("projects.remove deletes referencing selectedWorks", async () => {
     const t = convexTest(schema, modules);

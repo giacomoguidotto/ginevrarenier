@@ -1,5 +1,25 @@
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
+import { query } from "./_generated/server";
 import { adminMutation, adminQuery } from "./functions";
+
+export const listPublished = query({
+  args: {},
+  handler: async (ctx) => {
+    const selectedWorks = await ctx.db
+      .query("selectedWorks")
+      .withIndex("by_order")
+      .collect();
+    const projects: Doc<"projects">[] = [];
+    for (const sw of selectedWorks) {
+      const project = await ctx.db.get(sw.projectId);
+      if (project?.published) {
+        projects.push(project);
+      }
+    }
+    return projects;
+  },
+});
 
 export const list = adminQuery({
   args: {},
