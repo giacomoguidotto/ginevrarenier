@@ -423,21 +423,27 @@ function filterEntityTextEdits(
     }
   }
 
-  const deletedImageSections = new Set<string>();
+  const artistImageSectionSet = new Set<string>();
   for (const ref of summary.pendingDeletions) {
     const section = artistImageSections.get(ref.entityType);
     if (section) {
-      deletedImageSections.add(section);
+      artistImageSectionSet.add(section);
+    }
+  }
+  for (const ref of summary.createdEntities) {
+    const section = artistImageSections.get(ref.entityType);
+    if (section) {
+      artistImageSectionSet.add(section);
     }
   }
 
-  if (entityIds.size === 0 && deletedImageSections.size === 0) {
+  if (entityIds.size === 0 && artistImageSectionSet.size === 0) {
     return summary.textEdits;
   }
 
   return summary.textEdits.filter((edit) => {
     if (
-      deletedImageSections.has(edit.section) &&
+      artistImageSectionSet.has(edit.section) &&
       edit.field.startsWith("portraitImage")
     ) {
       return false;
@@ -666,7 +672,16 @@ function DiscardConfirmDialog({
     : new Map<string, string>();
 
   const textEdits = summary ? filterEntityTextEdits(summary) : [];
-  const editCount = textEdits.length + (summary?.imageSwaps.length ?? 0);
+  const artistImageCreationCount = summary
+    ? summary.createdEntities.filter((e) =>
+        artistImageSections.has(e.entityType)
+      ).length
+    : 0;
+  const visibleImageSwaps = Math.max(
+    0,
+    (summary?.imageSwaps.length ?? 0) - artistImageCreationCount
+  );
+  const editCount = textEdits.length + visibleImageSwaps;
   const dbCreations = summary
     ? summary.createdEntities.filter((e) => e.entityType !== "timeline-entry")
     : [];
@@ -699,14 +714,14 @@ function DiscardConfirmDialog({
                 </li>
               ))
             : null}
-          {summary && summary.imageSwaps.length > 0 ? (
+          {visibleImageSwaps > 0 ? (
             <li className="flex items-baseline gap-2">
               <span className="font-mono text-muted-foreground text-xs">
                 IMG
               </span>
               <span className="line-through opacity-60">
-                {summary.imageSwaps.length} image{" "}
-                {summary.imageSwaps.length === 1 ? "swap" : "swaps"}
+                {visibleImageSwaps} image{" "}
+                {visibleImageSwaps === 1 ? "swap" : "swaps"}
               </span>
             </li>
           ) : null}
