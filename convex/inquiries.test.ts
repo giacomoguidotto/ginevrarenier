@@ -3,7 +3,7 @@
 
 import { convexTest } from "convex-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import schema from "./schema";
 
 const mockSend = vi.fn();
@@ -15,11 +15,11 @@ vi.mock("resend", () => ({
 
 const modules = import.meta.glob("./**/*.ts");
 
-describe("inquiries.submit", () => {
+describe("insertInquiry", () => {
   it("persists a valid inquiry with pending status and zero attempts", async () => {
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Ada Lovelace",
       email: "ada@example.com",
       inquiryType: "collaboration",
@@ -45,7 +45,7 @@ describe("inquiries.submit", () => {
     const t = convexTest(schema, modules);
 
     await expect(
-      t.mutation(api.inquiries.submit, {
+      t.mutation(internal.inquiries.insertInquiry, {
         name: "",
         email: "ada@example.com",
         inquiryType: "commission",
@@ -58,7 +58,7 @@ describe("inquiries.submit", () => {
     const t = convexTest(schema, modules);
 
     await expect(
-      t.mutation(api.inquiries.submit, {
+      t.mutation(internal.inquiries.insertInquiry, {
         name: "Ada Lovelace",
         email: "ada@example.com",
         inquiryType: "press",
@@ -71,7 +71,7 @@ describe("inquiries.submit", () => {
     const t = convexTest(schema, modules);
 
     await expect(
-      t.mutation(api.inquiries.submit, {
+      t.mutation(internal.inquiries.insertInquiry, {
         name: "Ada Lovelace",
         email: "not-an-email",
         inquiryType: "collaboration",
@@ -84,7 +84,7 @@ describe("inquiries.submit", () => {
     const t = convexTest(schema, modules);
 
     await expect(
-      t.mutation(api.inquiries.submit, {
+      t.mutation(internal.inquiries.insertInquiry, {
         name: "Ada Lovelace",
         email: "ada@example.com",
         // @ts-expect-error testing invalid value
@@ -103,11 +103,13 @@ describe("inquiries.submit", () => {
       message: "Hello",
     };
 
-    await t.mutation(api.inquiries.submit, base);
-    await t.mutation(api.inquiries.submit, base);
-    await t.mutation(api.inquiries.submit, base);
+    await t.mutation(internal.inquiries.insertInquiry, base);
+    await t.mutation(internal.inquiries.insertInquiry, base);
+    await t.mutation(internal.inquiries.insertInquiry, base);
 
-    await expect(t.mutation(api.inquiries.submit, base)).rejects.toThrow();
+    await expect(
+      t.mutation(internal.inquiries.insertInquiry, base)
+    ).rejects.toThrow();
   });
 
   it("counts per-email limits independently per email address", async () => {
@@ -118,11 +120,23 @@ describe("inquiries.submit", () => {
       message: "Hello",
     };
 
-    await t.mutation(api.inquiries.submit, { ...base, email: "a@example.com" });
-    await t.mutation(api.inquiries.submit, { ...base, email: "a@example.com" });
-    await t.mutation(api.inquiries.submit, { ...base, email: "a@example.com" });
+    await t.mutation(internal.inquiries.insertInquiry, {
+      ...base,
+      email: "a@example.com",
+    });
+    await t.mutation(internal.inquiries.insertInquiry, {
+      ...base,
+      email: "a@example.com",
+    });
+    await t.mutation(internal.inquiries.insertInquiry, {
+      ...base,
+      email: "a@example.com",
+    });
 
-    await t.mutation(api.inquiries.submit, { ...base, email: "b@example.com" });
+    await t.mutation(internal.inquiries.insertInquiry, {
+      ...base,
+      email: "b@example.com",
+    });
   });
 
   it("rejects when global submission count exceeds limit within 1 hour", async () => {
@@ -134,14 +148,14 @@ describe("inquiries.submit", () => {
     };
 
     for (let i = 0; i < 20; i++) {
-      await t.mutation(api.inquiries.submit, {
+      await t.mutation(internal.inquiries.insertInquiry, {
         ...base,
         email: `user${i}@example.com`,
       });
     }
 
     await expect(
-      t.mutation(api.inquiries.submit, {
+      t.mutation(internal.inquiries.insertInquiry, {
         ...base,
         email: "user20@example.com",
       })
@@ -151,7 +165,7 @@ describe("inquiries.submit", () => {
   it("silently discards submission when honeypot field is non-empty", async () => {
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Spambot",
       email: "spam@example.com",
       inquiryType: "collaboration",
@@ -168,7 +182,7 @@ describe("inquiries.submit", () => {
   it("persists submission when honeypot field is empty", async () => {
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Ada Lovelace",
       email: "ada@example.com",
       inquiryType: "collaboration",
@@ -195,14 +209,16 @@ describe("inquiries.submit", () => {
       message: "Hello",
     };
 
-    await t.mutation(api.inquiries.submit, base);
-    await t.mutation(api.inquiries.submit, base);
-    await t.mutation(api.inquiries.submit, base);
+    await t.mutation(internal.inquiries.insertInquiry, base);
+    await t.mutation(internal.inquiries.insertInquiry, base);
+    await t.mutation(internal.inquiries.insertInquiry, base);
 
-    const error: Error = await t.mutation(api.inquiries.submit, base).then(
-      () => expect.fail("Should have thrown"),
-      (e: Error) => e
-    );
+    const error: Error = await t
+      .mutation(internal.inquiries.insertInquiry, base)
+      .then(
+        () => expect.fail("Should have thrown"),
+        (e: Error) => e
+      );
     expect(error.message).not.toContain("3");
     expect(error.message).not.toContain("24");
     expect(error.message).not.toContain("20");
@@ -226,7 +242,7 @@ describe("sendInquiryEmail", () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Ada Lovelace",
       email: "ada@example.com",
       inquiryType: "collaboration",
@@ -252,7 +268,7 @@ describe("sendInquiryEmail", () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Ada Lovelace",
       email: "ada@example.com",
       inquiryType: "commission",
@@ -279,7 +295,7 @@ describe("sendInquiryEmail", () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Ada Lovelace",
       email: "ada@example.com",
       inquiryType: "exhibition",
@@ -303,7 +319,7 @@ describe("sendInquiryEmail", () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
 
-    await t.mutation(api.inquiries.submit, {
+    await t.mutation(internal.inquiries.insertInquiry, {
       name: "Ada Lovelace",
       email: "ada@example.com",
       inquiryType: "press",
@@ -330,5 +346,143 @@ describe("sendInquiryEmail", () => {
     expect(call?.[0]?.text).toContain(
       "Message: Press inquiry about your work."
     );
+  });
+});
+
+describe("Turnstile verification", () => {
+  beforeEach(() => {
+    process.env.TURNSTILE_SECRET_KEY = "test-secret-key";
+    mockSend.mockReset();
+    mockSend.mockResolvedValue({ data: { id: "test-id" }, error: null });
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.ARTIST_EMAIL = "artist@test.com";
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("allows submission when Turnstile verification succeeds", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ success: true })
+    );
+
+    const t = convexTest(schema, modules);
+
+    await t.action(api.inquiries.submit, {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration",
+      message: "Hello",
+      turnstileToken: "valid-token",
+    });
+
+    await t.finishAllScheduledFunctions(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    const inquiry = await t.run(async (ctx) => {
+      const rows = await ctx.db.query("inquiries").take(1);
+      return rows[0];
+    });
+
+    expect(inquiry).toMatchObject({
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration",
+      message: "Hello",
+      emailStatus: "sent",
+    });
+  });
+
+  it("sends token and secret to Cloudflare siteverify endpoint", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json({ success: true }));
+
+    const t = convexTest(schema, modules);
+
+    await t.action(api.inquiries.submit, {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration",
+      message: "Hello",
+      turnstileToken: "my-token-123",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+    );
+    expect(init?.method).toBe("POST");
+    const body = new URLSearchParams(init?.body as string);
+    expect(body.get("secret")).toBe("test-secret-key");
+    expect(body.get("response")).toBe("my-token-123");
+  });
+
+  it("rejects submission when Turnstile verification fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ success: false })
+    );
+
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.action(api.inquiries.submit, {
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        inquiryType: "collaboration",
+        message: "Hello",
+        turnstileToken: "invalid-token",
+      })
+    ).rejects.toThrow("Verification failed");
+
+    const inquiries = await t.run(
+      async (ctx) => await ctx.db.query("inquiries").take(1)
+    );
+    expect(inquiries).toHaveLength(0);
+  });
+
+  it("rejects submission when token is missing but secret is configured", async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.action(api.inquiries.submit, {
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        inquiryType: "collaboration",
+        message: "Hello",
+      })
+    ).rejects.toThrow("Verification failed");
+  });
+
+  it("skips verification when secret key is not configured", async () => {
+    delete process.env.TURNSTILE_SECRET_KEY;
+    vi.useFakeTimers();
+
+    const t = convexTest(schema, modules);
+
+    await t.action(api.inquiries.submit, {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration",
+      message: "Hello",
+    });
+
+    await t.finishAllScheduledFunctions(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    const inquiry = await t.run(async (ctx) => {
+      const rows = await ctx.db.query("inquiries").take(1);
+      return rows[0];
+    });
+
+    expect(inquiry).toMatchObject({
+      name: "Ada Lovelace",
+      emailStatus: "sent",
+    });
   });
 });

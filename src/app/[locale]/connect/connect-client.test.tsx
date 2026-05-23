@@ -55,6 +55,7 @@ let mockSocials: Record<string, unknown>[] = [];
 let mockIsEditMode = false;
 
 vi.mock("convex/react", () => ({
+  useAction: () => vi.fn(),
   useMutation: () => vi.fn(),
 }));
 

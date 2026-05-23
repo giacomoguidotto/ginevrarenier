@@ -2,10 +2,10 @@ import { v } from "convex/values";
 import { Resend } from "resend";
 import { internal } from "./_generated/api";
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
-  mutation,
 } from "./_generated/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -15,7 +15,48 @@ const PER_EMAIL_WINDOW_MS = 24 * 60 * 60 * 1000;
 const GLOBAL_LIMIT = 20;
 const GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 
-export const submit = mutation({
+const TURNSTILE_VERIFY_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+export const submit = action({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    inquiryType: v.union(
+      v.literal("collaboration"),
+      v.literal("commission"),
+      v.literal("exhibition"),
+      v.literal("press"),
+      v.literal("other")
+    ),
+    message: v.string(),
+    website: v.optional(v.string()),
+    turnstileToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { turnstileToken, ...inquiryData } = args;
+
+    const secret = process.env.TURNSTILE_SECRET_KEY;
+    if (secret) {
+      if (!turnstileToken) {
+        throw new Error("Verification failed, please try again");
+      }
+      const res = await fetch(TURNSTILE_VERIFY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ secret, response: turnstileToken }),
+      });
+      const result: { success: boolean } = await res.json();
+      if (!result.success) {
+        throw new Error("Verification failed, please try again");
+      }
+    }
+
+    await ctx.runMutation(internal.inquiries.insertInquiry, inquiryData);
+  },
+});
+
+export const insertInquiry = internalMutation({
   args: {
     name: v.string(),
     email: v.string(),

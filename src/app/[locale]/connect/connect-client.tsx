@@ -16,9 +16,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
-import { useMutation } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
@@ -33,7 +34,13 @@ import {
   Undo2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import {
   ChromeEnablerProvider,
@@ -76,18 +83,31 @@ export function ConnectClient() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const t = useTranslations("connect");
   const { isEditMode } = useEditMode();
   const { links: socials } = useSocialLinks();
-  const submitInquiry = useMutation(api.inquiries.submit);
+  const submitInquiry = useAction(api.inquiries.submit);
+
+  const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   const onSubmit = async (data: InquiryInput) => {
+    if (turnstileEnabled && !turnstileToken) {
+      return;
+    }
     setSubmitError(false);
     try {
-      await submitInquiry({ ...data, website });
+      await submitInquiry({
+        ...data,
+        website,
+        ...(turnstileToken ? { turnstileToken } : {}),
+      });
       reset();
       setWebsite("");
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
       setIsSubmitted(true);
     } catch {
       setSubmitError(true);
@@ -265,9 +285,22 @@ export function ConnectClient() {
                     </p>
                   )}
 
+                  {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+                    <Turnstile
+                      onError={() => setTurnstileToken(null)}
+                      onExpire={() => setTurnstileToken(null)}
+                      onSuccess={setTurnstileToken}
+                      options={{ theme: "auto", size: "flexible" }}
+                      ref={turnstileRef as RefObject<TurnstileInstance>}
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                    />
+                  )}
+
                   <motion.button
                     className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={isSubmitting}
+                    disabled={
+                      isSubmitting || (turnstileEnabled && !turnstileToken)
+                    }
                     type="submit"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
