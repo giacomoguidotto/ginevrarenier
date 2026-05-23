@@ -6,7 +6,7 @@ import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { useSocialLinks } from "@/lib/hooks";
-import { getSocialIcon } from "@/lib/social-icons";
+import { getHref, getIcon, getLabel } from "@/lib/platform-registry";
 import { ExperienceToggle } from "./experience-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 
@@ -67,12 +67,13 @@ export function Footer() {
             </h3>
             <div className="flex gap-4">
               {socials.map((social) => {
-                const Icon = getSocialIcon(social.platform);
+                const Icon = getIcon(social.platform);
+                const href = getHref(social.platform, social.handle ?? "");
                 return (
                   <motion.a
-                    aria-label={social.label}
+                    aria-label={getLabel(social.platform)}
                     className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"
-                    href={social.href}
+                    href={href}
                     key={social._id}
                     rel="noopener noreferrer"
                     target="_blank"

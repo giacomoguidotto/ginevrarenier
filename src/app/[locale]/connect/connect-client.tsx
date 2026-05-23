@@ -18,9 +18,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
+  ChevronDown,
   GripVertical,
   MapPin,
   Plus,
@@ -46,12 +47,20 @@ import {
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
+import { FieldChrome } from "@/components/admin/field-chrome";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
-import { PlainField } from "@/components/admin/plain-field";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
+import { locales } from "@/i18n/config";
 import { useLocalized, useSocialLinks } from "@/lib/hooks";
-import { getSocialIcon } from "@/lib/social-icons";
+import {
+  getDisplayValue,
+  getHref,
+  getHrefTemplateParts,
+  getIcon,
+  getLabel,
+  platformKeys,
+} from "@/lib/platform-registry";
 
 const inquiryTypeKeys = [
   "collaboration",
@@ -73,7 +82,6 @@ export function ConnectClient() {
 
   const t = useTranslations("connect");
   const { links: socials } = useSocialLinks();
-  const { isEditMode } = useEditMode();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -86,6 +94,9 @@ export function ConnectClient() {
     setIsSubmitted(true);
     setFormState({ name: "", email: "", inquiryType: "", message: "" });
   };
+
+  const emailLinks = socials.filter((s) => s.platform === "email");
+  const nonEmailLinks = socials.filter((s) => s.platform !== "email");
 
   return (
     <PageTransition>
@@ -263,88 +274,33 @@ export function ConnectClient() {
               initial={{ opacity: 0, x: 30 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              {isEditMode ? (
-                <SocialLinksAdmin socials={socials} />
-              ) : (
-                <>
-                  {/* Direct Contact */}
+              {/* Direct Contact */}
+              <SocialSection
+                allLinks={socials}
+                allowedPlatforms={["email"]}
+                links={emailLinks}
+                title={t("info.directContact")}
+              >
+                <div className="flex items-start gap-4">
+                  <MapPin className="mt-1 h-5 w-5 text-foreground/60" />
                   <div>
-                    <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
-                      {t("info.directContact")}
-                    </h3>
-                    <div className="space-y-4">
-                      {socials
-                        .filter((s) => s.platform === "email")
-                        .map((item) => {
-                          const Icon = getSocialIcon(item.platform);
-                          return (
-                            <div
-                              className="flex items-start gap-4"
-                              key={item._id}
-                            >
-                              <Icon className="mt-1 h-5 w-5 text-foreground/60" />
-                              <div>
-                                <p className="text-muted-foreground text-sm">
-                                  {t("info.email")}
-                                </p>
-                                <a
-                                  className="text-foreground text-lg transition-colors hover:text-foreground/80"
-                                  href={item.href}
-                                >
-                                  {item.value}
-                                </a>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      <div className="flex items-start gap-4">
-                        <MapPin className="mt-1 h-5 w-5 text-foreground/60" />
-                        <div>
-                          <p className="text-muted-foreground text-sm">
-                            {t("info.basedIn")}
-                          </p>
-                          <p className="text-foreground text-lg">
-                            {t("info.location")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <p className="text-muted-foreground text-sm">
+                      {t("info.basedIn")}
+                    </p>
+                    <p className="text-foreground text-lg">
+                      {t("info.location")}
+                    </p>
                   </div>
+                </div>
+              </SocialSection>
 
-                  {/* Social */}
-                  <div>
-                    <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
-                      {t("info.followAlong")}
-                    </h3>
-                    <div className="space-y-4">
-                      {socials
-                        .filter((s) => s.platform !== "email")
-                        .map((item) => {
-                          const Icon = getSocialIcon(item.platform);
-                          return (
-                            <a
-                              className="flex items-start gap-4 transition-colors"
-                              href={item.href}
-                              key={item._id}
-                              rel="noopener noreferrer"
-                              target="_blank"
-                            >
-                              <Icon className="mt-1 h-5 w-5 text-foreground/60" />
-                              <div>
-                                <p className="text-muted-foreground text-sm">
-                                  {item.label}
-                                </p>
-                                <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
-                                  {item.value}
-                                </p>
-                              </div>
-                            </a>
-                          );
-                        })}
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* Social */}
+              <SocialSection
+                allLinks={socials}
+                allowedPlatforms={platformKeys.filter((k) => k !== "email")}
+                links={nonEmailLinks}
+                title={t("info.followAlong")}
+              />
 
               {/* Availability */}
               <div className="rounded-lg border border-border bg-card p-6">
@@ -412,15 +368,168 @@ function ConnectHeader() {
   );
 }
 
-function SortableSocialLinkCard({ link }: { link: Doc<"socialLinks"> }) {
-  const { isPendingDeletion, trackDeletion, cancelDeletion } =
-    useDraftBufferOps();
+// --- Social link rendering (unified view + edit mode) ---
+
+function SocialSection({
+  links,
+  allLinks,
+  title,
+  allowedPlatforms,
+  children,
+}: {
+  links: Doc<"socialLinks">[];
+  allLinks: Doc<"socialLinks">[];
+  title: string;
+  allowedPlatforms: readonly string[];
+  children?: React.ReactNode;
+}) {
+  const { isEditMode } = useEditMode();
+  const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();
+  useEditVersion();
+
+  const createSocialLink = useMutation(api.socialLinks.create);
+
+  const reorderList = getReorderList("social-link");
+
+  const displayLinks = reorderList
+    ? reorderList
+        .map((id) => links.find((l) => l._id === id))
+        .filter((l): l is Doc<"socialLinks"> => l !== undefined)
+        .concat(links.filter((l) => !reorderList.includes(l._id)))
+    : links;
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) {
+        return;
+      }
+
+      const oldIndex = displayLinks.findIndex((l) => l._id === active.id);
+      const newIndex = displayLinks.findIndex((l) => l._id === over.id);
+      if (oldIndex === -1 || newIndex === -1) {
+        return;
+      }
+
+      const reordered = [...displayLinks];
+      const [moved] = reordered.splice(oldIndex, 1);
+      reordered.splice(newIndex, 0, moved);
+
+      const otherLinks = allLinks.filter(
+        (l) => !links.some((sl) => sl._id === l._id)
+      );
+      const fullOrder = [...reordered, ...otherLinks];
+      setReorderList(
+        "social-link",
+        fullOrder.map((l) => l._id)
+      );
+    },
+    [displayLinks, allLinks, links, setReorderList]
+  );
+
+  const handleCreate = useCallback(async () => {
+    const defaultPlatform = allowedPlatforms[0] ?? "website";
+    const id = await createSocialLink({
+      platform: defaultPlatform,
+      handle: "",
+    });
+    trackCreation("social-link", id);
+  }, [createSocialLink, trackCreation, allowedPlatforms]);
+
+  const content = (
+    <div className="space-y-4">
+      {displayLinks.map((link) => (
+        <SocialLinkRow key={link._id} link={link} />
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <h3 className="mb-6 text-muted-foreground text-sm uppercase tracking-widest">
+        {title}
+      </h3>
+      {children && <div className="mb-4 space-y-4">{children}</div>}
+      {isEditMode ? (
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+        >
+          <SortableContext
+            items={displayLinks.map((l) => l._id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {content}
+          </SortableContext>
+        </DndContext>
+      ) : (
+        content
+      )}
+      <AnimatePresence>
+        {isEditMode && (
+          <motion.div
+            animate={{ height: "auto", opacity: 1 }}
+            className="overflow-hidden"
+            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0 }}
+            key="add-button"
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            <button
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-foreground/15 border-dashed py-3 text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+              onClick={handleCreate}
+              type="button"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-sm">
+                Add{" "}
+                {allowedPlatforms.length === 1
+                  ? getLabel(allowedPlatforms[0])
+                  : "social link"}
+              </span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
+  const { isEditMode } = useEditMode();
+  const {
+    isPendingDeletion,
+    trackDeletion,
+    cancelDeletion,
+    read,
+    write,
+    removeEdit,
+  } = useDraftBufferOps();
   useEditVersion();
 
   const pendingDeletion = isPendingDeletion("social-link", link._id);
   const section = `social-link:${link._id}`;
 
-  usePageBoundaryRegistration(section, link.label);
+  const draftPlatform = read(section, "platform", locales[0]);
+  const draftHandle = read(section, "handle", locales[0]);
+
+  const platform = draftPlatform ?? link.platform;
+  const handle = draftHandle ?? link.handle ?? "";
+
+  usePageBoundaryRegistration(section, getLabel(platform));
+
+  const Icon = getIcon(platform);
+  const label = getLabel(platform);
+  const displayValue = getDisplayValue(platform, handle);
+  const href = getHref(platform, handle);
 
   const {
     attributes,
@@ -431,7 +540,7 @@ function SortableSocialLinkCard({ link }: { link: Doc<"socialLinks"> }) {
     isDragging,
   } = useSortable({
     id: link._id,
-    disabled: pendingDeletion,
+    disabled: !isEditMode || pendingDeletion,
   });
 
   const wasDraggingRef = useRef(false);
@@ -449,185 +558,308 @@ function SortableSocialLinkCard({ link }: { link: Doc<"socialLinks"> }) {
     }
   };
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const style = isEditMode
+    ? { transform: CSS.Transform.toString(transform), transition }
+    : undefined;
 
-  const Icon = getSocialIcon(link.platform);
+  if (!isEditMode) {
+    const isEmail = platform === "email";
+    if (isEmail) {
+      return (
+        <div className="flex items-start gap-4">
+          <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+          <div>
+            <p className="text-muted-foreground text-sm">{label}</p>
+            <a
+              className="text-foreground text-lg transition-colors hover:text-foreground/80"
+              href={href}
+            >
+              {displayValue}
+            </a>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <a
+        className="flex items-start gap-4 transition-colors"
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+        <div>
+          <p className="text-muted-foreground text-sm">{label}</p>
+          <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
+            {displayValue}
+          </p>
+        </div>
+      </a>
+    );
+  }
 
+  // Edit mode
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 ${
-        pendingDeletion ? "opacity-40" : ""
-      }`}
+      className={`relative flex items-start gap-4 ${pendingDeletion ? "opacity-40" : ""}`}
       onClickCapture={handleClickCapture}
       ref={setNodeRef}
       style={style}
     >
       <button
         aria-label="Drag to reorder"
-        className="cursor-grab text-foreground/30 hover:text-foreground/60 active:cursor-grabbing"
+        className="absolute top-0 -left-7 mt-1 cursor-grab text-foreground/30 hover:text-foreground/60 active:cursor-grabbing"
         type="button"
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-4 w-4" />
+        <GripVertical className="h-5 w-5" />
       </button>
 
-      <Icon className="h-5 w-5 shrink-0 text-foreground/60" />
+      <Icon className="mt-1 h-5 w-5 shrink-0 text-foreground/60" />
 
-      <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            Platform
-          </p>
-          <PlainField
-            className="text-foreground text-sm"
-            name="platform"
-            section={section}
-            sourceValue={link.platform}
-          />
-        </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            Label
-          </p>
-          <PlainField
-            className="text-foreground text-sm"
-            name="label"
-            section={section}
-            sourceValue={link.label}
-          />
-        </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            Value
-          </p>
-          <PlainField
-            className="text-foreground text-sm"
-            name="value"
-            section={section}
-            sourceValue={link.value}
-          />
-        </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-            Href
-          </p>
-          <PlainField
-            className="truncate text-foreground text-sm"
-            name="href"
-            section={section}
-            sourceValue={link.href}
-          />
-        </div>
+      <div className="min-w-0 flex-1">
+        <PlatformDropdown
+          onSelect={(newPlatform) => {
+            if (newPlatform !== (link.platform ?? platform)) {
+              for (const l of locales) {
+                write(section, "platform", l, newPlatform);
+              }
+            } else if (draftPlatform !== undefined) {
+              for (const l of locales) {
+                removeEdit(section, "platform", l);
+              }
+            }
+          }}
+          platform={platform}
+        />
+        <HandleEditor
+          handle={handle}
+          platform={platform}
+          section={section}
+          sourceHandle={link.handle ?? ""}
+        />
       </div>
 
       {pendingDeletion ? (
         <button
           aria-label="Undo delete"
-          className="shrink-0 text-foreground/40 transition-colors hover:text-foreground"
+          className="mt-1 shrink-0 text-foreground/40 transition-colors hover:text-foreground"
           onClick={() => cancelDeletion("social-link", link._id)}
           type="button"
         >
-          <Undo2 className="h-4 w-4" />
+          <Undo2 className="h-5 w-5" />
         </button>
       ) : (
         <button
           aria-label="Delete social link"
-          className="shrink-0 text-foreground/30 transition-colors hover:text-destructive"
+          className="mt-1 shrink-0 text-foreground/30 transition-colors hover:text-destructive"
           onClick={() => trackDeletion("social-link", link._id)}
           type="button"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-5 w-5" />
         </button>
       )}
     </div>
   );
 }
 
-function SocialLinksAdmin({ socials }: { socials: Doc<"socialLinks">[] }) {
-  const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();
-  useEditVersion();
-  const createSocialLink = useMutation(api.socialLinks.create);
+function PlatformDropdown({
+  platform,
+  onSelect,
+}: {
+  platform: string;
+  onSelect: (platform: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const reorderList = getReorderList("social-link");
-  const displayLinks = reorderList
-    ? reorderList
-        .map((id) => socials.find((l) => l._id === id))
-        .filter((l): l is Doc<"socialLinks"> => l !== undefined)
-        .concat(socials.filter((l) => !reorderList.includes(l._id)))
-    : socials;
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
-    })
-  );
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) {
-        return;
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
       }
-      const oldIndex = displayLinks.findIndex((l) => l._id === active.id);
-      const newIndex = displayLinks.findIndex((l) => l._id === over.id);
-      if (oldIndex === -1 || newIndex === -1) {
-        return;
-      }
-      const reordered = [...displayLinks];
-      const [moved] = reordered.splice(oldIndex, 1);
-      reordered.splice(newIndex, 0, moved);
-      setReorderList(
-        "social-link",
-        reordered.map((l) => l._id)
-      );
-    },
-    [displayLinks, setReorderList]
-  );
-
-  const handleCreate = useCallback(async () => {
-    const id = await createSocialLink({
-      platform: "website",
-      href: "https://example.com",
-      label: "Website",
-      value: "example.com",
-    });
-    trackCreation("social-link", id);
-  }, [createSocialLink, trackCreation]);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   return (
-    <div>
-      <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
-        Social Links
-      </h3>
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        sensors={sensors}
-      >
-        <SortableContext
-          items={displayLinks.map((l) => l._id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-2">
-            {displayLinks.map((link) => (
-              <SortableSocialLinkCard key={link._id} link={link} />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+    <div className="relative" ref={dropdownRef}>
       <button
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-foreground/15 border-dashed py-3 text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
-        onClick={handleCreate}
+        className="flex cursor-pointer items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
+        onClick={() => setOpen(!open)}
         type="button"
       >
-        <Plus className="h-4 w-4" />
-        <span className="text-sm">Add social link</span>
+        {getLabel(platform)}
+        <ChevronDown
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
+
+      {open && (
+        <div className="absolute top-full left-0 z-50 mt-1 max-h-64 w-56 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+          {platformKeys.map((key) => {
+            const PIcon = getIcon(key);
+            return (
+              <button
+                className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                  key === platform
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground"
+                }`}
+                key={key}
+                onClick={() => {
+                  onSelect(key);
+                  setOpen(false);
+                }}
+                type="button"
+              >
+                <PIcon className="h-4 w-4 shrink-0" />
+                {getLabel(key)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HandleEditor({
+  platform,
+  handle,
+  sourceHandle,
+  section,
+}: {
+  platform: string;
+  handle: string;
+  sourceHandle: string;
+  section: string;
+}) {
+  const { write, removeEdit, read, fieldStatus } = useDraftBufferOps();
+  const { enabled } = useChromeEnabler();
+  const elRef = useRef<HTMLSpanElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [focused, setFocused] = useState(false);
+  const [dims, setDims] = useState({ width: 0, height: 0 });
+  const { prefix, suffix } = getHrefTemplateParts(platform);
+
+  const displayHandle = handle;
+
+  useEffect(() => {
+    if (elRef.current && elRef.current.textContent !== displayHandle) {
+      elRef.current.textContent = displayHandle;
+    }
+  }, [displayHandle]);
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) {
+      return;
+    }
+    const ro = new ResizeObserver(() => {
+      setDims({ width: el.clientWidth, height: el.clientHeight });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const handleInput = () => {
+    const text = elRef.current?.textContent ?? "";
+    if (text === sourceHandle) {
+      const drafted = read(section, "handle", locales[0]);
+      if (drafted !== undefined) {
+        for (const l of locales) {
+          removeEdit(section, "handle", l);
+        }
+      }
+    } else {
+      for (const l of locales) {
+        write(section, "handle", l, text);
+      }
+    }
+  };
+
+  const handleFocus = () => setFocused(true);
+  const handleBlur = () => {
+    handleInput();
+    setFocused(false);
+  };
+
+  const status = fieldStatus(section, "handle", locales[0]);
+
+  const chrome = enabled ? (
+    <FieldChrome
+      fieldStatus={status}
+      focused={focused}
+      height={dims.height}
+      staleLocale={null}
+      width={dims.width}
+    />
+  ) : null;
+
+  const isSpecial = platform === "email" || platform === "website";
+
+  if (isSpecial) {
+    return (
+      <div ref={wrapperRef} style={{ position: "relative" }}>
+        {/* biome-ignore lint/a11y/useSemanticElements: contentEditable span, not replaceable with input */}
+        <span
+          className="block text-foreground text-lg outline-none"
+          contentEditable={"plaintext-only" as const}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          onInput={handleInput}
+          ref={elRef as React.RefObject<never>}
+          role="textbox"
+          suppressContentEditableWarning
+          tabIndex={0}
+        />
+        {chrome}
+      </div>
+    );
+  }
+
+  const focusEditable = (e: React.MouseEvent) => {
+    if ((e.target as Node) !== elRef.current && elRef.current) {
+      e.preventDefault();
+      elRef.current.focus();
+    }
+  };
+
+  return (
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: click-to-focus wrapper for contentEditable
+    // biome-ignore lint/a11y/noStaticElementInteractions: click-to-focus wrapper for contentEditable
+    // biome-ignore lint/a11y/useKeyWithClickEvents: inner contentEditable handles keyboard
+    <div
+      onClick={focusEditable}
+      ref={wrapperRef}
+      style={{ position: "relative" }}
+    >
+      <span className="block text-lg">
+        <span className="text-foreground/30">{prefix}</span>
+        {/* biome-ignore lint/a11y/useSemanticElements: inline contentEditable within URL template */}
+        <span
+          className="text-foreground outline-none"
+          contentEditable={"plaintext-only" as const}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          onInput={handleInput}
+          ref={elRef as React.RefObject<never>}
+          role="textbox"
+          suppressContentEditableWarning
+          tabIndex={0}
+        />
+        <span className="text-foreground/30">{suffix}</span>
+      </span>
+      {chrome}
     </div>
   );
 }
