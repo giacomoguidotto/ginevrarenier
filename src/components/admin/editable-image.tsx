@@ -92,7 +92,7 @@ export function EditableImage({
           {src && onDelete ? (
             <>
               <button
-                className="absolute top-2 right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-destructive/80 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive hover:opacity-100 group-hover:opacity-100"
+                className="absolute top-2 right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-destructive/80 text-destructive-foreground transition-opacity hover:bg-destructive"
                 onClick={() => setConfirmOpen(true)}
                 type="button"
               >
@@ -139,6 +139,7 @@ export function EditableImage({
               if (file) {
                 handleUpload(file);
               }
+              e.target.value = "";
             }}
             ref={fileInputRef}
             type="file"
