@@ -1,6 +1,19 @@
 import { v } from "convex/values";
+import type { MutationCtx } from "./_generated/server";
 import { internalMutation, query } from "./_generated/server";
 import { adminMutation } from "./functions";
+
+async function enforceEmailFirst(ctx: MutationCtx) {
+  const all = await ctx.db.query("socialLinks").withIndex("by_order").collect();
+  const emails = all.filter((l) => l.platform === "email");
+  const others = all.filter((l) => l.platform !== "email");
+  const sorted = [...emails, ...others];
+  for (let i = 0; i < sorted.length; i++) {
+    if (sorted[i].order !== i) {
+      await ctx.db.patch(sorted[i]._id, { order: i });
+    }
+  }
+}
 
 export const list = query({
   args: {},
@@ -14,14 +27,23 @@ export const create = adminMutation({
     handle: v.string(),
   },
   handler: async (ctx, args) => {
-    const all = await ctx.db.query("socialLinks").collect();
-    const maxOrder = all.reduce((max, l) => Math.max(max, l.order), -1);
+    const all = await ctx.db
+      .query("socialLinks")
+      .withIndex("by_order")
+      .collect();
+    const emails = all.filter((l) => l.platform === "email");
+    const others = all.filter((l) => l.platform !== "email");
 
-    return ctx.db.insert("socialLinks", {
+    const order =
+      args.platform === "email" ? emails.length : emails.length + others.length;
+
+    const id = await ctx.db.insert("socialLinks", {
       platform: args.platform,
       handle: args.handle,
-      order: maxOrder + 1,
+      order,
     });
+    await enforceEmailFirst(ctx);
+    return id;
   },
 });
 
@@ -45,6 +67,13 @@ export const update = adminMutation({
     }
 
     await ctx.db.patch(id, updates);
+
+    if (
+      fields.platform !== undefined &&
+      fields.platform !== existing.platform
+    ) {
+      await enforceEmailFirst(ctx);
+    }
   },
 });
 
@@ -53,8 +82,12 @@ export const reorder = adminMutation({
     ids: v.array(v.id("socialLinks")),
   },
   handler: async (ctx, { ids }) => {
-    for (let i = 0; i < ids.length; i++) {
-      await ctx.db.patch(ids[i], { order: i });
+    const docs = await Promise.all(ids.map((id) => ctx.db.get(id)));
+    const emailIds = ids.filter((_, i) => docs[i]?.platform === "email");
+    const otherIds = ids.filter((_, i) => docs[i]?.platform !== "email");
+    const sorted = [...emailIds, ...otherIds];
+    for (let i = 0; i < sorted.length; i++) {
+      await ctx.db.patch(sorted[i], { order: i });
     }
   },
 });

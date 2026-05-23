@@ -20,12 +20,7 @@ const footerLinkKeys = [
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const t = useTranslations("common");
-  const { links } = useSocialLinks();
-  const socials = [...links].sort((a, b) => {
-    const aIsContact = a.platform === "email" ? 0 : 1;
-    const bIsContact = b.platform === "email" ? 0 : 1;
-    return aIsContact - bIsContact || a.order - b.order;
-  });
+  const { links: socials } = useSocialLinks();
 
   return (
     <footer className="border-cream/10 border-t bg-charcoal text-cream">
