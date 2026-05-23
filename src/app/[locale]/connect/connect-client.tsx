@@ -583,8 +583,8 @@ function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
     const isEmail = platform === "email";
     if (isEmail) {
       return (
-        <div className="flex items-start gap-4">
-          <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+        <div className="flex items-center gap-4">
+          <Icon className="h-5 w-5 text-foreground/60" />
           <div>
             <p className="text-muted-foreground text-sm">{label}</p>
             <a
@@ -599,12 +599,12 @@ function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
     }
     return (
       <a
-        className="flex items-start gap-4 transition-colors"
+        className="flex items-center gap-4 transition-colors"
         href={href}
         rel="noopener noreferrer"
         target="_blank"
       >
-        <Icon className="mt-1 h-5 w-5 text-foreground/60" />
+        <Icon className="h-5 w-5 text-foreground/60" />
         <div>
           <p className="text-muted-foreground text-sm">{label}</p>
           <p className="text-foreground text-lg transition-colors hover:text-foreground/80">
@@ -618,14 +618,14 @@ function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
   // Edit mode
   return (
     <div
-      className={`relative flex items-start gap-4 ${pendingDeletion ? "opacity-40" : ""}`}
+      className={`relative flex items-center gap-4 ${pendingDeletion ? "opacity-40" : ""}`}
       onClickCapture={handleClickCapture}
       ref={setNodeRef}
       style={style}
     >
       <button
         aria-label="Drag to reorder"
-        className="absolute top-0 -left-7 mt-1 cursor-grab text-foreground/30 hover:text-foreground/60 active:cursor-grabbing"
+        className="absolute top-0 bottom-0 -left-7 my-auto flex h-5 cursor-grab items-center text-foreground/30 hover:text-foreground/60 active:cursor-grabbing"
         type="button"
         {...attributes}
         {...listeners}
@@ -633,7 +633,7 @@ function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
         <GripVertical className="h-5 w-5" />
       </button>
 
-      <Icon className="mt-1 h-5 w-5 shrink-0 text-foreground/60" />
+      <Icon className="h-5 w-5 shrink-0 text-foreground/60" />
 
       <div className="min-w-0 flex-1">
         <PlatformDropdown
@@ -661,7 +661,7 @@ function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
       {pendingDeletion ? (
         <button
           aria-label="Undo delete"
-          className="mt-1 shrink-0 text-foreground/40 transition-colors hover:text-foreground"
+          className="shrink-0 text-foreground/40 transition-colors hover:text-foreground"
           onClick={() => cancelDeletion("social-link", link._id)}
           type="button"
         >
@@ -670,7 +670,7 @@ function SocialLinkRow({ link }: { link: Doc<"socialLinks"> }) {
       ) : (
         <button
           aria-label="Delete social link"
-          className="mt-1 shrink-0 text-foreground/30 transition-colors hover:text-destructive"
+          className="shrink-0 text-foreground/30 transition-colors hover:text-destructive"
           onClick={() => trackDeletion("social-link", link._id)}
           type="button"
         >
