@@ -93,7 +93,7 @@ describe("Staleness Engine", () => {
         oldValue: undefined,
       },
       {
-        section: "essence.achievements",
+        section: "essence.highlights",
         field: "title",
         locale: "it",
         newValue: "Titolo",
@@ -104,8 +104,8 @@ describe("Staleness Engine", () => {
 
     expect(engine.isStale("hero", "title", "it")).toBe(true);
     expect(engine.isStale("hero", "title", "en")).toBe(false);
-    expect(engine.isStale("essence.achievements", "title", "en")).toBe(true);
-    expect(engine.isStale("essence.achievements", "title", "it")).toBe(false);
+    expect(engine.isStale("essence.highlights", "title", "en")).toBe(true);
+    expect(engine.isStale("essence.highlights", "title", "it")).toBe(false);
   });
 
   it("reports nothing stale when there are no text edits", () => {
