@@ -4,7 +4,10 @@ export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
     // --- Site Content ---
-    const sections = [
+    const sections: Array<{
+      section: string;
+      content: Record<string, { en: string; it: string }>;
+    }> = [
       {
         section: "hero",
         content: {
@@ -212,7 +215,10 @@ export const seed = internalMutation({
         .withIndex("by_section", (q) => q.eq("section", section))
         .unique();
       if (!row) {
-        await ctx.db.insert("siteContent", { section, content });
+        await ctx.db.insert("siteContent", {
+          section,
+          content,
+        });
       }
     }
 
