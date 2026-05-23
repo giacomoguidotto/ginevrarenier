@@ -95,6 +95,66 @@ describe("Image Assets", () => {
     expect(config.deleteAsset).toHaveBeenCalledWith("img_persisted");
     expect(assets.trackedAssets()).toEqual([]);
   });
+
+  describe("Pending Deletions (delete on save)", () => {
+    it("trackPendingDeletion stores a publicId for save-time deletion", () => {
+      const assets = createImageAssets(stubConfig());
+      assets.trackPendingDeletion("img_old");
+      expect(assets.pendingDeletionAssets()).toEqual(["img_old"]);
+    });
+
+    it("savePendingDeletions deletes all pending assets from Cloudinary", async () => {
+      const config = stubConfig();
+      config.deleteAsset.mockResolvedValue(undefined);
+      const assets = createImageAssets(config);
+      assets.trackPendingDeletion("img_old1");
+      assets.trackPendingDeletion("img_old2");
+      await assets.savePendingDeletions();
+      expect(config.deleteAsset).toHaveBeenCalledWith("img_old1");
+      expect(config.deleteAsset).toHaveBeenCalledWith("img_old2");
+      expect(config.deleteAsset).toHaveBeenCalledTimes(2);
+      expect(assets.pendingDeletionAssets()).toEqual([]);
+    });
+
+    it("clearPendingDeletions cancels without calling Cloudinary", () => {
+      const config = stubConfig();
+      const assets = createImageAssets(config);
+      assets.trackPendingDeletion("img_old");
+      assets.clearPendingDeletions();
+      expect(assets.pendingDeletionAssets()).toEqual([]);
+      expect(config.deleteAsset).not.toHaveBeenCalled();
+    });
+
+    it("pending deletions are independent of tracked assets", async () => {
+      const config = stubConfig();
+      config.deleteAsset.mockResolvedValue(undefined);
+      const assets = createImageAssets(config);
+      assets.trackAsset("img_new");
+      assets.trackPendingDeletion("img_old");
+      assets.clearTracked();
+      expect(assets.pendingDeletionAssets()).toEqual(["img_old"]);
+      await assets.savePendingDeletions();
+      expect(config.deleteAsset).toHaveBeenCalledWith("img_old");
+      expect(config.deleteAsset).toHaveBeenCalledTimes(1);
+    });
+
+    it("initializes with pre-pending deletions", () => {
+      const assets = createImageAssets(stubConfig(), [], ["img_old"]);
+      expect(assets.pendingDeletionAssets()).toEqual(["img_old"]);
+    });
+
+    it("cleanup does not touch pending deletions", async () => {
+      const config = stubConfig();
+      config.deleteAsset.mockResolvedValue(undefined);
+      const assets = createImageAssets(config);
+      assets.trackAsset("img_new");
+      assets.trackPendingDeletion("img_old");
+      await assets.cleanup();
+      expect(config.deleteAsset).toHaveBeenCalledWith("img_new");
+      expect(config.deleteAsset).not.toHaveBeenCalledWith("img_old");
+      expect(assets.pendingDeletionAssets()).toEqual(["img_old"]);
+    });
+  });
 });
 
 describe("Image Assets — Pending Deletions", () => {

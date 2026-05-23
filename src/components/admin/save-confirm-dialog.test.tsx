@@ -9,6 +9,7 @@ const STALE_FIELD_RE = /undismissed stale field/;
 const ABC_YEAR_RE = /abc\.year/;
 const TIMELINE_ENTRY_RE = /Timeline Entry/;
 const TMP_YEAR_RE = /tmp\.year/;
+const PORTRAIT_IMAGE_RE = /portraitImage/;
 
 afterEach(cleanup);
 
@@ -365,6 +366,51 @@ describe("SaveConfirmDialog", () => {
       (_content, el) => el?.textContent === "Reorder Photos"
     );
     expect(items.length).toBeGreaterThan(0);
+  });
+
+  it("shows red line for deleted artist image and hides its portraitImage text edits", () => {
+    const summary = makeSummary({
+      textEdits: [
+        {
+          section: "intro",
+          field: "portraitImage",
+          locale: "en",
+          newValue: "",
+          oldValue: "https://example.com/old.jpg",
+        },
+        {
+          section: "intro",
+          field: "portraitImagePublicId",
+          locale: "en",
+          newValue: "",
+          oldValue: "folder/old",
+        },
+      ],
+      pendingDeletions: [{ entityType: "artist-image-home", id: "intro" }],
+    });
+    const labels = new Map([["artist-image-home:intro", "Home Artist Image"]]);
+
+    render(
+      <SaveConfirmDialog
+        changeSummary={() => summary}
+        loading={false}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        open
+        sectionLabels={labels}
+      />
+    );
+
+    const items = screen.getAllByText(
+      (_content, el) => el?.textContent === "Delete Home Artist Image"
+    );
+    expect(items.length).toBeGreaterThan(0);
+    expect(
+      items.some((el) =>
+        el.closest("li")?.classList.contains("text-destructive")
+      )
+    ).toBe(true);
+    expect(screen.queryByText(PORTRAIT_IMAGE_RE)).toBeNull();
   });
 
   it("lists each undismissed stale field with human-readable label", () => {

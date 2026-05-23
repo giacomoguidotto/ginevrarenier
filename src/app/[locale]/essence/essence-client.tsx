@@ -15,7 +15,10 @@ import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
-import { useDraftBufferOps } from "@/components/admin/draft-buffer-context";
+import {
+  useDraftBufferOps,
+  useImageAssets,
+} from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
@@ -70,18 +73,83 @@ function EssenceHero() {
   const textY = useTransform(scrollYProgress, [0, 1], [0, 50]);
 
   const { data } = useSection();
-  const { write } = useDraftBufferOps();
+  const {
+    read,
+    write,
+    isPendingDeletion,
+    trackCreation,
+    cancelCreation,
+    trackDeletion,
+    cancelDeletion,
+    deleteField,
+    cancelFieldDeletion,
+  } = useDraftBufferOps();
+  const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   const { enable } = useChromeEnabler();
   const localized = useLocalized();
 
-  const portraitUrl = data?.portraitImage?.en || undefined;
+  const isDeleted = isPendingDeletion("artist-image-essence", "essence.hero");
+  const bufferedUrl = read("essence.hero", "portraitImage", "en");
+  const portraitUrl = isDeleted
+    ? undefined
+    : (bufferedUrl === undefined ? data?.portraitImage?.en : bufferedUrl) ||
+      undefined;
+
+  usePageBoundaryRegistration(
+    "artist-image-essence:essence.hero",
+    "Essence Artist Image"
+  );
+
   const handlePortraitUpload = useCallback(
-    (url: string) => {
+    (url: string, publicId: string) => {
+      if (isPendingDeletion("artist-image-essence", "essence.hero")) {
+        cancelDeletion("artist-image-essence", "essence.hero");
+        cancelFieldDeletion("essence.hero", "portraitImage");
+        cancelFieldDeletion("essence.hero", "portraitImagePublicId");
+        const oldPublicId =
+          read("essence.hero", "portraitImagePublicId", "en") ??
+          data?.portraitImagePublicId?.en;
+        if (oldPublicId) {
+          cancelPendingDeletion(oldPublicId);
+        }
+      }
       write("essence.hero", "portraitImage", "en", url);
       write("essence.hero", "portraitImage", "it", url);
+      write("essence.hero", "portraitImagePublicId", "en", publicId);
+      write("essence.hero", "portraitImagePublicId", "it", publicId);
+      trackCreation("artist-image-essence", "essence.hero");
     },
-    [write]
+    [
+      write,
+      read,
+      data,
+      isPendingDeletion,
+      cancelDeletion,
+      cancelFieldDeletion,
+      cancelPendingDeletion,
+      trackCreation,
+    ]
   );
+
+  const handlePortraitDelete = useCallback(() => {
+    const publicId =
+      read("essence.hero", "portraitImagePublicId", "en") ??
+      data?.portraitImagePublicId?.en;
+    if (publicId) {
+      trackPendingDeletion(publicId);
+    }
+    cancelCreation("artist-image-essence", "essence.hero");
+    trackDeletion("artist-image-essence", "essence.hero");
+    deleteField("essence.hero", "portraitImage");
+    deleteField("essence.hero", "portraitImagePublicId");
+  }, [
+    read,
+    data,
+    trackPendingDeletion,
+    cancelCreation,
+    trackDeletion,
+    deleteField,
+  ]);
 
   return (
     <section
@@ -99,7 +167,9 @@ function EssenceHero() {
           >
             <EditableImage
               alt="Ginevra Renier"
+              deleteLabel="Essence Artist Image"
               folder="ginevrarenier/site"
+              onDelete={handlePortraitDelete}
               onUpload={handlePortraitUpload}
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"

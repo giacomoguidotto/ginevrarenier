@@ -12,7 +12,7 @@ export interface EntityDescriptor {
   formatRef: (id: string, sectionLabels: ReadonlyMap<string, string>) => string;
   label: string;
   localized: boolean;
-  mutations: {
+  mutations?: {
     update: FunctionReference<"mutation", "public", Record<string, unknown>>;
     remove: FunctionReference<"mutation", "public", { id: string }>;
   };
@@ -126,12 +126,28 @@ const socialLinkDescriptor: EntityDescriptor = {
   localized: false,
 };
 
+const artistImageHomeDescriptor: EntityDescriptor = {
+  type: "artist-image-home",
+  label: "Home Artist Image",
+  formatRef: makeFormatRef("artist-image-home", "Home Artist Image"),
+  localized: false,
+};
+
+const artistImageEssenceDescriptor: EntityDescriptor = {
+  type: "artist-image-essence",
+  label: "Essence Artist Image",
+  formatRef: makeFormatRef("artist-image-essence", "Essence Artist Image"),
+  localized: false,
+};
+
 const registry = new Map<string, EntityDescriptor>([
   ["project", projectDescriptor],
   ["post", postDescriptor],
   ["achievement", achievementDescriptor],
   ["photo", photoDescriptor],
   ["social-link", socialLinkDescriptor],
+  ["artist-image-home", artistImageHomeDescriptor],
+  ["artist-image-essence", artistImageEssenceDescriptor],
 ]);
 
 export function getDescriptor(

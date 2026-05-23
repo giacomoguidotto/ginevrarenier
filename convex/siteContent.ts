@@ -60,7 +60,9 @@ export const upsert = adminMutation({
 
       if (deleteKeyPrefixes?.length) {
         for (const key of Object.keys(merged)) {
-          if (deleteKeyPrefixes.some((p) => key.startsWith(`${p}.`))) {
+          if (
+            deleteKeyPrefixes.some((p) => key === p || key.startsWith(`${p}.`))
+          ) {
             delete merged[key];
           }
         }

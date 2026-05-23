@@ -55,6 +55,34 @@ describe("Entity Descriptor Registry", () => {
     expect(d?.publish).toBeUndefined();
     expect(d?.parent).toBeUndefined();
   });
+
+  it("returns a descriptor for 'artist-image-home'", () => {
+    const d = getDescriptor("artist-image-home");
+    expect(d).toMatchObject({
+      type: "artist-image-home",
+      label: "Home Artist Image",
+      localized: false,
+    });
+  });
+
+  it("returns a descriptor for 'artist-image-essence'", () => {
+    const d = getDescriptor("artist-image-essence");
+    expect(d).toMatchObject({
+      type: "artist-image-essence",
+      label: "Essence Artist Image",
+      localized: false,
+    });
+  });
+
+  it("artist image descriptors are singletons (no collection, publish, reorder)", () => {
+    for (const type of ["artist-image-home", "artist-image-essence"]) {
+      const d = getDescriptor(type);
+      expect(d).toBeDefined();
+      expect(d?.collection).toBeUndefined();
+      expect(d?.publish).toBeUndefined();
+      expect(d?.reorder).toBeUndefined();
+    }
+  });
 });
 
 describe("formatEntityRef", () => {
@@ -109,6 +137,13 @@ describe("formatEntityType", () => {
 
   it("returns descriptor label for social-link", () => {
     expect(formatEntityType("social-link")).toBe("Social Link");
+  });
+
+  it("returns label for artist image descriptors", () => {
+    expect(formatEntityType("artist-image-home")).toBe("Home Artist Image");
+    expect(formatEntityType("artist-image-essence")).toBe(
+      "Essence Artist Image"
+    );
   });
 });
 
