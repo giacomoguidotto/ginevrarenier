@@ -16,6 +16,7 @@ import { Field } from "@/components/admin/field";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
+import { cloudinaryFolder } from "@/lib/cloudinary";
 
 export function IntroSection() {
   return (
@@ -156,9 +157,9 @@ function IntroSectionContent() {
               style={{ y: imageY }}
             >
               <EditableImage
-                alt="Ginevra Renier"
+                alt="Ginevra Renier Studio"
                 deleteLabel="Home Artist Image"
-                folder="ginevrarenier/site"
+                folder={cloudinaryFolder("site")}
                 onDelete={handlePortraitDelete}
                 onUpload={handlePortraitUpload}
                 sizes="(max-width: 1024px) 100vw, 50vw"

@@ -27,6 +27,7 @@ import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Link } from "@/i18n/routing";
+import { cloudinaryFolder } from "@/lib/cloudinary";
 import { useLocalized } from "@/lib/hooks";
 import { formatYearRange } from "./year-range";
 
@@ -157,9 +158,9 @@ function EssenceHero() {
             transition={{ duration: 0.8 }}
           >
             <EditableImage
-              alt="Ginevra Renier"
+              alt="Ginevra Renier Studio"
               deleteLabel="Essence Artist Image"
-              folder="ginevrarenier/site"
+              folder={cloudinaryFolder("site")}
               onDelete={handlePortraitDelete}
               onUpload={handlePortraitUpload}
               priority

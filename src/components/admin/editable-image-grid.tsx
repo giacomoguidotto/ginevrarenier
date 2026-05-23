@@ -31,6 +31,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { cloudinaryFolder } from "@/lib/cloudinary";
 import {
   useDraftBufferOps,
   useEditVersion,
@@ -314,7 +315,7 @@ export function EditableImageGrid({
       setUploading(true);
       try {
         for (const file of files) {
-          const result = await upload(file, `ginevrarenier/${projectSlug}`);
+          const result = await upload(file, cloudinaryFolder(projectSlug));
           const imageId = await addImage({
             projectId,
             url: result.url,

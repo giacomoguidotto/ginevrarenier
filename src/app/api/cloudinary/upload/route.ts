@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
+import { cloudinaryFolder } from "@/lib/cloudinary";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
       cloudinary.uploader
         .upload_stream(
           {
-            folder: folder ?? "ginevrarenier",
+            folder: folder ?? cloudinaryFolder(),
             resource_type: "image",
           },
           (error, uploadResult) => {
