@@ -25,6 +25,7 @@ import { Field } from "@/components/admin/field";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Link } from "@/i18n/routing";
 import { useLocalized } from "@/lib/hooks";
 import { formatYearRange } from "./year-range";
@@ -305,75 +306,80 @@ function EssenceTimeline() {
   );
 
   return (
-    <section className="bg-charcoal py-24">
-      <div className="mx-auto max-w-4xl px-6">
-        <motion.div
-          className="mb-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          onAnimationComplete={enable}
-          viewport={{ once: true }}
-          whileInView={{ opacity: 1, y: 0 }}
-        >
-          <Field
-            as="p"
-            className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
-            name="label"
-          />
-          <Field as="h2" className="text-cream" name="title" />
-        </motion.div>
-
-        <div className="relative">
-          <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
-
-          {deletedAchievements.map((a) => (
-            <DeletedAchievementLabel
-              id={a._id}
-              key={`label-${a._id}`}
-              year={formatYearRange(a.startYear, a.endYear)}
+    <CollapsibleSection visible={achievements.length > 0 || isEditMode}>
+      <section
+        className="bg-charcoal py-24"
+        data-testid="achievements-timeline"
+      >
+        <div className="mx-auto max-w-4xl px-6">
+          <motion.div
+            className="mb-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            onAnimationComplete={enable}
+            viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <Field
+              as="p"
+              className="mb-4 text-cream/60 text-sm uppercase tracking-widest"
+              name="label"
             />
-          ))}
+            <Field as="h2" className="text-cream" name="title" />
+          </motion.div>
 
-          {achievements.map((achievement, index) => (
-            <ChromeEnablerProvider key={achievement._id}>
-              <Section
-                label={`Achievement: ${formatYearRange(achievement.startYear, achievement.endYear)}`}
-                name={`achievement:${achievement._id}`}
-              >
-                <AchievementEntry
-                  achievement={achievement}
-                  index={index}
-                  isNew={isSessionCreated(achievement._id)}
-                  onDelete={handleDelete}
-                />
-              </Section>
-            </ChromeEnablerProvider>
-          ))}
+          <div className="relative">
+            <div className="absolute top-0 bottom-0 left-[7px] w-px bg-border md:left-1/2 md:-translate-x-px" />
 
-          <AnimatePresence>
-            {isEditMode && (
-              <motion.div
-                animate={{ opacity: 1, y: 0 }}
-                className="h-0 overflow-visible"
-                exit={{ opacity: 0, y: -4 }}
-                initial={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="mt-8 text-center">
-                  <button
-                    className="inline-flex items-center gap-2 rounded border border-cream/20 px-4 py-2 text-cream/60 text-sm transition-colors hover:border-cream/40 hover:text-cream"
-                    onClick={handleAdd}
-                    type="button"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Achievement
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {deletedAchievements.map((a) => (
+              <DeletedAchievementLabel
+                id={a._id}
+                key={`label-${a._id}`}
+                year={formatYearRange(a.startYear, a.endYear)}
+              />
+            ))}
+
+            {achievements.map((achievement, index) => (
+              <ChromeEnablerProvider key={achievement._id}>
+                <Section
+                  label={`Achievement: ${formatYearRange(achievement.startYear, achievement.endYear)}`}
+                  name={`achievement:${achievement._id}`}
+                >
+                  <AchievementEntry
+                    achievement={achievement}
+                    index={index}
+                    isNew={isSessionCreated(achievement._id)}
+                    onDelete={handleDelete}
+                  />
+                </Section>
+              </ChromeEnablerProvider>
+            ))}
+
+            <AnimatePresence>
+              {isEditMode && (
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  className="h-0 overflow-visible"
+                  exit={{ opacity: 0, y: -4 }}
+                  initial={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="mt-8 text-center">
+                    <button
+                      className="inline-flex items-center gap-2 rounded border border-cream/20 px-4 py-2 text-cream/60 text-sm transition-colors hover:border-cream/40 hover:text-cream"
+                      onClick={handleAdd}
+                      type="button"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Achievement
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </CollapsibleSection>
   );
 }
 

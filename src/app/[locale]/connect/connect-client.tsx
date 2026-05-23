@@ -51,6 +51,7 @@ import { FieldChrome } from "@/components/admin/field-chrome";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { locales } from "@/i18n/config";
 import { useLocalized, useSocialLinks } from "@/lib/hooks";
 import {
@@ -81,6 +82,7 @@ export function ConnectClient() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const t = useTranslations("connect");
+  const { isEditMode } = useEditMode();
   const { links: socials } = useSocialLinks();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -289,12 +291,18 @@ export function ConnectClient() {
               </SocialSection>
 
               {/* Social */}
-              <SocialSection
-                allLinks={socials}
-                allowedPlatforms={platformKeys.filter((k) => k !== "email")}
-                links={nonEmailLinks}
-                title={t("info.followAlong")}
-              />
+              <CollapsibleSection
+                visible={nonEmailLinks.length > 0 || isEditMode}
+              >
+                <div data-testid="follow-along">
+                  <SocialSection
+                    allLinks={socials}
+                    allowedPlatforms={platformKeys.filter((k) => k !== "email")}
+                    links={nonEmailLinks}
+                    title={t("info.followAlong")}
+                  />
+                </div>
+              </CollapsibleSection>
 
               {/* Availability */}
               <div className="rounded-lg border border-border bg-card p-6">

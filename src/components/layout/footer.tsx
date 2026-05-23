@@ -61,31 +61,33 @@ export function Footer() {
           </div>
 
           {/* Social */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-cream/50 text-sm uppercase tracking-widest">
-              {t("footer.connect")}
-            </h3>
-            <div className="flex gap-4">
-              {socials.map((social) => {
-                const Icon = getIcon(social.platform);
-                const href = getHref(social.platform, social.handle ?? "");
-                return (
-                  <motion.a
-                    aria-label={getLabel(social.platform)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"
-                    href={href}
-                    key={social._id}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </motion.a>
-                );
-              })}
+          {socials.length > 0 && (
+            <div className="space-y-4" data-testid="footer-connect">
+              <h3 className="font-medium text-cream/50 text-sm uppercase tracking-widest">
+                {t("footer.connect")}
+              </h3>
+              <div className="flex gap-4">
+                {socials.map((social) => {
+                  const Icon = getIcon(social.platform);
+                  const href = getHref(social.platform, social.handle ?? "");
+                  return (
+                    <motion.a
+                      aria-label={getLabel(social.platform)}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream/80 transition-colors hover:border-cream hover:text-cream"
+                      href={href}
+                      key={social._id}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </motion.a>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Bottom */}
