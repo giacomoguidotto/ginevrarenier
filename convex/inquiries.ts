@@ -27,8 +27,13 @@ export const submit = mutation({
       v.literal("other")
     ),
     message: v.string(),
+    website: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    if (args.website) {
+      return;
+    }
+
     if (!args.name.trim()) {
       throw new Error("Name is required");
     }
@@ -65,8 +70,9 @@ export const submit = mutation({
       throw new Error("Too many submissions, please try again later");
     }
 
+    const { website: _, ...inquiry } = args;
     const inquiryId = await ctx.db.insert("inquiries", {
-      ...args,
+      ...inquiry,
       emailStatus: "pending",
       attempts: 0,
     });

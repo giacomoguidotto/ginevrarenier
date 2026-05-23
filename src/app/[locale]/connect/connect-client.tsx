@@ -75,6 +75,7 @@ export function ConnectClient() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [website, setWebsite] = useState("");
 
   const t = useTranslations("connect");
   const { isEditMode } = useEditMode();
@@ -84,8 +85,9 @@ export function ConnectClient() {
   const onSubmit = async (data: InquiryInput) => {
     setSubmitError(false);
     try {
-      await submitInquiry(data);
+      await submitInquiry({ ...data, website });
       reset();
+      setWebsite("");
       setIsSubmitted(true);
     } catch {
       setSubmitError(true);
@@ -235,6 +237,26 @@ export function ConnectClient() {
                         {t("form.errors.message")}
                       </p>
                     )}
+                  </div>
+
+                  <div
+                    aria-hidden="true"
+                    className="absolute overflow-hidden"
+                    style={{
+                      left: "-9999px",
+                      top: "-9999px",
+                      width: 0,
+                      height: 0,
+                    }}
+                  >
+                    <input
+                      autoComplete="off"
+                      name="website"
+                      onChange={(e) => setWebsite(e.target.value)}
+                      tabIndex={-1}
+                      type="text"
+                      value={website}
+                    />
                   </div>
 
                   {submitError && (

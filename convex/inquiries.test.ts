@@ -148,6 +148,44 @@ describe("inquiries.submit", () => {
     ).rejects.toThrow();
   });
 
+  it("silently discards submission when honeypot field is non-empty", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(api.inquiries.submit, {
+      name: "Spambot",
+      email: "spam@example.com",
+      inquiryType: "collaboration",
+      message: "Buy cheap watches",
+      website: "http://spam.example.com",
+    });
+
+    const inquiries = await t.run(
+      async (ctx) => await ctx.db.query("inquiries").take(1)
+    );
+    expect(inquiries).toHaveLength(0);
+  });
+
+  it("persists submission when honeypot field is empty", async () => {
+    const t = convexTest(schema, modules);
+
+    await t.mutation(api.inquiries.submit, {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration",
+      message: "Genuine inquiry",
+      website: "",
+    });
+
+    const inquiries = await t.run(
+      async (ctx) => await ctx.db.query("inquiries").take(1)
+    );
+    expect(inquiries).toHaveLength(1);
+    expect(inquiries[0]).toMatchObject({
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+    });
+  });
+
   it("returns a generic error that does not reveal specific limits", async () => {
     const t = convexTest(schema, modules);
     const base = {
