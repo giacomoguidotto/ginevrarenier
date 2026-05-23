@@ -1,7 +1,7 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUpDown,
   Eye,
@@ -241,165 +241,174 @@ export function EditToolbar({
   const enStale = (counts.get("en") ?? 0) > 0;
   const itStale = (counts.get("it") ?? 0) > 0;
 
-  if (!isEditMode) {
-    return null;
-  }
-
   const langTooltip = buildLangTooltip(counts);
 
   return (
-    <div
-      className="fixed z-50 flex items-center gap-1 rounded-full border border-foreground/20 bg-background/80 px-2 py-1.5 shadow-lg backdrop-blur-md"
-      data-testid="edit-toolbar"
-      ref={toolbarRef}
-      style={{
-        left: position.x,
-        top: position.y,
-        cursor: isDragging ? "grabbing" : "default",
-      }}
-    >
-      {/* Drag handle */}
-      <button
-        aria-label="Drag toolbar"
-        className="flex h-8 w-6 cursor-grab items-center justify-center text-foreground/40 hover:text-foreground/60 active:cursor-grabbing"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        type="button"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-
-      {/* Language toggle */}
-      <ToolbarButton
-        aria-label="Switch language"
-        className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
-        label={langTooltip}
-        onClick={switchLocale}
-      >
-        <span className="relative flex items-center gap-0.5">
-          <span
-            className={
-              editingLocale === "en" ? "text-foreground" : "text-foreground/40"
-            }
-          >
-            EN
-          </span>
-          <AnimatePresence>
-            {enStale ? (
-              <SemanticDot
-                label={`EN has ${counts.get("en")} stale ${counts.get("en") === 1 ? "field" : "fields"}`}
-                state="warning"
-              />
-            ) : null}
-          </AnimatePresence>
-        </span>
-        <span className="text-foreground/20">|</span>
-        <span className="relative flex items-center gap-0.5">
-          <span
-            className={
-              editingLocale === "it" ? "text-foreground" : "text-foreground/40"
-            }
-          >
-            IT
-          </span>
-          <AnimatePresence>
-            {itStale ? (
-              <SemanticDot
-                label={`IT has ${counts.get("it")} stale ${counts.get("it") === 1 ? "field" : "fields"}`}
-                state="warning"
-              />
-            ) : null}
-          </AnimatePresence>
-        </span>
-      </ToolbarButton>
-
-      {staleFieldCountForLocale > 0 ? (
-        <ToolbarButton
-          className="flex h-8 items-center gap-1.5 rounded-full bg-sky-500/15 px-3 text-sky-400 text-xs transition-colors hover:bg-sky-500/25"
-          label={`Translate ${staleFieldCountForLocale} stale ${staleFieldCountForLocale === 1 ? "field" : "fields"}`}
-          onClick={onAutoTranslate}
+    <AnimatePresence>
+      {isEditMode && (
+        <motion.div
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed z-50 flex items-center gap-1 rounded-full border border-foreground/20 bg-background/80 px-2 py-1.5 shadow-lg backdrop-blur-md"
+          data-testid="edit-toolbar"
+          exit={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          key="edit-toolbar"
+          ref={toolbarRef}
+          style={{
+            left: position.x,
+            top: position.y,
+            cursor: isDragging ? "grabbing" : "default",
+          }}
+          transition={{ duration: 0.2 }}
         >
-          <Languages className="h-3.5 w-3.5" />
-          <span>Translate</span>
-        </ToolbarButton>
-      ) : null}
-
-      {/* Save & Discard — only visible with changes */}
-      {hasChanges ? (
-        <>
-          <ToolbarButton
-            className="flex h-8 items-center gap-1.5 rounded-full bg-foreground/10 px-3 text-foreground text-xs transition-colors hover:bg-foreground/20"
-            label="Save changes"
-            onClick={() => setConfirmDialog("save")}
+          {/* Drag handle */}
+          <button
+            aria-label="Drag toolbar"
+            className="flex h-8 w-6 cursor-grab items-center justify-center text-foreground/40 hover:text-foreground/60 active:cursor-grabbing"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            type="button"
           >
-            {loading === "save" ? (
-              <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
-            ) : (
-              <Save className="h-3.5 w-3.5" />
-            )}
-            <span>Save</span>
+            <GripVertical className="h-4 w-4" />
+          </button>
+
+          {/* Language toggle */}
+          <ToolbarButton
+            aria-label="Switch language"
+            className="flex h-8 items-center gap-1.5 rounded-full px-3 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-foreground/10"
+            label={langTooltip}
+            onClick={switchLocale}
+          >
+            <span className="relative flex items-center gap-0.5">
+              <span
+                className={
+                  editingLocale === "en"
+                    ? "text-foreground"
+                    : "text-foreground/40"
+                }
+              >
+                EN
+              </span>
+              <AnimatePresence>
+                {enStale ? (
+                  <SemanticDot
+                    label={`EN has ${counts.get("en")} stale ${counts.get("en") === 1 ? "field" : "fields"}`}
+                    state="warning"
+                  />
+                ) : null}
+              </AnimatePresence>
+            </span>
+            <span className="text-foreground/20">|</span>
+            <span className="relative flex items-center gap-0.5">
+              <span
+                className={
+                  editingLocale === "it"
+                    ? "text-foreground"
+                    : "text-foreground/40"
+                }
+              >
+                IT
+              </span>
+              <AnimatePresence>
+                {itStale ? (
+                  <SemanticDot
+                    label={`IT has ${counts.get("it")} stale ${counts.get("it") === 1 ? "field" : "fields"}`}
+                    state="warning"
+                  />
+                ) : null}
+              </AnimatePresence>
+            </span>
           </ToolbarButton>
 
+          {staleFieldCountForLocale > 0 ? (
+            <ToolbarButton
+              className="flex h-8 items-center gap-1.5 rounded-full bg-sky-500/15 px-3 text-sky-400 text-xs transition-colors hover:bg-sky-500/25"
+              label={`Translate ${staleFieldCountForLocale} stale ${staleFieldCountForLocale === 1 ? "field" : "fields"}`}
+              onClick={onAutoTranslate}
+            >
+              <Languages className="h-3.5 w-3.5" />
+              <span>Translate</span>
+            </ToolbarButton>
+          ) : null}
+
+          {/* Save & Discard — only visible with changes */}
+          {hasChanges ? (
+            <>
+              <ToolbarButton
+                className="flex h-8 items-center gap-1.5 rounded-full bg-foreground/10 px-3 text-foreground text-xs transition-colors hover:bg-foreground/20"
+                label="Save changes"
+                onClick={() => setConfirmDialog("save")}
+              >
+                {loading === "save" ? (
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
+                <span>Save</span>
+              </ToolbarButton>
+
+              <ToolbarButton
+                className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 text-xs transition-colors hover:bg-foreground/10 hover:text-foreground"
+                label="Discard changes"
+                onClick={() => setConfirmDialog("discard")}
+              >
+                {loading === "discard" ? (
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
+                ) : (
+                  <RotateCcw className="h-3.5 w-3.5" />
+                )}
+                <span>Discard</span>
+              </ToolbarButton>
+            </>
+          ) : null}
+
+          {/* Exit edit mode */}
           <ToolbarButton
-            className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 text-xs transition-colors hover:bg-foreground/10 hover:text-foreground"
-            label="Discard changes"
-            onClick={() => setConfirmDialog("discard")}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground"
+            label="Exit edit mode"
+            onClick={() => requestExit()}
           >
-            {loading === "discard" ? (
-              <div className="h-3.5 w-3.5 animate-spin rounded-full border border-foreground/20 border-t-foreground" />
-            ) : (
-              <RotateCcw className="h-3.5 w-3.5" />
-            )}
-            <span>Discard</span>
+            <LogOut className="h-3.5 w-3.5" />
           </ToolbarButton>
-        </>
-      ) : null}
 
-      {/* Exit edit mode */}
-      <ToolbarButton
-        className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-foreground/10 hover:text-foreground"
-        label="Exit edit mode"
-        onClick={() => requestExit()}
-      >
-        <LogOut className="h-3.5 w-3.5" />
-      </ToolbarButton>
+          {/* Sign out */}
+          <ToolbarButton
+            className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
+            label="Sign out"
+            onClick={() => requestExit(() => signOut())}
+          >
+            <Power className="h-3.5 w-3.5" />
+          </ToolbarButton>
 
-      {/* Sign out */}
-      <ToolbarButton
-        className="flex h-8 w-8 items-center justify-center rounded-full text-foreground/30 transition-colors hover:bg-red-500/10 hover:text-red-400"
-        label="Sign out"
-        onClick={() => requestExit(() => signOut())}
-      >
-        <Power className="h-3.5 w-3.5" />
-      </ToolbarButton>
+          <SaveConfirmDialog
+            changeSummary={changeSummary}
+            loading={loading === "save"}
+            onCancel={() => setConfirmDialog(null)}
+            onConfirm={async () => {
+              setLoading("save");
+              setConfirmDialog(null);
+              await onSave();
+              setLoading(null);
+            }}
+            open={confirmDialog === "save"}
+          />
 
-      <SaveConfirmDialog
-        changeSummary={changeSummary}
-        loading={loading === "save"}
-        onCancel={() => setConfirmDialog(null)}
-        onConfirm={async () => {
-          setLoading("save");
-          setConfirmDialog(null);
-          await onSave();
-          setLoading(null);
-        }}
-        open={confirmDialog === "save"}
-      />
-
-      <DiscardConfirmDialog
-        changeSummary={changeSummary}
-        loading={loading === "discard"}
-        onCancel={() => setConfirmDialog(null)}
-        onConfirm={async () => {
-          setLoading("discard");
-          setConfirmDialog(null);
-          await onDiscard();
-          setLoading(null);
-        }}
-        open={confirmDialog === "discard"}
-      />
-    </div>
+          <DiscardConfirmDialog
+            changeSummary={changeSummary}
+            loading={loading === "discard"}
+            onCancel={() => setConfirmDialog(null)}
+            onConfirm={async () => {
+              setLoading("discard");
+              setConfirmDialog(null);
+              await onDiscard();
+              setLoading(null);
+            }}
+            open={confirmDialog === "discard"}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
