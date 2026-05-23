@@ -28,21 +28,21 @@ export function VisionEmptyState() {
         viewBox="0 0 96 96"
       >
         <circle
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           cx="48"
           cy="48"
           r="44"
           strokeWidth="1"
         />
         <circle
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           cx="48"
           cy="48"
           r="30"
           strokeWidth="1"
         />
         <circle
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           cx="48"
           cy="48"
           r="16"
@@ -51,7 +51,7 @@ export function VisionEmptyState() {
         {/* Aperture blades */}
         {[0, 60, 120, 180, 240, 300].map((angle) => (
           <line
-            className="stroke-cream/20"
+            className="stroke-foreground/20"
             key={angle}
             strokeWidth="1"
             x1={48 + 16 * Math.cos((angle * Math.PI) / 180)}

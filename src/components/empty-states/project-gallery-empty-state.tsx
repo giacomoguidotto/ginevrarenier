@@ -29,32 +29,32 @@ export function ProjectGalleryEmptyState() {
       >
         {/* Corner brackets */}
         <path
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           d="M18 34 L18 18 L34 18"
           strokeLinecap="round"
           strokeWidth="1"
         />
         <path
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           d="M62 18 L78 18 L78 34"
           strokeLinecap="round"
           strokeWidth="1"
         />
         <path
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           d="M78 62 L78 78 L62 78"
           strokeLinecap="round"
           strokeWidth="1"
         />
         <path
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           d="M34 78 L18 78 L18 62"
           strokeLinecap="round"
           strokeWidth="1"
         />
         {/* Center crosshair */}
         <line
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           strokeLinecap="round"
           strokeWidth="0.75"
           x1="45"
@@ -63,7 +63,7 @@ export function ProjectGalleryEmptyState() {
           y2="48"
         />
         <line
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           strokeLinecap="round"
           strokeWidth="0.75"
           x1="48"

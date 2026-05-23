@@ -29,7 +29,7 @@ export function ReflectionsEmptyState() {
       >
         {/* Ink drop */}
         <path
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           d="M48 12 C48 12, 28 40, 28 56 C28 67 37 76 48 76 C59 76 68 67 68 56 C68 40 48 12 48 12Z"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -37,7 +37,7 @@ export function ReflectionsEmptyState() {
         />
         {/* Ripple rings */}
         <ellipse
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           cx="48"
           cy="72"
           rx="20"
@@ -45,7 +45,7 @@ export function ReflectionsEmptyState() {
           strokeWidth="1"
         />
         <ellipse
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           cx="48"
           cy="72"
           rx="32"
@@ -54,7 +54,7 @@ export function ReflectionsEmptyState() {
         />
         {/* Pen stroke accent */}
         <path
-          className="stroke-cream/20"
+          className="stroke-foreground/20"
           d="M36 44 Q42 38 48 44 Q54 50 60 44"
           strokeLinecap="round"
           strokeWidth="1"
