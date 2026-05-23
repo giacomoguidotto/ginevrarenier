@@ -140,6 +140,21 @@ const artistImageEssenceDescriptor: EntityDescriptor = {
   localized: false,
 };
 
+const selectedWorkDescriptor: EntityDescriptor = {
+  type: "selectedWork",
+  label: "Selected Work",
+  formatRef: makeFormatRef("selectedWork", "Selected Work"),
+  mutations: {
+    update: undefined as never,
+    remove: api.selectedWorks.remove as never,
+  },
+  collection: {
+    list: api.selectedWorks.list as never,
+  },
+  reorder: { mutation: api.selectedWorks.reorder as never },
+  localized: false,
+};
+
 const registry = new Map<string, EntityDescriptor>([
   ["project", projectDescriptor],
   ["post", postDescriptor],
@@ -148,6 +163,7 @@ const registry = new Map<string, EntityDescriptor>([
   ["social-link", socialLinkDescriptor],
   ["artist-image-home", artistImageHomeDescriptor],
   ["artist-image-essence", artistImageEssenceDescriptor],
+  ["selectedWork", selectedWorkDescriptor],
 ]);
 
 export function getDescriptor(

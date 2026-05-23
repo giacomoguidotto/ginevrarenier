@@ -25,6 +25,18 @@ describe("Entity Descriptor Registry", () => {
     });
   });
 
+  it("returns a descriptor for 'selectedWork'", () => {
+    const d = getDescriptor("selectedWork");
+    expect(d).toMatchObject({
+      type: "selectedWork",
+      label: "Selected Work",
+      localized: false,
+    });
+    expect(d?.reorder).toBeDefined();
+    expect(d?.publish).toBeUndefined();
+    expect(d?.parent).toBeUndefined();
+  });
+
   it("returns undefined for unknown entity types", () => {
     expect(getDescriptor("unknown")).toBeUndefined();
   });
@@ -172,6 +184,15 @@ describe("routeSection (descriptor-based)", () => {
       kind: "entity",
       descriptor: getDescriptor("photo"),
       id: "img123",
+    });
+  });
+
+  it("routes selectedWork: prefix to entity route with selectedWork descriptor", () => {
+    const route = routeSection("selectedWork:sw123");
+    expect(route).toEqual({
+      kind: "entity",
+      descriptor: getDescriptor("selectedWork"),
+      id: "sw123",
     });
   });
 
