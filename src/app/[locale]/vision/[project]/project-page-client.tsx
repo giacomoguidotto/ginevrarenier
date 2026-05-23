@@ -17,6 +17,7 @@ import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
 import { useStableEntity } from "@/components/admin/use-stable-entity";
+import { ProjectGalleryEmptyState } from "@/components/empty-states/project-gallery-empty-state";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
@@ -130,11 +131,7 @@ export function ProjectPageClient() {
             />
           ) : null}
 
-          {!isEditMode && images.length === 0 ? (
-            <p className="text-center text-muted-foreground">
-              No photographs yet.
-            </p>
-          ) : null}
+          {images.length === 0 ? <ProjectGalleryEmptyState /> : null}
         </div>
       </div>
 

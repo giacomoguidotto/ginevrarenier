@@ -7,7 +7,6 @@ import type { Preloaded } from "convex/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import {
   ChromeEnablerProvider,
@@ -21,6 +20,7 @@ import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section, useSection } from "@/components/admin/section";
 import { PostCard } from "@/components/blog/post-card";
+import { ReflectionsEmptyState } from "@/components/empty-states/reflections-empty-state";
 import { PageTransition } from "@/components/layout/page-transition";
 import {
   ContextMenu,
@@ -178,7 +178,6 @@ export function ReflectionsClient({
 }: {
   preloadedPosts?: Preloaded<typeof api.blogPosts.listPublished>;
 }) {
-  const t = useTranslations("reflections");
   const { isEditMode } = useEditMode();
   const { isAuthenticated } = useConvexAuth();
 
@@ -299,16 +298,7 @@ export function ReflectionsClient({
             ) : null}
           </motion.div>
 
-          {posts.length === 0 && !isEditMode ? (
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="py-20 text-center"
-              initial={{ opacity: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <p className="text-lg text-muted-foreground">{t("empty")}</p>
-            </motion.div>
-          ) : null}
+          {posts.length === 0 ? <ReflectionsEmptyState /> : null}
         </div>
       </div>
     </PageTransition>

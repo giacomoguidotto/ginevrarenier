@@ -34,6 +34,7 @@ import {
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section, useSection } from "@/components/admin/section";
+import { VisionEmptyState } from "@/components/empty-states/vision-empty-state";
 import { ProjectCard } from "@/components/gallery/project-card";
 import { PageTransition } from "@/components/layout/page-transition";
 import { fadeUp, staggerContainer } from "@/lib/animations";
@@ -212,6 +213,8 @@ export function VisionClient({
               <VisionHeader />
             </ChromeEnablerProvider>
           </Section>
+
+          {displayProjects.length === 0 ? <VisionEmptyState /> : null}
 
           {/* Projects Grid */}
           <DndContext

@@ -35,7 +35,11 @@
   "vision": {
     "label": "Portfolio",
     "title": "Vision",
-    "description": "A curated collection of works spanning portraits, landscapes, urban explorations, and abstract expressions. Each project is a chapter in an ongoing visual narrative."
+    "description": "A curated collection of works spanning portraits, landscapes, urban explorations, and abstract expressions. Each project is a chapter in an ongoing visual narrative.",
+    "empty": {
+      "title": "The gallery awaits",
+      "subtitle": "A curated visual narrative is taking shape"
+    }
   },
   "connect": {
     "header": {
@@ -83,9 +87,18 @@
     "label": "Journal",
     "title": "Reflections",
     "description": "Musings on light, shadow, and the ephemeral nature of moments. Essays on creativity, the craft of photography, and the stories behind the images.",
-    "empty": "New reflections coming soon...",
+    "empty": {
+      "title": "Stories yet to be written",
+      "subtitle": "Musings on light and shadow will appear here"
+    },
     "readMore": "Read More",
     "minRead": "{minutes} min read"
+  },
+  "projectGallery": {
+    "empty": {
+      "title": "The canvas awaits",
+      "subtitle": "Photographs for this project are on their way"
+    }
   },
   "metadata": {
     "home": {

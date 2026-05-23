@@ -35,7 +35,11 @@
   "vision": {
     "label": "Portfolio",
     "title": "Visione",
-    "description": "Una collezione curata di opere che spaziano da ritratti, paesaggi, esplorazioni urbane ed espressioni astratte. Ogni progetto è un capitolo di una narrazione visiva in continua evoluzione."
+    "description": "Una collezione curata di opere che spaziano da ritratti, paesaggi, esplorazioni urbane ed espressioni astratte. Ogni progetto è un capitolo di una narrazione visiva in continua evoluzione.",
+    "empty": {
+      "title": "La galleria attende",
+      "subtitle": "Una narrazione visiva curata sta prendendo forma"
+    }
   },
   "connect": {
     "header": {
@@ -83,9 +87,18 @@
     "label": "Diario",
     "title": "Riflessioni",
     "description": "Pensieri su luce, ombra e la natura effimera dei momenti. Saggi sulla creatività, l'arte della fotografia e le storie dietro le immagini.",
-    "empty": "Nuove riflessioni in arrivo...",
+    "empty": {
+      "title": "Storie ancora da scrivere",
+      "subtitle": "Pensieri su luce e ombra appariranno qui"
+    },
     "readMore": "Leggi di Più",
     "minRead": "{minutes} min di lettura"
+  },
+  "projectGallery": {
+    "empty": {
+      "title": "La tela attende",
+      "subtitle": "Le fotografie di questo progetto sono in arrivo"
+    }
   },
   "metadata": {
     "home": {
