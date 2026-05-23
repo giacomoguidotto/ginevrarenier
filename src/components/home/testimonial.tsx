@@ -6,16 +6,33 @@ import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
-import { Section } from "@/components/admin/section";
+import { Section, useSection } from "@/components/admin/section";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 
 export function Testimonial() {
   return (
     <Section label="Testimonial" name="testimonial">
+      <TestimonialGate />
+    </Section>
+  );
+}
+
+function TestimonialGate() {
+  const { data } = useSection();
+  const { isEditMode } = useEditMode();
+
+  const hasContent = data
+    ? Object.values(data).some((f) => f.en !== "" || f.it !== "")
+    : false;
+
+  return (
+    <CollapsibleSection visible={isEditMode || hasContent}>
       <ChromeEnablerProvider>
         <TestimonialContent />
       </ChromeEnablerProvider>
-    </Section>
+    </CollapsibleSection>
   );
 }
 

@@ -52,18 +52,9 @@ export const seed = internalMutation({
       {
         section: "testimonial",
         content: {
-          quote: {
-            en: "Ginevra has an extraordinary ability to capture not just images, but emotions. Her photographs express the true movement of life in the smallest details.",
-            it: "Ginevra ha una straordinaria capacità di catturare non solo immagini, ma emozioni. Le sue fotografie esprimono il vero moto della vita nei più piccoli dettagli.",
-          },
-          author: {
-            en: "Miranda Priestly",
-            it: "Miranda Priestly",
-          },
-          role: {
-            en: "Art Director, Vogue USA",
-            it: "Art Director, Vogue USA",
-          },
+          quote: { en: "", it: "" },
+          author: { en: "", it: "" },
+          role: { en: "", it: "" },
         },
       },
       {

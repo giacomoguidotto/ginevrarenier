@@ -207,7 +207,11 @@ export function Field({
         onFocus={isEditMode ? handleFocus : undefined}
         onInput={isEditMode ? handleInput : undefined}
         ref={elRef as React.RefObject<never>}
-        style={constraintStyle}
+        style={
+          isEditMode
+            ? { minHeight: "1lh", minWidth: "3ch", ...constraintStyle }
+            : constraintStyle
+        }
         suppressContentEditableWarning={isEditMode}
       />
       {containerRef?.current
