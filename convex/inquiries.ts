@@ -7,6 +7,7 @@ import {
   internalMutation,
   internalQuery,
 } from "./_generated/server";
+import { renderInquiryEmail } from "./emails/inquiryEmail";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -160,12 +161,20 @@ export const sendInquiryEmail = internalAction({
       throw new Error("ARTIST_EMAIL env var is not set");
     }
 
+    const html = await renderInquiryEmail({
+      name: inquiry.name,
+      email: inquiry.email,
+      inquiryType: inquiry.inquiryType,
+      message: inquiry.message,
+    });
+
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
-      from: "noreply@ginevrarenier.com",
+      from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
       to: [artistEmail],
       replyTo: inquiry.email,
       subject: `New inquiry: ${inquiry.inquiryType} from ${inquiry.name}`,
+      html,
       text: [
         `Name: ${inquiry.name}`,
         `Email: ${inquiry.email}`,

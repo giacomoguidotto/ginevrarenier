@@ -13,7 +13,7 @@ vi.mock("resend", () => ({
   },
 }));
 
-const modules = import.meta.glob("./**/*.ts");
+const modules = import.meta.glob("./**/*.{ts,tsx}");
 
 describe("insertInquiry", () => {
   it("persists a valid inquiry with pending status and zero attempts", async () => {
@@ -335,7 +335,7 @@ describe("sendInquiryEmail", () => {
     );
     expect(call).toBeDefined();
     expect(call?.[0]).toMatchObject({
-      from: "noreply@ginevrarenier.com",
+      from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
       to: ["artist@test.com"],
       replyTo: "ada@example.com",
       subject: "New inquiry: press from Ada Lovelace",
@@ -346,6 +346,9 @@ describe("sendInquiryEmail", () => {
     expect(call?.[0]?.text).toContain(
       "Message: Press inquiry about your work."
     );
+    expect(call?.[0]?.html).toBeDefined();
+    expect(call?.[0]?.html).toContain("Ada Lovelace");
+    expect(call?.[0]?.html).toContain("GINEVRA RENIER");
   });
 });
 
