@@ -90,8 +90,6 @@ export default defineSchema({
     .index("by_order", ["order"])
     .index("by_project", ["projectId"]),
 
-  // Transition schema: handle is optional until migration populates it.
-  // After running socialLinks.migrateToHandles, narrow to { platform, handle, order }.
   inquiries: defineTable({
     name: v.string(),
     email: v.string(),
@@ -113,6 +111,8 @@ export default defineSchema({
     .index("by_emailStatus", ["emailStatus"])
     .index("by_email", ["email"]),
 
+  // Transition schema: handle is optional until migration populates it.
+  // After running socialLinks.migrateToHandles, narrow to { platform, handle, order }.
   socialLinks: defineTable({
     platform: v.string(),
     handle: v.optional(v.string()),
