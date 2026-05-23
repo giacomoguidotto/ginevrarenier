@@ -68,7 +68,9 @@ export function EditableImage({
           src={src}
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-card">
+        <div
+          className={`flex h-full w-full items-center justify-center ${isEditMode ? "bg-card" : ""}`}
+        >
           {isEditMode && <Camera className="h-8 w-8 text-foreground/20" />}
         </div>
       )}
