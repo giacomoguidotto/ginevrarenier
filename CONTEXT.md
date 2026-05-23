@@ -27,7 +27,7 @@ A bilingual value `{ en: string, it: string }` — the atomic unit of translatab
 _Avoid_: Translation, i18n field, bilingual field
 
 **Section**:
-A named content area of a page (e.g., `"hero"`, `"essence.achievements"`) or a virtual section representing an entity (e.g., `"project:{id}"`, `"post:{id}"`). Contains one or more Fields. Real sections are stored as documents in the `siteContent` table; virtual sections map to entity tables. Accepts an optional `label` for human-readable display in the change summary.
+A named content area of a page (e.g., `"hero"`, `"essence.highlights"`) or a virtual section representing an entity (e.g., `"project:{id}"`, `"post:{id}"`). Contains one or more Fields. Real sections are stored as documents in the `siteContent` table; virtual sections map to entity tables. Accepts an optional `label` for human-readable display in the change summary.
 _Avoid_: Block, region, zone
 
 **Field**:

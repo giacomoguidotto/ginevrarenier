@@ -41,7 +41,7 @@ export function EssenceClient() {
         </ChromeEnablerProvider>
       </Section>
 
-      <Section label="Essence: Achievements" name="essence.achievements">
+      <Section label="Essence: Highlights" name="essence.highlights">
         <ChromeEnablerProvider>
           <EssenceAchievements />
         </ChromeEnablerProvider>

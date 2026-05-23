@@ -38,13 +38,13 @@ describe("formatEditLabel", () => {
   });
 
   it("keeps semantic field prefixes (no digits)", () => {
-    const labels = new Map([["essence.achievements", "Essence: Achievements"]]);
+    const labels = new Map([["essence.highlights", "Essence: Highlights"]]);
     expect(
       formatEditLabel(
-        { section: "essence.achievements", field: "years.title" },
+        { section: "essence.highlights", field: "years.title" },
         labels
       )
-    ).toBe("Essence: Achievements / years.title");
+    ).toBe("Essence: Highlights / years.title");
   });
 
   it("resolves entity label from field prefix when registered", () => {

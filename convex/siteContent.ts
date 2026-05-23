@@ -75,6 +75,21 @@ export const upsert = adminMutation({
   },
 });
 
+export const renameAchievementsToHighlights = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const doc = await ctx.db
+      .query("siteContent")
+      .withIndex("by_section", (q) => q.eq("section", "essence.achievements"))
+      .unique();
+    if (!doc) {
+      return { renamed: false };
+    }
+    await ctx.db.patch(doc._id, { section: "essence.highlights" });
+    return { renamed: true };
+  },
+});
+
 export const migrateToRecord = internalMutation({
   args: {},
   handler: async (ctx) => {

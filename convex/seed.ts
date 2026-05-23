@@ -77,7 +77,7 @@ export const seed = internalMutation({
         },
       },
       {
-        section: "essence.achievements",
+        section: "essence.highlights",
         content: {
           "years.title": {
             en: "Started at 19",

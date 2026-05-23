@@ -36,10 +36,10 @@ describe("routeSection", () => {
   });
 
   it("routes dotted section names to siteContent", () => {
-    const route = routeSection("essence.achievements");
+    const route = routeSection("essence.highlights");
     expect(route).toEqual({
       kind: "siteContent",
-      section: "essence.achievements",
+      section: "essence.highlights",
     });
   });
 });
