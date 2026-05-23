@@ -129,6 +129,18 @@ vi.mock("@/i18n/config", () => ({
   locales: ["en", "it"],
 }));
 
+vi.mock("@/lib/validators/inquiry", () => ({
+  inquirySchema: { safeParse: () => ({ success: true }) },
+}));
+
+vi.mock("@/lib/validators/inquiry-types", () => ({
+  inquiryTypes: ["collaboration", "commission", "exhibition", "press", "other"],
+}));
+
+vi.mock("@hookform/resolvers/zod", () => ({
+  zodResolver: () => () => ({ values: {}, errors: {} }),
+}));
+
 vi.mock("@/lib/platform-registry", () => ({
   getDisplayValue: (p: string, h: string) => h || p,
   getHref: (p: string, h: string) => `https://${p}/${h}`,

@@ -13,5 +13,6 @@ export default defineConfig({
   test: {
     include: ["**/*.test.{ts,tsx}", "**/*.browser.test.{ts,tsx}"],
     exclude: ["e2e/**", "node_modules/**"],
+    server: { deps: { inline: ["zod"] } },
   },
 });

@@ -57,7 +57,14 @@
       "message": "Messaggio",
       "messagePlaceholder": "Raccontami del tuo progetto o della tua richiesta...",
       "submit": "Invia Messaggio",
-      "sending": "Invio in corso..."
+      "sending": "Invio in corso...",
+      "errors": {
+        "name": "Inserisci il tuo nome",
+        "email": "Inserisci un indirizzo email valido",
+        "inquiryType": "Seleziona un tipo di richiesta",
+        "message": "Inserisci un messaggio",
+        "submit": "Qualcosa è andato storto. Riprova."
+      }
     },
     "inquiryTypes": {
       "collaboration": "Collaborazione",

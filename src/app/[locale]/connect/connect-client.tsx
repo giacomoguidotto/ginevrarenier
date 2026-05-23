@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -32,13 +33,8 @@ import {
   Undo2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
@@ -64,39 +60,36 @@ import {
   getLabel,
   platformKeys,
 } from "@/lib/platform-registry";
-
-const inquiryTypeKeys = [
-  "collaboration",
-  "commission",
-  "exhibition",
-  "press",
-  "other",
-] as const;
+import { type InquiryInput, inquirySchema } from "@/lib/validators/inquiry";
+import { inquiryTypes } from "@/lib/validators/inquiry-types";
 
 export function ConnectClient() {
-  const [formState, setFormState] = useState({
-    name: "",
-    email: "",
-    inquiryType: "",
-    message: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<InquiryInput>({
+    resolver: zodResolver(inquirySchema),
+    defaultValues: { name: "", email: "", inquiryType: undefined, message: "" },
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   const t = useTranslations("connect");
   const { isEditMode } = useEditMode();
   const { links: socials } = useSocialLinks();
+  const submitInquiry = useMutation(api.inquiries.submit);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setFormState({ name: "", email: "", inquiryType: "", message: "" });
+  const onSubmit = async (data: InquiryInput) => {
+    setSubmitError(false);
+    try {
+      await submitInquiry(data);
+      reset();
+      setIsSubmitted(true);
+    } catch {
+      setSubmitError(true);
+    }
   };
 
   const emailLinks = socials.filter((s) => s.platform === "email");
@@ -144,8 +137,11 @@ export function ConnectClient() {
                   </button>
                 </motion.div>
               ) : (
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  {/* Name */}
+                <form
+                  className="space-y-6"
+                  noValidate
+                  onSubmit={handleSubmit(onSubmit)}
+                >
                   <div>
                     <label
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
@@ -154,19 +150,19 @@ export function ConnectClient() {
                       {t("form.name")}
                     </label>
                     <input
-                      className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                      className={`w-full rounded-lg border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary ${errors.name ? "border-destructive" : "border-border"}`}
                       id="name"
-                      onChange={(e) =>
-                        setFormState({ ...formState, name: e.target.value })
-                      }
                       placeholder={t("form.namePlaceholder")}
-                      required
                       type="text"
-                      value={formState.name}
+                      {...register("name")}
                     />
+                    {errors.name && (
+                      <p className="mt-1 text-destructive text-sm">
+                        {t("form.errors.name")}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
@@ -175,19 +171,19 @@ export function ConnectClient() {
                       {t("form.email")}
                     </label>
                     <input
-                      className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                      className={`w-full rounded-lg border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary ${errors.email ? "border-destructive" : "border-border"}`}
                       id="email"
-                      onChange={(e) =>
-                        setFormState({ ...formState, email: e.target.value })
-                      }
                       placeholder={t("form.emailPlaceholder")}
-                      required
                       type="email"
-                      value={formState.email}
+                      {...register("email")}
                     />
+                    {errors.email && (
+                      <p className="mt-1 text-destructive text-sm">
+                        {t("form.errors.email")}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Inquiry Type */}
                   <div>
                     <label
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
@@ -195,30 +191,31 @@ export function ConnectClient() {
                     >
                       {t("form.inquiryType")}
                     </label>
-                    <select
-                      className="w-full rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-primary"
-                      id="inquiryType"
-                      onChange={(e) =>
-                        setFormState({
-                          ...formState,
-                          inquiryType: e.target.value,
-                        })
-                      }
-                      required
-                      value={formState.inquiryType}
-                    >
-                      <option disabled value="">
-                        {t("form.inquiryPlaceholder")}
-                      </option>
-                      {inquiryTypeKeys.map((key) => (
-                        <option key={key} value={key}>
-                          {t(`inquiryTypes.${key}`)}
+                    <div className="relative">
+                      <select
+                        className={`w-full appearance-none rounded-lg border bg-card px-4 py-3 pr-10 text-foreground outline-none transition-colors focus:border-primary ${errors.inquiryType ? "border-destructive" : "border-border"}`}
+                        defaultValue=""
+                        id="inquiryType"
+                        {...register("inquiryType")}
+                      >
+                        <option disabled value="">
+                          {t("form.inquiryPlaceholder")}
                         </option>
-                      ))}
-                    </select>
+                        {inquiryTypes.map((key) => (
+                          <option key={key} value={key}>
+                            {t(`inquiryTypes.${key}`)}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    </div>
+                    {errors.inquiryType && (
+                      <p className="mt-1 text-destructive text-sm">
+                        {t("form.errors.inquiryType")}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Message */}
                   <div>
                     <label
                       className="mb-2 block text-muted-foreground text-sm uppercase tracking-widest"
@@ -227,19 +224,25 @@ export function ConnectClient() {
                       {t("form.message")}
                     </label>
                     <textarea
-                      className="w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                      className={`w-full resize-none rounded-lg border bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary ${errors.message ? "border-destructive" : "border-border"}`}
                       id="message"
-                      onChange={(e) =>
-                        setFormState({ ...formState, message: e.target.value })
-                      }
                       placeholder={t("form.messagePlaceholder")}
-                      required
                       rows={6}
-                      value={formState.message}
+                      {...register("message")}
                     />
+                    {errors.message && (
+                      <p className="mt-1 text-destructive text-sm">
+                        {t("form.errors.message")}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Submit Button */}
+                  {submitError && (
+                    <p className="text-destructive text-sm">
+                      {t("form.errors.submit")}
+                    </p>
+                  )}
+
                   <motion.button
                     className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-primary bg-primary px-8 py-4 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-transparent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={isSubmitting}

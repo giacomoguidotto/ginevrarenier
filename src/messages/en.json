@@ -57,7 +57,14 @@
       "message": "Message",
       "messagePlaceholder": "Tell me about your project or inquiry...",
       "submit": "Send Message",
-      "sending": "Sending..."
+      "sending": "Sending...",
+      "errors": {
+        "name": "Please enter your name",
+        "email": "Please enter a valid email address",
+        "inquiryType": "Please select an inquiry type",
+        "message": "Please enter a message",
+        "submit": "Something went wrong. Please try again."
+      }
     },
     "inquiryTypes": {
       "collaboration": "Collaboration",
