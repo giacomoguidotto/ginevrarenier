@@ -109,7 +109,9 @@ export default defineSchema({
       v.literal("failed")
     ),
     attempts: v.number(),
-  }).index("by_emailStatus", ["emailStatus"]),
+  })
+    .index("by_emailStatus", ["emailStatus"])
+    .index("by_email", ["email"]),
 
   socialLinks: defineTable({
     platform: v.string(),

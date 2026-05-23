@@ -86,4 +86,81 @@ describe("inquiries.submit", () => {
       })
     ).rejects.toThrow();
   });
+
+  it("rejects a 4th submission from the same email within 24 hours", async () => {
+    const t = convexTest(schema, modules);
+    const base = {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration" as const,
+      message: "Hello",
+    };
+
+    await t.mutation(api.inquiries.submit, base);
+    await t.mutation(api.inquiries.submit, base);
+    await t.mutation(api.inquiries.submit, base);
+
+    await expect(t.mutation(api.inquiries.submit, base)).rejects.toThrow();
+  });
+
+  it("counts per-email limits independently per email address", async () => {
+    const t = convexTest(schema, modules);
+    const base = {
+      name: "Ada Lovelace",
+      inquiryType: "collaboration" as const,
+      message: "Hello",
+    };
+
+    await t.mutation(api.inquiries.submit, { ...base, email: "a@example.com" });
+    await t.mutation(api.inquiries.submit, { ...base, email: "a@example.com" });
+    await t.mutation(api.inquiries.submit, { ...base, email: "a@example.com" });
+
+    await t.mutation(api.inquiries.submit, { ...base, email: "b@example.com" });
+  });
+
+  it("rejects when global submission count exceeds limit within 1 hour", async () => {
+    const t = convexTest(schema, modules);
+    const base = {
+      name: "Ada Lovelace",
+      inquiryType: "collaboration" as const,
+      message: "Hello",
+    };
+
+    for (let i = 0; i < 20; i++) {
+      await t.mutation(api.inquiries.submit, {
+        ...base,
+        email: `user${i}@example.com`,
+      });
+    }
+
+    await expect(
+      t.mutation(api.inquiries.submit, {
+        ...base,
+        email: "user20@example.com",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("returns a generic error that does not reveal specific limits", async () => {
+    const t = convexTest(schema, modules);
+    const base = {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      inquiryType: "collaboration" as const,
+      message: "Hello",
+    };
+
+    await t.mutation(api.inquiries.submit, base);
+    await t.mutation(api.inquiries.submit, base);
+    await t.mutation(api.inquiries.submit, base);
+
+    const error: Error = await t.mutation(api.inquiries.submit, base).then(
+      () => expect.fail("Should have thrown"),
+      (e: Error) => e
+    );
+    expect(error.message).not.toContain("3");
+    expect(error.message).not.toContain("24");
+    expect(error.message).not.toContain("20");
+    expect(error.message).toContain("try again later");
+  });
 });
