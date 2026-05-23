@@ -4,7 +4,6 @@ export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
     // --- Site Content ---
-    const existing = await ctx.db.query("siteContent").first();
     const sections = [
       {
         section: "hero",
@@ -207,12 +206,13 @@ export const seed = internalMutation({
       },
     ];
 
-    if (!existing) {
-      for (const { section, content } of sections) {
-        await ctx.db.insert("siteContent", {
-          section,
-          content: JSON.stringify(content),
-        });
+    for (const { section, content } of sections) {
+      const row = await ctx.db
+        .query("siteContent")
+        .withIndex("by_section", (q) => q.eq("section", section))
+        .unique();
+      if (!row) {
+        await ctx.db.insert("siteContent", { section, content });
       }
     }
 
@@ -220,14 +220,14 @@ export const seed = internalMutation({
     const existingSocial = await ctx.db.query("socialLinks").first();
     if (!existingSocial) {
       await ctx.db.insert("socialLinks", {
-        platform: "instagram",
-        handle: "ginevra.renier",
+        platform: "email",
+        handle: "ginevrarenier@gmail.com",
         order: 0,
       });
 
       await ctx.db.insert("socialLinks", {
-        platform: "email",
-        handle: "ginevrarenier@gmail.com",
+        platform: "instagram",
+        handle: "ginevra.renier",
         order: 1,
       });
     }
