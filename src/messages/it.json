@@ -79,7 +79,9 @@
       "availability": {
         "title": "Disponibilità",
         "description": "Attualmente accetto progetti selezionati per il 2025. Per richieste urgenti, per favore menzionalo nel messaggio.",
-        "status": "Aperta a nuovi progetti"
+        "descriptionUnavailable": "Al momento non accetto nuovi progetti. Non esitare a contattarmi per future collaborazioni.",
+        "status": "Aperta a nuovi progetti",
+        "statusUnavailable": "Non disponibile"
       }
     }
   },

@@ -26,6 +26,8 @@ import {
   MapPin,
   Plus,
   Send,
+  ToggleLeft,
+  ToggleRight,
   Trash2,
   Undo2,
 } from "lucide-react";
@@ -305,20 +307,11 @@ export function ConnectClient() {
               </CollapsibleSection>
 
               {/* Availability */}
-              <div className="rounded-lg border border-border bg-card p-6">
-                <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
-                  {t("info.availability.title")}
-                </h3>
-                <p className="text-foreground">
-                  {t("info.availability.description")}
-                </p>
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="text-green-600 text-sm dark:text-green-400">
-                    {t("info.availability.status")}
-                  </span>
-                </div>
-              </div>
+              <Section label="Availability" name="connect.availability">
+                <ChromeEnablerProvider>
+                  <ConnectAvailability />
+                </ChromeEnablerProvider>
+              </Section>
             </motion.div>
           </div>
         </div>
@@ -390,6 +383,100 @@ function ConnectLocation() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+function ConnectAvailability() {
+  const { enable } = useChromeEnabler();
+  const { isEditMode } = useEditMode();
+  const { name: sectionName, data } = useSection();
+  const { read, write } = useDraftBufferOps();
+  useEditVersion();
+  const t = useTranslations("connect");
+  const localized = useLocalized();
+
+  useEffect(() => {
+    enable();
+  }, [enable]);
+
+  const draftAvailable = read(sectionName, "available", "en");
+  const convexAvailable = data?.available?.en;
+  const isAvailable = (draftAvailable ?? convexAvailable ?? "true") === "true";
+
+  const handleToggle = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest(".editable-field")) {
+      return;
+    }
+    const newValue = isAvailable ? "false" : "true";
+    for (const l of locales) {
+      write(sectionName, "available", l, newValue);
+    }
+  };
+
+  const dotColor = isAvailable ? "bg-green-500" : "bg-red-500";
+  const textColor = isAvailable
+    ? "text-green-600 dark:text-green-400"
+    : "text-red-600 dark:text-red-400";
+  const status = isAvailable
+    ? t("info.availability.status")
+    : t("info.availability.statusUnavailable");
+
+  const descriptionFieldName = isAvailable
+    ? "description"
+    : "descriptionUnavailable";
+
+  if (!isEditMode) {
+    const fallbackDescription = isAvailable
+      ? t("info.availability.description")
+      : t("info.availability.descriptionUnavailable");
+    const description = data?.[descriptionFieldName]
+      ? localized(data[descriptionFieldName])
+      : fallbackDescription;
+
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
+          {t("info.availability.title")}
+        </h3>
+        <p className="text-foreground">{description}</p>
+        <div className="mt-4 flex items-center gap-2">
+          <span className={`h-2 w-2 rounded-full ${dotColor}`} />
+          <span className={`text-sm ${textColor}`}>{status}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const ToggleIcon = isAvailable ? ToggleRight : ToggleLeft;
+  const toggleColor = isAvailable ? "text-green-500" : "text-red-500";
+
+  return (
+    <button
+      className="group relative w-full cursor-pointer rounded-lg border border-border bg-card p-6 text-left transition-colors hover:border-muted-foreground/40"
+      onClick={handleToggle}
+      type="button"
+    >
+      <ToggleIcon
+        className={`absolute top-3 right-3 h-5 w-5 ${toggleColor} opacity-50 transition-opacity group-hover:opacity-100`}
+      />
+      <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
+        {t("info.availability.title")}
+      </h3>
+      <Field
+        as="p"
+        className="text-foreground"
+        key={descriptionFieldName}
+        name={descriptionFieldName}
+      />
+      <div className="mt-4 flex items-center gap-2">
+        <span
+          className={`h-2 w-2 rounded-full ${dotColor} transition-colors`}
+        />
+        <span className={`text-sm ${textColor} transition-colors`}>
+          {status}
+        </span>
+      </div>
+    </button>
   );
 }
 

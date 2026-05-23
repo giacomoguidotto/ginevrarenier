@@ -156,6 +156,20 @@ export const seed = internalMutation({
         },
       },
       {
+        section: "connect.availability",
+        content: {
+          available: { en: "true", it: "true" },
+          description: {
+            en: "Currently accepting select projects for 2026. For urgent inquiries, please mention in your message.",
+            it: "Attualmente accetto progetti selezionati per il 2026. Per richieste urgenti, per favore menzionalo nel messaggio.",
+          },
+          descriptionUnavailable: {
+            en: "Not currently taking on new projects. Feel free to reach out for future collaborations.",
+            it: "Al momento non accetto nuovi progetti. Non esitare a contattarmi per future collaborazioni.",
+          },
+        },
+      },
+      {
         section: "connect.location",
         content: {
           location: {

@@ -79,7 +79,9 @@
       "availability": {
         "title": "Availability",
         "description": "Currently accepting select projects for 2025. For urgent inquiries, please mention in your message.",
-        "status": "Open to new projects"
+        "descriptionUnavailable": "Not currently taking on new projects. Feel free to reach out for future collaborations.",
+        "status": "Open to new projects",
+        "statusUnavailable": "Not available"
       }
     }
   },
