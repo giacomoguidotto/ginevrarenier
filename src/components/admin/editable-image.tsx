@@ -69,7 +69,7 @@ export function EditableImage({
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-card">
-          <Camera className="h-8 w-8 text-foreground/20" />
+          {isEditMode && <Camera className="h-8 w-8 text-foreground/20" />}
         </div>
       )}
 
