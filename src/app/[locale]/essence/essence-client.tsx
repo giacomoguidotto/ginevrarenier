@@ -73,8 +73,17 @@ function EssenceHero() {
   const textY = useTransform(scrollYProgress, [0, 1], [0, 50]);
 
   const { data } = useSection();
-  const { read, write, isPendingDeletion, trackDeletion, cancelDeletion } =
-    useDraftBufferOps();
+  const {
+    read,
+    write,
+    isPendingDeletion,
+    trackCreation,
+    cancelCreation,
+    trackDeletion,
+    cancelDeletion,
+    deleteField,
+    cancelFieldDeletion,
+  } = useDraftBufferOps();
   const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   const { enable } = useChromeEnabler();
   const localized = useLocalized();
@@ -95,6 +104,8 @@ function EssenceHero() {
     (url: string, publicId: string) => {
       if (isPendingDeletion("artist-image-essence", "essence.hero")) {
         cancelDeletion("artist-image-essence", "essence.hero");
+        cancelFieldDeletion("essence.hero", "portraitImage");
+        cancelFieldDeletion("essence.hero", "portraitImagePublicId");
         const oldPublicId =
           read("essence.hero", "portraitImagePublicId", "en") ??
           data?.portraitImagePublicId?.en;
@@ -106,6 +117,7 @@ function EssenceHero() {
       write("essence.hero", "portraitImage", "it", url);
       write("essence.hero", "portraitImagePublicId", "en", publicId);
       write("essence.hero", "portraitImagePublicId", "it", publicId);
+      trackCreation("artist-image-essence", "essence.hero");
     },
     [
       write,
@@ -113,7 +125,9 @@ function EssenceHero() {
       data,
       isPendingDeletion,
       cancelDeletion,
+      cancelFieldDeletion,
       cancelPendingDeletion,
+      trackCreation,
     ]
   );
 
@@ -124,8 +138,18 @@ function EssenceHero() {
     if (publicId) {
       trackPendingDeletion(publicId);
     }
+    cancelCreation("artist-image-essence", "essence.hero");
     trackDeletion("artist-image-essence", "essence.hero");
-  }, [read, data, trackPendingDeletion, trackDeletion]);
+    deleteField("essence.hero", "portraitImage");
+    deleteField("essence.hero", "portraitImagePublicId");
+  }, [
+    read,
+    data,
+    trackPendingDeletion,
+    cancelCreation,
+    trackDeletion,
+    deleteField,
+  ]);
 
   return (
     <section

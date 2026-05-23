@@ -37,8 +37,17 @@ function IntroSectionContent() {
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   const { data } = useSection();
-  const { read, write, isPendingDeletion, trackDeletion, cancelDeletion } =
-    useDraftBufferOps();
+  const {
+    read,
+    write,
+    isPendingDeletion,
+    trackCreation,
+    cancelCreation,
+    trackDeletion,
+    cancelDeletion,
+    deleteField,
+    cancelFieldDeletion,
+  } = useDraftBufferOps();
   const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   const { enable } = useChromeEnabler();
   const ctaRef = useRef<HTMLAnchorElement>(null);
@@ -56,6 +65,8 @@ function IntroSectionContent() {
     (url: string, publicId: string) => {
       if (isPendingDeletion("artist-image-home", "intro")) {
         cancelDeletion("artist-image-home", "intro");
+        cancelFieldDeletion("intro", "portraitImage");
+        cancelFieldDeletion("intro", "portraitImagePublicId");
         const oldPublicId =
           read("intro", "portraitImagePublicId", "en") ??
           data?.portraitImagePublicId?.en;
@@ -67,6 +78,7 @@ function IntroSectionContent() {
       write("intro", "portraitImage", "it", url);
       write("intro", "portraitImagePublicId", "en", publicId);
       write("intro", "portraitImagePublicId", "it", publicId);
+      trackCreation("artist-image-home", "intro");
     },
     [
       write,
@@ -74,7 +86,9 @@ function IntroSectionContent() {
       data,
       isPendingDeletion,
       cancelDeletion,
+      cancelFieldDeletion,
       cancelPendingDeletion,
+      trackCreation,
     ]
   );
 
@@ -85,8 +99,18 @@ function IntroSectionContent() {
     if (publicId) {
       trackPendingDeletion(publicId);
     }
+    cancelCreation("artist-image-home", "intro");
     trackDeletion("artist-image-home", "intro");
-  }, [read, data, trackPendingDeletion, trackDeletion]);
+    deleteField("intro", "portraitImage");
+    deleteField("intro", "portraitImagePublicId");
+  }, [
+    read,
+    data,
+    trackPendingDeletion,
+    cancelCreation,
+    trackDeletion,
+    deleteField,
+  ]);
 
   return (
     <section
