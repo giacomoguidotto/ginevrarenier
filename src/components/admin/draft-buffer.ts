@@ -220,6 +220,9 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
     isSessionCreated(entityType: string, id: string): boolean {
       return creations.has(entityKey(entityType, id));
     },
+    cancelCreation(entityType: string, id: string): void {
+      creations.delete(entityKey(entityType, id));
+    },
     trackDeletion(entityType: string, id: string): void {
       deletions.add(entityKey(entityType, id));
     },

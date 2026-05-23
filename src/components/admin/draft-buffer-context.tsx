@@ -82,6 +82,7 @@ interface DraftBufferOps {
     staleFields: { section: string; field: string; locale: string }[],
     translate: TranslateFn
   ) => Promise<AutoTranslateResult>;
+  cancelCreation: (entityType: string, id: string) => void;
   cancelDeletion: (entityType: string, id: string) => void;
   cancelFieldDeletion: (section: string, keyPrefix: string) => void;
   clearPublishOverride: (entityType: string, id: string) => void;
@@ -138,6 +139,7 @@ const noop = () => {};
 
 const OpsContext = createContext<DraftBufferOps>({
   autoTranslate: () => Promise.resolve({ translated: [], failed: [] }),
+  cancelCreation: noop,
   cancelDeletion: noop,
   cancelFieldDeletion: noop,
   clearPublishOverride: noop,
@@ -420,6 +422,15 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [schedulePersist]
   );
 
+  const cancelCreation = useCallback(
+    (entityType: string, id: string) => {
+      bufferRef.current.cancelCreation(entityType, id);
+      setHasChanges(bufferRef.current.hasChanges());
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
   const trackDeletion = useCallback(
     (entityType: string, id: string) => {
       bufferRef.current.trackDeletion(entityType, id);
@@ -674,6 +685,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const ops = useMemo(
     () => ({
       autoTranslate,
+      cancelCreation,
       cancelDeletion,
       cancelFieldDeletion,
       clearPublishOverride,
@@ -733,6 +745,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [
       editVersion,
       autoTranslate,
+      cancelCreation,
       cancelDeletion,
       cancelFieldDeletion,
       clearPublishOverride,
