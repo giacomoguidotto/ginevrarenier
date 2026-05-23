@@ -92,6 +92,25 @@ export default defineSchema({
 
   // Transition schema: handle is optional until migration populates it.
   // After running socialLinks.migrateToHandles, narrow to { platform, handle, order }.
+  inquiries: defineTable({
+    name: v.string(),
+    email: v.string(),
+    inquiryType: v.union(
+      v.literal("collaboration"),
+      v.literal("commission"),
+      v.literal("exhibition"),
+      v.literal("press"),
+      v.literal("other")
+    ),
+    message: v.string(),
+    emailStatus: v.union(
+      v.literal("pending"),
+      v.literal("sent"),
+      v.literal("failed")
+    ),
+    attempts: v.number(),
+  }).index("by_emailStatus", ["emailStatus"]),
+
   socialLinks: defineTable({
     platform: v.string(),
     handle: v.optional(v.string()),
