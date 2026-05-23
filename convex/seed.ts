@@ -165,6 +165,15 @@ export const seed = internalMutation({
         },
       },
       {
+        section: "connect.location",
+        content: {
+          location: {
+            en: "Venice, Italy",
+            it: "Venezia, Italia",
+          },
+        },
+      },
+      {
         section: "vision.header",
         content: {
           label: {

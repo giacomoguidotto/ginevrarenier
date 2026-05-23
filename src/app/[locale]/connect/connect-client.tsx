@@ -281,17 +281,11 @@ export function ConnectClient() {
                 links={emailLinks}
                 title={t("info.directContact")}
               >
-                <div className="flex items-start gap-4">
-                  <MapPin className="mt-1 h-5 w-5 text-foreground/60" />
-                  <div>
-                    <p className="text-muted-foreground text-sm">
-                      {t("info.basedIn")}
-                    </p>
-                    <p className="text-foreground text-lg">
-                      {t("info.location")}
-                    </p>
-                  </div>
-                </div>
+                <Section label="Location" name="connect.location">
+                  <ChromeEnablerProvider>
+                    <ConnectLocation />
+                  </ChromeEnablerProvider>
+                </Section>
               </SocialSection>
 
               {/* Social */}
@@ -364,6 +358,29 @@ function ConnectHeader() {
           name="description"
         />
       </motion.div>
+    </div>
+  );
+}
+
+function ConnectLocation() {
+  const { enable } = useChromeEnabler();
+  const { isEditMode } = useEditMode();
+  const t = useTranslations("connect");
+
+  return (
+    <div className={`flex items-center gap-4 ${isEditMode ? "pr-9" : ""}`}>
+      <MapPin className="h-5 w-5 text-foreground/60" />
+      <div className="flex-1">
+        <p className="text-muted-foreground text-sm">{t("info.basedIn")}</p>
+        <motion.div
+          animate={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          onAnimationComplete={enable}
+          transition={{ duration: 0.3 }}
+        >
+          <Field as="p" className="text-foreground text-lg" name="location" />
+        </motion.div>
+      </div>
     </div>
   );
 }
