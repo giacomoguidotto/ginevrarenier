@@ -32,6 +32,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.4.0",
     "@marsidev/react-turnstile": "^1.5.2",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
