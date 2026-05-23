@@ -27,16 +27,6 @@ describe("formatEditLabel", () => {
     ).toBe("Project: Solstice / title");
   });
 
-  it("strips generated ID prefix from field names", () => {
-    const labels = new Map([["essence.timeline", "Essence: Timeline"]]);
-    expect(
-      formatEditLabel(
-        { section: "essence.timeline", field: "lo0dsw.year" },
-        labels
-      )
-    ).toBe("Essence: Timeline / year");
-  });
-
   it("keeps semantic field prefixes (no digits)", () => {
     const labels = new Map([["essence.highlights", "Essence: Highlights"]]);
     expect(
@@ -45,29 +35,6 @@ describe("formatEditLabel", () => {
         labels
       )
     ).toBe("Essence: Highlights / years.title");
-  });
-
-  it("resolves entity label from field prefix when registered", () => {
-    const labels = new Map([
-      ["essence.timeline", "Essence: Timeline"],
-      ["timeline-entry:qymwph", "Timeline Entry: 2022"],
-    ]);
-    expect(
-      formatEditLabel(
-        { section: "essence.timeline", field: "qymwph.title" },
-        labels
-      )
-    ).toBe("Timeline Entry: 2022 / title");
-  });
-
-  it("resolves entity label for description field", () => {
-    const labels = new Map([["timeline-entry:abc123", "Timeline Entry: 2025"]]);
-    expect(
-      formatEditLabel(
-        { section: "essence.timeline", field: "abc123.description" },
-        labels
-      )
-    ).toBe("Timeline Entry: 2025 / description");
   });
 });
 

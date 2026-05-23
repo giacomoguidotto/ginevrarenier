@@ -10,11 +10,6 @@ export interface ImageSwap {
   publicId: string;
 }
 
-export interface FieldDeletion {
-  keyPrefix: string;
-  section: string;
-}
-
 export interface PublishOverrideEntry {
   entityType: string;
   id: string;
@@ -25,7 +20,6 @@ export interface ChangeSummary {
   autoTranslations: { section: string; field: string; locale: string }[];
   createdEntities: EntityRef[];
   dismissals: { section: string; field: string; locale: string }[];
-  fieldDeletions: FieldDeletion[];
   imageSwaps: ImageSwap[];
   pendingDeletions: EntityRef[];
   publishOverrides: PublishOverrideEntry[];
@@ -45,7 +39,6 @@ export interface SerializedDraftBuffer {
   creations: string[];
   deletions: string[];
   dismissals?: string[];
-  fieldDels: string[];
   publishOverrides?: [string, boolean][];
   reorderLists?: [string, string[]][];
   store: [string, string][];
@@ -56,7 +49,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
   const store = new Map<string, string>(initial?.store);
   const creations = new Set<string>(initial?.creations);
   const deletions = new Set<string>(initial?.deletions);
-  const fieldDels = new Set<string>(initial?.fieldDels);
   const pubOverrides = new Map<string, boolean>(initial?.publishOverrides);
   const reorderLists = new Map<string, string[]>(initial?.reorderLists);
   const dismissals = new Set<string>(initial?.dismissals);
@@ -105,7 +97,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         store.size > 0 ||
         creations.size > 0 ||
         deletions.size > 0 ||
-        fieldDels.size > 0 ||
         pubOverrides.size > 0 ||
         reorderLists.size > 0
       );
@@ -174,11 +165,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         pendingDeletions.push({ entityType, id });
       }
 
-      const fds: FieldDeletion[] = [...fieldDels].map((k) => {
-        const [section, keyPrefix] = k.split("\0");
-        return { section, keyPrefix };
-      });
-
       const pubOvrs: PublishOverrideEntry[] = [...pubOverrides].map(
         ([k, published]) => {
           const [entityType, id] = k.split("\0");
@@ -197,7 +183,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         textEdits,
         createdEntities,
         pendingDeletions,
-        fieldDeletions: fds,
         publishOverrides: pubOvrs,
         reorderedEntityTypes: [...reorderLists.keys()],
         dismissals: toFieldLocaleList(dismissals),
@@ -242,21 +227,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
       return [...deletions].map((k) => {
         const [entityType, id] = k.split("\0");
         return { entityType, id };
-      });
-    },
-    deleteField(section: string, keyPrefix: string): void {
-      fieldDels.add(`${section}\0${keyPrefix}`);
-    },
-    cancelFieldDeletion(section: string, keyPrefix: string): void {
-      fieldDels.delete(`${section}\0${keyPrefix}`);
-    },
-    isFieldDeleted(section: string, keyPrefix: string): boolean {
-      return fieldDels.has(`${section}\0${keyPrefix}`);
-    },
-    fieldDeletions(): { section: string; keyPrefix: string }[] {
-      return [...fieldDels].map((k) => {
-        const [section, keyPrefix] = k.split("\0");
-        return { section, keyPrefix };
       });
     },
     setPublishOverride(
@@ -312,7 +282,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
       store.clear();
       creations.clear();
       deletions.clear();
-      fieldDels.clear();
       pubOverrides.clear();
       reorderLists.clear();
       dismissals.clear();
@@ -324,7 +293,6 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         store: [...store.entries()],
         creations: [...creations],
         deletions: [...deletions],
-        fieldDels: [...fieldDels],
         publishOverrides: [...pubOverrides.entries()],
         reorderLists: [...reorderLists.entries()],
         dismissals: [...dismissals],

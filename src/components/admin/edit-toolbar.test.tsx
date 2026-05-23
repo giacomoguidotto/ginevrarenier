@@ -41,7 +41,6 @@ const emptySummary = () => ({
   autoTranslations: [],
   createdEntities: [],
   dismissals: [],
-  fieldDeletions: [],
   imageSwaps: [],
   pendingDeletions: [],
   publishOverrides: [],

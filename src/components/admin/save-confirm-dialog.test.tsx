@@ -6,9 +6,6 @@ import type { ChangeSummary } from "./draft-buffer";
 import { SaveConfirmDialog } from "./edit-toolbar";
 
 const STALE_FIELD_RE = /undismissed stale field/;
-const ABC_YEAR_RE = /abc\.year/;
-const TIMELINE_ENTRY_RE = /Timeline Entry/;
-const TMP_YEAR_RE = /tmp\.year/;
 const PORTRAIT_IMAGE_RE = /portraitImage/;
 
 afterEach(cleanup);
@@ -19,7 +16,6 @@ function makeSummary(overrides: Partial<ChangeSummary> = {}): ChangeSummary {
     imageSwaps: [],
     createdEntities: [],
     pendingDeletions: [],
-    fieldDeletions: [],
     publishOverrides: [],
     reorderedEntityTypes: [],
     dismissals: [],
@@ -202,105 +198,6 @@ describe("SaveConfirmDialog", () => {
     expect(screen.getByText(STALE_FIELD_RE)).toBeTruthy();
     const saveBtn = screen.getByRole("button", { name: "Save" });
     expect((saveBtn as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("shows green line for created timeline entry and hides its text edits", () => {
-    const summary = makeSummary({
-      textEdits: [
-        {
-          section: "essence.timeline",
-          field: "abc.year",
-          locale: "en",
-          newValue: "2026",
-          oldValue: undefined,
-        },
-        {
-          section: "essence.timeline",
-          field: "abc.title",
-          locale: "en",
-          newValue: "",
-          oldValue: undefined,
-        },
-      ],
-      createdEntities: [{ entityType: "timeline-entry", id: "abc" }],
-    });
-    const labels = new Map([
-      ["essence.timeline", "Essence: Timeline"],
-      ["timeline-entry:abc", "Timeline Entry: 2026"],
-    ]);
-
-    render(
-      <SaveConfirmDialog
-        changeSummary={() => summary}
-        loading={false}
-        onCancel={vi.fn()}
-        onConfirm={vi.fn()}
-        open
-        sectionLabels={labels}
-      />
-    );
-
-    expect(screen.getByText("New Timeline Entry: 2026")).toBeTruthy();
-    expect(screen.queryByText(ABC_YEAR_RE)).toBeNull();
-  });
-
-  it("shows red line for deleted timeline entry", () => {
-    const summary = makeSummary({
-      pendingDeletions: [{ entityType: "timeline-entry", id: "xyz" }],
-    });
-    const labels = new Map([["timeline-entry:xyz", "Timeline Entry: 2020"]]);
-
-    render(
-      <SaveConfirmDialog
-        changeSummary={() => summary}
-        loading={false}
-        onCancel={vi.fn()}
-        onConfirm={vi.fn()}
-        open
-        sectionLabels={labels}
-      />
-    );
-
-    const items = screen.getAllByText(
-      (_content, el) => el?.textContent === "Delete Timeline Entry: 2020"
-    );
-    expect(items.length).toBeGreaterThan(0);
-    expect(
-      items.some((el) =>
-        el.closest("li")?.classList.contains("text-destructive")
-      )
-    ).toBe(true);
-  });
-
-  it("hides timeline entries that are both created and deleted", () => {
-    const summary = makeSummary({
-      textEdits: [
-        {
-          section: "essence.timeline",
-          field: "tmp.year",
-          locale: "en",
-          newValue: "2026",
-          oldValue: undefined,
-        },
-      ],
-      createdEntities: [{ entityType: "timeline-entry", id: "tmp" }],
-      pendingDeletions: [{ entityType: "timeline-entry", id: "tmp" }],
-    });
-    const labels = new Map([["timeline-entry:tmp", "Timeline Entry: 2026"]]);
-
-    render(
-      <SaveConfirmDialog
-        changeSummary={() => summary}
-        loading={false}
-        onCancel={vi.fn()}
-        onConfirm={vi.fn()}
-        open
-        sectionLabels={labels}
-      />
-    );
-
-    expect(screen.queryByText(TIMELINE_ENTRY_RE)).toBeNull();
-    expect(screen.queryByText(TMP_YEAR_RE)).toBeNull();
   });
 
   it("shows new photo with parent context", () => {

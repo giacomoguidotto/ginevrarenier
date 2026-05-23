@@ -32,7 +32,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ChangeSummary, EntityRef } from "./draft-buffer";
+import type { ChangeSummary } from "./draft-buffer";
 import { useEditMode } from "./edit-mode-context";
 import { formatEntityRef, formatEntityType } from "./entity-descriptors";
 import { getAllSectionLabels } from "./page-boundary";
@@ -408,66 +408,27 @@ const artistImageSections = new Map([
   ["artist-image-essence", "essence.hero"],
 ]);
 
-function filterEntityTextEdits(
+function filterArtistImageTextEdits(
   summary: ChangeSummary
 ): ChangeSummary["textEdits"] {
-  const entityIds = new Set<string>();
-  for (const ref of summary.createdEntities) {
-    if (ref.entityType === "timeline-entry") {
-      entityIds.add(ref.id);
-    }
-  }
-  for (const ref of summary.pendingDeletions) {
-    if (ref.entityType === "timeline-entry") {
-      entityIds.add(ref.id);
-    }
-  }
-
   const artistImageSectionSet = new Set<string>();
-  for (const ref of summary.pendingDeletions) {
-    const section = artistImageSections.get(ref.entityType);
-    if (section) {
-      artistImageSectionSet.add(section);
-    }
-  }
-  for (const ref of summary.createdEntities) {
+  for (const ref of [...summary.pendingDeletions, ...summary.createdEntities]) {
     const section = artistImageSections.get(ref.entityType);
     if (section) {
       artistImageSectionSet.add(section);
     }
   }
 
-  if (entityIds.size === 0 && artistImageSectionSet.size === 0) {
+  if (artistImageSectionSet.size === 0) {
     return summary.textEdits;
   }
 
-  return summary.textEdits.filter((edit) => {
-    if (
-      artistImageSectionSet.has(edit.section) &&
-      edit.field.startsWith("portraitImage")
-    ) {
-      return false;
-    }
-    if (edit.section !== "essence.timeline") {
-      return true;
-    }
-    const dot = edit.field.indexOf(".");
-    if (dot === -1) {
-      return true;
-    }
-    return !entityIds.has(edit.field.slice(0, dot));
-  });
-}
-
-function filterEntityRefs(
-  refs: EntityRef[],
-  exclude: Set<string>
-): EntityRef[] {
-  if (exclude.size === 0) {
-    return refs;
-  }
-  return refs.filter(
-    (ref) => ref.entityType !== "timeline-entry" || !exclude.has(ref.id)
+  return summary.textEdits.filter(
+    (edit) =>
+      !(
+        artistImageSectionSet.has(edit.section) &&
+        edit.field.startsWith("portraitImage")
+      )
   );
 }
 
@@ -522,26 +483,9 @@ export function SaveConfirmDialog({
   const sectionLabels =
     sectionLabelsProp ?? (open ? getAllSectionLabels() : new Map());
 
-  const textEdits = summary ? filterEntityTextEdits(summary) : [];
-  const cancelledIds = summary
-    ? new Set(
-        summary.createdEntities
-          .filter(
-            (c) =>
-              c.entityType === "timeline-entry" &&
-              summary.pendingDeletions.some(
-                (d) => d.entityType === "timeline-entry" && d.id === c.id
-              )
-          )
-          .map((c) => c.id)
-      )
-    : new Set<string>();
-  const createdEntities = summary
-    ? filterEntityRefs(summary.createdEntities, cancelledIds)
-    : [];
-  const pendingDeletions = summary
-    ? filterEntityRefs(summary.pendingDeletions, cancelledIds)
-    : [];
+  const textEdits = summary ? filterArtistImageTextEdits(summary) : [];
+  const createdEntities = summary ? summary.createdEntities : [];
+  const pendingDeletions = summary ? summary.pendingDeletions : [];
 
   const hasTextEdits = textEdits.length > 0;
   const hasCreations = createdEntities.length > 0;
@@ -671,7 +615,7 @@ function DiscardConfirmDialog({
     ? getAllSectionLabels()
     : new Map<string, string>();
 
-  const textEdits = summary ? filterEntityTextEdits(summary) : [];
+  const textEdits = summary ? filterArtistImageTextEdits(summary) : [];
   const artistImageCreationCount = summary
     ? summary.createdEntities.filter((e) =>
         artistImageSections.has(e.entityType)
@@ -682,9 +626,7 @@ function DiscardConfirmDialog({
     (summary?.imageSwaps.length ?? 0) - artistImageCreationCount
   );
   const editCount = textEdits.length + visibleImageSwaps;
-  const dbCreations = summary
-    ? summary.createdEntities.filter((e) => e.entityType !== "timeline-entry")
-    : [];
+  const dbCreations = summary ? summary.createdEntities : [];
   const hasCreations = summary ? summary.createdEntities.length > 0 : false;
 
   return (

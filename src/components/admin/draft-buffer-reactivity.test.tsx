@@ -340,7 +340,6 @@ const bufferWithEdits = {
   store: [["hero\0title\0en", "Hello"]],
   creations: [],
   deletions: [],
-  fieldDels: [],
   publishOverrides: [],
   reorderLists: [],
   dismissals: [],

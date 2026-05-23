@@ -45,8 +45,6 @@ function IntroSectionContent() {
     cancelCreation,
     trackDeletion,
     cancelDeletion,
-    deleteField,
-    cancelFieldDeletion,
   } = useDraftBufferOps();
   const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   const { enable } = useChromeEnabler();
@@ -65,8 +63,6 @@ function IntroSectionContent() {
     (url: string, publicId: string) => {
       if (isPendingDeletion("artist-image-home", "intro")) {
         cancelDeletion("artist-image-home", "intro");
-        cancelFieldDeletion("intro", "portraitImage");
-        cancelFieldDeletion("intro", "portraitImagePublicId");
         const oldPublicId =
           read("intro", "portraitImagePublicId", "en") ??
           data?.portraitImagePublicId?.en;
@@ -86,7 +82,6 @@ function IntroSectionContent() {
       data,
       isPendingDeletion,
       cancelDeletion,
-      cancelFieldDeletion,
       cancelPendingDeletion,
       trackCreation,
     ]
@@ -101,16 +96,11 @@ function IntroSectionContent() {
     }
     cancelCreation("artist-image-home", "intro");
     trackDeletion("artist-image-home", "intro");
-    deleteField("intro", "portraitImage");
-    deleteField("intro", "portraitImagePublicId");
-  }, [
-    read,
-    data,
-    trackPendingDeletion,
-    cancelCreation,
-    trackDeletion,
-    deleteField,
-  ]);
+    write("intro", "portraitImage", "en", "");
+    write("intro", "portraitImage", "it", "");
+    write("intro", "portraitImagePublicId", "en", "");
+    write("intro", "portraitImagePublicId", "it", "");
+  }, [read, data, trackPendingDeletion, cancelCreation, trackDeletion, write]);
 
   return (
     <section

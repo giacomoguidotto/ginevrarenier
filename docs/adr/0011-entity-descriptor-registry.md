@@ -40,5 +40,4 @@ interface EntityDescriptor {
 
 - `SectionRoute` changes from a 3-variant union to a 2-variant union. The old `{ kind: "project" }` and `{ kind: "post" }` variants collapse into `{ kind: "entity"; descriptor; id }`. Existing `save-routing.test.ts` assertions are updated accordingly.
 - `formatEntityType` and `formatEntityRef` are removed from `edit-toolbar.tsx` and re-implemented in `entity-descriptors.ts` using the registry, with a humanized fallback for unregistered types.
-- Timeline entry handling (`filterEntityTextEdits`, `filterEntityRefs`, derived entries) remains unchanged — timeline entries are not yet registered as descriptors and will be migrated in a later slice.
-- The old `save-routing.ts` retains `buildEntityUpdates`, `groupFieldDeletions`, and `mergeSiteContent` (pure data-transformation functions unrelated to entity dispatch).
+- The old `save-routing.ts` retains `buildEntityUpdates` and `mergeSiteContent` (pure data-transformation functions unrelated to entity dispatch).

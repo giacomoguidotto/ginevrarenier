@@ -62,7 +62,6 @@ describe("Draft Buffer", () => {
       autoTranslations: [],
       createdEntities: [],
       dismissals: [],
-      fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
       publishOverrides: [],
@@ -145,7 +144,6 @@ describe("Draft Buffer", () => {
       autoTranslations: [],
       createdEntities: [],
       dismissals: [],
-      fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
       publishOverrides: [],
@@ -318,15 +316,6 @@ describe("Draft Buffer", () => {
     });
   });
 
-  describe("Field Deletions", () => {
-    it("deleteField marks a prefix and isFieldDeleted reports it", () => {
-      const buffer = createDraftBuffer();
-      expect(buffer.isFieldDeleted("essence.timeline", "abc123")).toBe(false);
-      buffer.deleteField("essence.timeline", "abc123");
-      expect(buffer.isFieldDeleted("essence.timeline", "abc123")).toBe(true);
-    });
-  });
-
   describe("interactions", () => {
     it("a session-created entity can be pending-deleted in the same session", () => {
       const buffer = createDraftBuffer();
@@ -369,7 +358,6 @@ describe("Draft Buffer", () => {
       buffer.write("hero", "title", "it", "Ciao");
       buffer.trackCreation("project", "p1");
       buffer.trackDeletion("post", "b1");
-      buffer.deleteField("essence.timeline", "abc");
 
       const serialized = buffer.serialize();
       expect(serialized.store).toEqual(
@@ -380,7 +368,6 @@ describe("Draft Buffer", () => {
       );
       expect(serialized.creations).toEqual(["project\0p1"]);
       expect(serialized.deletions).toEqual(["post\0b1"]);
-      expect(serialized.fieldDels).toEqual(["essence.timeline\0abc"]);
     });
 
     it("hydrating from serialized state restores full buffer", () => {
@@ -389,7 +376,6 @@ describe("Draft Buffer", () => {
       original.write("intro", "body", "it", "Mondo");
       original.trackCreation("project", "p1");
       original.trackDeletion("post", "b1");
-      original.deleteField("essence.timeline", "xyz");
 
       const serialized = original.serialize();
       const restored = createDraftBuffer(serialized);
@@ -398,7 +384,6 @@ describe("Draft Buffer", () => {
       expect(restored.read("intro", "body", "it")).toBe("Mondo");
       expect(restored.isSessionCreated("project", "p1")).toBe(true);
       expect(restored.isPendingDeletion("post", "b1")).toBe(true);
-      expect(restored.isFieldDeleted("essence.timeline", "xyz")).toBe(true);
       expect(restored.hasChanges()).toBe(true);
     });
 
@@ -433,7 +418,6 @@ describe("Draft Buffer", () => {
         store: [],
         creations: [],
         deletions: [],
-        fieldDels: [],
         publishOverrides: [],
         reorderLists: [],
         dismissals: [],
@@ -515,7 +499,6 @@ describe("Draft Buffer", () => {
         store: [] as [string, string][],
         creations: [],
         deletions: [],
-        fieldDels: [],
       };
       const buffer = createDraftBuffer(legacy);
       expect(buffer.getPublishOverride("project", "p1")).toBeUndefined();
@@ -583,7 +566,6 @@ describe("Draft Buffer", () => {
         store: [] as [string, string][],
         creations: [],
         deletions: [],
-        fieldDels: [],
       };
       const buffer = createDraftBuffer(legacy);
       expect(buffer.isDismissed("hero", "title", "it")).toBe(false);
@@ -721,7 +703,6 @@ describe("Draft Buffer", () => {
         store: [] as [string, string][],
         creations: [],
         deletions: [],
-        fieldDels: [],
       };
       const buffer = createDraftBuffer(legacy);
       expect(buffer.getReorderList("project")).toBeUndefined();

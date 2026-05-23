@@ -25,11 +25,7 @@ import { useEditMode } from "./edit-mode-context";
 import { routeSection } from "./entity-descriptors";
 import { createImageAssets } from "./image-assets";
 import { deleteCloudinaryImage, uploadImage } from "./image-upload";
-import {
-  buildEntityUpdates,
-  groupFieldDeletions,
-  mergeSiteContent,
-} from "./save-routing";
+import { buildEntityUpdates, mergeSiteContent } from "./save-routing";
 import type { FieldStatus } from "./staleness-engine";
 
 type Buffer = ReturnType<typeof createDraftBuffer>;
@@ -84,9 +80,7 @@ interface DraftBufferOps {
   ) => Promise<AutoTranslateResult>;
   cancelCreation: (entityType: string, id: string) => void;
   cancelDeletion: (entityType: string, id: string) => void;
-  cancelFieldDeletion: (section: string, keyPrefix: string) => void;
   clearPublishOverride: (entityType: string, id: string) => void;
-  deleteField: (section: string, keyPrefix: string) => void;
   dismiss: (section: string, field: string, locale: string) => void;
   editedLocales: Buffer["editedLocales"];
   fieldStatus: (section: string, field: string, locale: string) => FieldStatus;
@@ -94,7 +88,6 @@ interface DraftBufferOps {
   getReorderList: (entityType: string) => string[] | undefined;
   isAutoTranslated: (section: string, field: string, locale: string) => boolean;
   isDismissed: (section: string, field: string, locale: string) => boolean;
-  isFieldDeleted: (section: string, keyPrefix: string) => boolean;
   isPendingDeletion: (entityType: string, id: string) => boolean;
   isSessionCreated: (entityType: string, id: string) => boolean;
   markAutoTranslated: (section: string, field: string, locale: string) => void;
@@ -141,9 +134,7 @@ const OpsContext = createContext<DraftBufferOps>({
   autoTranslate: () => Promise.resolve({ translated: [], failed: [] }),
   cancelCreation: noop,
   cancelDeletion: noop,
-  cancelFieldDeletion: noop,
   clearPublishOverride: noop,
-  deleteField: noop,
   dismiss: noop,
   editedLocales: () => new Set<string>(),
   fieldStatus: () => "fresh" as FieldStatus,
@@ -151,7 +142,6 @@ const OpsContext = createContext<DraftBufferOps>({
   getReorderList: () => undefined,
   isAutoTranslated: () => false,
   isDismissed: () => false,
-  isFieldDeleted: () => false,
   isPendingDeletion: () => false,
   isSessionCreated: () => false,
   markAutoTranslated: noop,
@@ -180,7 +170,6 @@ const StateContext = createContext<DraftBufferState>({
     autoTranslations: [],
     createdEntities: [],
     dismissals: [],
-    fieldDeletions: [],
     imageSwaps: [],
     pendingDeletions: [],
     publishOverrides: [],
@@ -473,26 +462,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [schedulePersist]
   );
 
-  const deleteField = useCallback(
-    (section: string, keyPrefix: string) => {
-      bufferRef.current.deleteField(section, keyPrefix);
-      setHasChanges(true);
-      setEditVersion((v) => v + 1);
-      schedulePersist();
-    },
-    [schedulePersist]
-  );
-
-  const cancelFieldDeletion = useCallback(
-    (section: string, keyPrefix: string) => {
-      bufferRef.current.cancelFieldDeletion(section, keyPrefix);
-      setHasChanges(bufferRef.current.hasChanges());
-      setEditVersion((v) => v + 1);
-      schedulePersist();
-    },
-    [schedulePersist]
-  );
-
   const dismiss = useCallback(
     (section: string, field: string, locale: string) => {
       bufferRef.current.dismiss(section, field, locale);
@@ -594,14 +563,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const saveSections = useCallback(
     async (buffer: Buffer) => {
       const grouped = buffer.changes();
-      const deletionsBySection = groupFieldDeletions(buffer.fieldDeletions());
-      const touchedSections = new Set([
-        ...grouped.keys(),
-        ...deletionsBySection.keys(),
-      ]);
 
-      for (const sectionName of touchedSections) {
-        const fields = grouped.get(sectionName) ?? {};
+      for (const [sectionName, fields] of grouped) {
         const route = routeSection(sectionName);
 
         if (route.kind === "entity") {
@@ -618,7 +581,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
           await upsertSiteContent({
             section: sectionName,
             content: mergeSiteContent(fields, existing),
-            deleteKeyPrefixes: deletionsBySection.get(sectionName),
           });
         }
       }
@@ -695,7 +657,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       imageSwaps: imageSummary.imageSwaps,
       createdEntities: textSummary.createdEntities,
       pendingDeletions: textSummary.pendingDeletions,
-      fieldDeletions: textSummary.fieldDeletions,
       publishOverrides: textSummary.publishOverrides,
       reorderedEntityTypes: textSummary.reorderedEntityTypes,
       dismissals: textSummary.dismissals,
@@ -709,9 +670,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       autoTranslate,
       cancelCreation,
       cancelDeletion,
-      cancelFieldDeletion,
       clearPublishOverride,
-      deleteField,
       dismiss,
       editedLocales: ((section: string, field: string) =>
         bufferRef.current.editedLocales(
@@ -746,8 +705,6 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         bufferRef.current.isAutoTranslated(section, field, locale),
       isDismissed: (section: string, field: string, locale: string) =>
         bufferRef.current.isDismissed(section, field, locale),
-      isFieldDeleted: (section: string, keyPrefix: string) =>
-        bufferRef.current.isFieldDeleted(section, keyPrefix),
       isPendingDeletion: (entityType: string, id: string) =>
         bufferRef.current.isPendingDeletion(entityType, id),
       isSessionCreated: (entityType: string, id: string) =>
@@ -769,9 +726,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       autoTranslate,
       cancelCreation,
       cancelDeletion,
-      cancelFieldDeletion,
       clearPublishOverride,
-      deleteField,
       dismiss,
       markAutoTranslated,
       removeEdit,

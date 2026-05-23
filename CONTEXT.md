@@ -67,16 +67,12 @@ The period between entering and exiting edit mode. All uncommitted changes live 
 _Avoid_: Edit mode (use for the boolean toggle only, not the session concept)
 
 **Draft Buffer**:
-In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, reorder changes, Field Deletions, Pending Deletions, Dismissals, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
+In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, reorder changes, Pending Deletions, Dismissals, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
 _Avoid_: Change tracker, command buffer, undo stack
 
 **Session-Created Entity**:
 A Project or Post created during the current Edit Session. Exists in the database as Unpublished. If the session is discarded, the entity is automatically deleted from the database.
 _Avoid_: Temporary entity, draft entity
-
-**Field Deletion**:
-A Draft Buffer operation that marks a key prefix within a Section for removal on save. Targets a group of related Fields in the siteContent blob (e.g., all keys starting with `abc123.`). Unlike Pending Deletion, which removes top-level entities, Field Deletion removes sub-structure within a Section. Cancellable during the Edit Session. On save, the prefix's keys are stripped from the siteContent document before upserting.
-_Avoid_: Key removal, field removal, delete operation
 
 **Pending Deletion**:
 A Draft Buffer command marking an existing entity for deletion on save. Cancellable at any point during the Edit Session. The entity remains in the database until save is confirmed. Visually indicated by the Chrome layer.
@@ -127,7 +123,7 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 - A **Selected Work** references a **Project** — it does not own content
 - An **Achievement** is a standalone **Entity** with bilingual title/description and a year range
 - An **Artist Image** is a singleton **Entity** — one per page slot (Home, Essence)
-- The **Draft Buffer** accumulates changes from **Fields**, **Publish Overrides**, reorder intents, **Pending Deletions**, and **Session-Created Entities** for all **Entity** types
+- The **Draft Buffer** accumulates changes from **Fields**, image swaps, **Publish Overrides**, reorder intents, **Pending Deletions**, and **Session-Created Entities** for all **Entity** types
 - Each **Entity** type is described by an **Entity Descriptor** declaring its capabilities and backend routing
 - **Chrome** is rendered by each **Field** as a DOM child — it reads **Draft Buffer** state but owns none
 - **Chrome** renders semantic dots: warning (amber) for **Stale Fields**, info (blue) for system-filled content
