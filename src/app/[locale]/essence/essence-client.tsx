@@ -81,8 +81,6 @@ function EssenceHero() {
     cancelCreation,
     trackDeletion,
     cancelDeletion,
-    deleteField,
-    cancelFieldDeletion,
   } = useDraftBufferOps();
   const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   const { enable } = useChromeEnabler();
@@ -104,8 +102,6 @@ function EssenceHero() {
     (url: string, publicId: string) => {
       if (isPendingDeletion("artist-image-essence", "essence.hero")) {
         cancelDeletion("artist-image-essence", "essence.hero");
-        cancelFieldDeletion("essence.hero", "portraitImage");
-        cancelFieldDeletion("essence.hero", "portraitImagePublicId");
         const oldPublicId =
           read("essence.hero", "portraitImagePublicId", "en") ??
           data?.portraitImagePublicId?.en;
@@ -125,7 +121,6 @@ function EssenceHero() {
       data,
       isPendingDeletion,
       cancelDeletion,
-      cancelFieldDeletion,
       cancelPendingDeletion,
       trackCreation,
     ]
@@ -140,16 +135,11 @@ function EssenceHero() {
     }
     cancelCreation("artist-image-essence", "essence.hero");
     trackDeletion("artist-image-essence", "essence.hero");
-    deleteField("essence.hero", "portraitImage");
-    deleteField("essence.hero", "portraitImagePublicId");
-  }, [
-    read,
-    data,
-    trackPendingDeletion,
-    cancelCreation,
-    trackDeletion,
-    deleteField,
-  ]);
+    write("essence.hero", "portraitImage", "en", "");
+    write("essence.hero", "portraitImage", "it", "");
+    write("essence.hero", "portraitImagePublicId", "en", "");
+    write("essence.hero", "portraitImagePublicId", "it", "");
+  }, [read, data, trackPendingDeletion, cancelCreation, trackDeletion, write]);
 
   return (
     <section

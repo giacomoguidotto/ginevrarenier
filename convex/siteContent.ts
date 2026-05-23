@@ -46,9 +46,8 @@ export const upsert = adminMutation({
   args: {
     section: v.string(),
     content: v.record(v.string(), localizedText),
-    deleteKeyPrefixes: v.optional(v.array(v.string())),
   },
-  handler: async (ctx, { section, content, deleteKeyPrefixes }) => {
+  handler: async (ctx, { section, content }) => {
     const existing = await ctx.db
       .query("siteContent")
       .withIndex("by_section", (q) => q.eq("section", section))
@@ -57,17 +56,6 @@ export const upsert = adminMutation({
     if (existing) {
       const existingContent = parseContent(existing.content);
       const merged = { ...existingContent, ...content };
-
-      if (deleteKeyPrefixes?.length) {
-        for (const key of Object.keys(merged)) {
-          if (
-            deleteKeyPrefixes.some((p) => key === p || key.startsWith(`${p}.`))
-          ) {
-            delete merged[key];
-          }
-        }
-      }
-
       await ctx.db.patch(existing._id, { content: merged });
     } else {
       await ctx.db.insert("siteContent", { section, content });

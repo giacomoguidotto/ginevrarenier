@@ -32,21 +32,6 @@ export function buildEntityUpdates(
   return updates;
 }
 
-export function groupFieldDeletions(
-  fds: Array<{ section: string; keyPrefix: string }>
-): Map<string, string[]> {
-  const grouped = new Map<string, string[]>();
-  for (const { section, keyPrefix } of fds) {
-    let list = grouped.get(section);
-    if (!list) {
-      list = [];
-      grouped.set(section, list);
-    }
-    list.push(keyPrefix);
-  }
-  return grouped;
-}
-
 export function mergeSiteContent(
   fields: Record<string, Record<string, string>>,
   existing: Record<string, { en: string; it: string }>

@@ -34,7 +34,6 @@ vi.mock("./draft-buffer-context", () => ({
       autoTranslations: [],
       createdEntities: [],
       dismissals: [],
-      fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
       publishOverrides: [],

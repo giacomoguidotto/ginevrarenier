@@ -107,7 +107,6 @@ vi.mock("@/components/admin/draft-buffer-context", () => ({
       autoTranslations: [],
       createdEntities: [],
       dismissals: [],
-      fieldDeletions: [],
       imageSwaps: [],
       pendingDeletions: [],
       publishOverrides: [],
