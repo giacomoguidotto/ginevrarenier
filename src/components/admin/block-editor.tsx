@@ -12,22 +12,23 @@ interface BlockEditorProps {
   onChange?: (content: string) => void;
 }
 
-/**
- * BlockNote editor wrapper. Content is stored as JSON string.
- * When editable is false, renders as a read-only view.
- */
 export function BlockEditor({
   content,
   onChange,
   editable = true,
 }: BlockEditorProps) {
   const { resolvedTheme } = useTheme();
-  const initialContent = useRef(content);
+  const lastJsonRef = useRef(content);
   const editor = useCreateBlockNote({
-    initialContent: parseContent(initialContent.current),
+    initialContent: parseContent(lastJsonRef.current),
   });
 
-  // Sync content changes back
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only — capture the editor's normalized initial state once
+  useEffect(() => {
+    lastJsonRef.current = JSON.stringify(editor.document);
+  }, []);
+
+  // Sync user edits back — skip if content matches last known state
   useEffect(() => {
     if (!editable) {
       return;
@@ -35,21 +36,25 @@ export function BlockEditor({
 
     const handler = () => {
       const json = JSON.stringify(editor.document);
+      if (json === lastJsonRef.current) {
+        return;
+      }
+      lastJsonRef.current = json;
       onChange?.(json);
     };
 
-    // Listen for changes via the editor's onChange
-    editor.onChange(handler);
+    return editor.onChange(handler);
   }, [editor, editable, onChange]);
 
   // Update content when it changes externally (e.g., locale switch)
   useEffect(() => {
-    if (content !== initialContent.current) {
-      initialContent.current = content;
+    if (content !== lastJsonRef.current) {
       const parsed = parseContent(content);
-      if (parsed) {
+      const currentJson = JSON.stringify(editor.document);
+      if (parsed && content !== currentJson) {
         editor.replaceBlocks(editor.document, parsed);
       }
+      lastJsonRef.current = JSON.stringify(editor.document);
     }
   }, [content, editor]);
 
