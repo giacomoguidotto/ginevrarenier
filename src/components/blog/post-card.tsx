@@ -23,9 +23,11 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, index }: PostCardProps) {
+  const { isEditMode } = useEditMode();
+
   return (
     <Section label={`Post: ${post.title.en}`} name={`post:${post._id}`}>
-      <ChromeEnablerProvider>
+      <ChromeEnablerProvider active={isEditMode}>
         <PostCardContent index={index} post={post} />
       </ChromeEnablerProvider>
     </Section>
@@ -109,12 +111,10 @@ function PostCardContent({ post, index }: PostCardProps) {
             </>
           )}
 
-          {!isEditMode && (
-            <div className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
-              <span>{t("readMore")}</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </div>
-          )}
+          <div className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
+            <span>{t("readMore")}</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
       </Link>
     </motion.article>

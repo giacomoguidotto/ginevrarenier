@@ -1,7 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface ChromeEnablerValue {
   enable: () => void;
@@ -10,8 +17,28 @@ interface ChromeEnablerValue {
 
 const ChromeEnablerContext = createContext<ChromeEnablerValue | null>(null);
 
-export function ChromeEnablerProvider({ children }: { children: ReactNode }) {
+export function ChromeEnablerProvider({
+  children,
+  active = true,
+}: {
+  children: ReactNode;
+  active?: boolean;
+}) {
   const [enabled, setEnabled] = useState(false);
+  const prevActiveRef = useRef(active);
+
+  useEffect(() => {
+    if (active && !prevActiveRef.current) {
+      setEnabled(false);
+      const frame = requestAnimationFrame(() => setEnabled(true));
+      prevActiveRef.current = active;
+      return () => cancelAnimationFrame(frame);
+    }
+    if (!active) {
+      setEnabled(false);
+    }
+    prevActiveRef.current = active;
+  }, [active]);
 
   const enable = useCallback(() => {
     setEnabled((prev) => {
@@ -23,7 +50,7 @@ export function ChromeEnablerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ChromeEnablerContext value={{ enabled, enable }}>
+    <ChromeEnablerContext value={{ enabled: active && enabled, enable }}>
       {children}
     </ChromeEnablerContext>
   );

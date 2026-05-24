@@ -34,12 +34,14 @@ export function ProjectCard({
   onDelete?: () => void;
   onCancelDeletion?: () => void;
 }) {
+  const { isEditMode } = useEditMode();
+
   return (
     <Section
       label={`Project: ${project.title.en}`}
       name={`project:${project._id}`}
     >
-      <ChromeEnablerProvider>
+      <ChromeEnablerProvider active={isEditMode}>
         <CardContent
           index={index}
           onCancelDeletion={onCancelDeletion}
