@@ -3,6 +3,7 @@
 import { useLocale } from "next-intl";
 import { type Locale, locales } from "@/i18n/config";
 import { usePathname, useRouter } from "@/i18n/routing";
+import { LOCALE_TOAST_STORAGE_KEY } from "./locale-toast";
 
 export function LanguageSwitcher() {
   const locale = useLocale() as Locale;
@@ -19,6 +20,7 @@ export function LanguageSwitcher() {
         expires: oneYearFromNow,
       });
     }
+    localStorage.setItem(LOCALE_TOAST_STORAGE_KEY, "true");
     router.replace(pathname, { locale: newLocale });
   };
 

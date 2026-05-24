@@ -20,6 +20,10 @@
       "switchToDark": "Passa all'esperienza scura",
       "switchToLight": "Passa all'esperienza chiara"
     },
+    "localeToast": {
+      "offerIt": "Preferisci leggere in italiano?",
+      "offerEn": "Prefer to read in English?"
+    },
     "viewProject": "Scopri il Progetto",
     "viewAll": "Vedi Tutti",
     "viewAllProjects": "Vedi Tutti i Progetti",

@@ -188,3 +188,12 @@ img {
 img[data-loading="true"] {
   opacity: 0;
 }
+
+@keyframes locale-toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

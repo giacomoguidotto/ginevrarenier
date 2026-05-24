@@ -11,6 +11,7 @@ import { EditModeProvider } from "@/components/admin/edit-mode-context";
 import { EditToolbarWrapper } from "@/components/admin/edit-toolbar-wrapper";
 import { UnsavedChangesGuard } from "@/components/admin/unsaved-changes-guard";
 import { Footer } from "@/components/layout/footer";
+import { LocaleToast } from "@/components/layout/locale-toast";
 import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -152,6 +153,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                   <main className="flex-1">{children}</main>
                   <Footer />
                 </div>
+                <LocaleToast />
                 <Analytics />
                 <UnsavedChangesGuard>
                   <EditFab />
