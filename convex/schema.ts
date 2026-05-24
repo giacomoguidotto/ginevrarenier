@@ -24,6 +24,7 @@ export default defineSchema({
     tagline: localizedText,
     coverImageUrl: v.optional(v.string()),
     order: v.number(),
+    publishedAt: v.optional(v.number()),
     published: v.boolean(),
   })
     .index("by_slug", ["slug"])
@@ -58,6 +59,7 @@ export default defineSchema({
       it: v.string(),
     }),
     coverImageUrl: v.optional(v.string()),
+    coverImagePublicId: v.optional(v.string()),
     publishedAt: v.optional(v.number()),
     published: v.boolean(),
   })

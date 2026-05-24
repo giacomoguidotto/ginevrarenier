@@ -93,6 +93,7 @@ export const update = adminMutation({
     excerpt: v.optional(v.object({ en: v.string(), it: v.string() })),
     content: v.optional(v.object({ en: v.string(), it: v.string() })),
     coverImageUrl: v.optional(v.string()),
+    coverImagePublicId: v.optional(v.string()),
     published: v.optional(v.boolean()),
   },
   handler: async (ctx, { id, published, ...fields }) => {

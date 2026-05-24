@@ -96,7 +96,7 @@ export const update = adminMutation({
     coverImageUrl: v.optional(v.string()),
     published: v.optional(v.boolean()),
   },
-  handler: async (ctx, { id, ...fields }) => {
+  handler: async (ctx, { id, published, ...fields }) => {
     const existing = await ctx.db.get(id);
     if (!existing) {
       throw new Error("Project not found");
@@ -107,6 +107,13 @@ export const update = adminMutation({
       if (value !== undefined) {
         updates[key] = value;
       }
+    }
+
+    if (published === true && !existing.publishedAt) {
+      updates.publishedAt = Date.now();
+    }
+    if (published !== undefined) {
+      updates.published = published;
     }
 
     await ctx.db.patch(id, updates);

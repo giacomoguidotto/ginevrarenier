@@ -24,7 +24,12 @@ export function buildEntityUpdates(
 ): Record<string, unknown> {
   const updates: Record<string, unknown> = {};
   for (const [field, locales] of Object.entries(fields)) {
-    if (!localized || field === "slug" || field === "coverImageUrl") {
+    if (
+      !localized ||
+      field === "slug" ||
+      field === "coverImageUrl" ||
+      field === "coverImagePublicId"
+    ) {
       updates[field] = locales.en ?? locales.it;
     } else {
       const existing = existingData?.[field];
