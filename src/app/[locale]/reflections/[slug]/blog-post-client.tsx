@@ -180,30 +180,23 @@ export function BlogPostClient() {
           {/* Header */}
           <Section label={`Post: ${postTitle.en}`} name={`post:${postId}`}>
             <header className="mb-12">
-              {postPublishedAt ? (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 flex flex-wrap items-center gap-4 text-muted-foreground text-sm"
-                  initial={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 flex flex-wrap items-center gap-4 text-muted-foreground text-sm"
+                initial={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                {postPublishedAt ? (
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-4 w-4" />
                     <time dateTime={new Date(postPublishedAt).toISOString()}>
                       {formatDate(new Date(postPublishedAt).toISOString())}
                     </time>
                   </span>
-                </motion.div>
-              ) : null}
+                ) : null}
 
-              {isEditMode && (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.5, delay: 0.15 }}
-                >
-                  {effectivePublished ? (
+                {isEditMode &&
+                  (effectivePublished ? (
                     <button
                       className="flex items-center gap-1.5 rounded-full bg-foreground/20 px-4 py-1.5 font-medium text-foreground text-xs uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
                       onClick={handleTogglePublish}
@@ -221,9 +214,8 @@ export function BlogPostClient() {
                       <ArrowUpRight className="h-3.5 w-3.5" />
                       Publish
                     </button>
-                  )}
-                </motion.div>
-              )}
+                  ))}
+              </motion.div>
 
               <div className="flex gap-8">
                 <div className="min-w-0 flex-1">
