@@ -6,8 +6,8 @@ import { useQuery } from "convex/react";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect } from "react";
 import { useDraftBufferOps } from "./draft-buffer-context";
+import { routeSection } from "./entity-descriptors";
 import { usePageBoundaryRegistration } from "./page-boundary";
-import { routeSection } from "./save-routing";
 
 interface SectionContextValue {
   data: Record<string, { en: string; it: string }> | undefined;
@@ -37,15 +37,19 @@ export function Section({
   );
   const project = useQuery(
     api.projects.getById,
-    route.kind === "project" ? { id: route.id as Id<"projects"> } : "skip"
+    route.kind === "entity" && route.descriptor.type === "project"
+      ? { id: route.id as Id<"projects"> }
+      : "skip"
   );
   const post = useQuery(
     api.blogPosts.getById,
-    route.kind === "post" ? { id: route.id as Id<"blogPosts"> } : "skip"
+    route.kind === "entity" && route.descriptor.type === "post"
+      ? { id: route.id as Id<"blogPosts"> }
+      : "skip"
   );
   const achievement = useQuery(
     api.achievements.getById,
-    route.kind === "achievement"
+    route.kind === "entity" && route.descriptor.type === "achievement"
       ? { id: route.id as Id<"achievements"> }
       : "skip"
   );
@@ -57,19 +61,20 @@ export function Section({
 
   if (route.kind === "siteContent") {
     data = siteContent?.content;
-  } else if (route.kind === "project" && project) {
+  } else if (route.descriptor.type === "project" && project) {
     data = {
       title: project.title,
       subtitle: project.subtitle,
       description: project.description,
       tagline: project.tagline,
     };
-  } else if (route.kind === "post" && post) {
+  } else if (route.descriptor.type === "post" && post) {
     data = {
       title: post.title,
       excerpt: post.excerpt,
+      content: post.content,
     };
-  } else if (route.kind === "achievement" && achievement) {
+  } else if (route.descriptor.type === "achievement" && achievement) {
     const yearStr = String(achievement.startYear);
     const endYearStr =
       achievement.endYear == null ? "" : String(achievement.endYear);

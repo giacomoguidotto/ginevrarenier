@@ -1,22 +1,3 @@
-export type SectionRoute =
-  | { kind: "siteContent"; section: string }
-  | { kind: "project"; id: string }
-  | { kind: "post"; id: string }
-  | { kind: "achievement"; id: string };
-
-export function routeSection(section: string): SectionRoute {
-  if (section.startsWith("project:")) {
-    return { kind: "project", id: section.slice("project:".length) };
-  }
-  if (section.startsWith("post:")) {
-    return { kind: "post", id: section.slice("post:".length) };
-  }
-  if (section.startsWith("achievement:")) {
-    return { kind: "achievement", id: section.slice("achievement:".length) };
-  }
-  return { kind: "siteContent", section };
-}
-
 export function buildEntityUpdates(
   fields: Record<string, Record<string, string>>,
   localized = true,
