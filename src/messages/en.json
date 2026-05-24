@@ -116,9 +116,9 @@
   "subscribe": {
     "email": "Email",
     "placeholder": "your@email.com",
-    "submit": "Subscribe",
-    "submitting": "Subscribing…",
-    "success": "Check your inbox to confirm your subscription.",
+    "submit": "Follow",
+    "submitting": "…",
+    "success": "Check your inbox — a confirmation is on its way.",
     "error": "Please enter a valid email address.",
     "submitError": "Something went wrong. Please try again.",
     "consent": "You'll only receive an email when new projects are published. You can unsubscribe at any time."

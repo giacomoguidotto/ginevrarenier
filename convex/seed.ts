@@ -200,8 +200,8 @@ export const seed = internalMutation({
         section: "home.subscribe",
         content: {
           prompt: {
-            en: "Never miss a new project — subscribe for updates.",
-            it: "Non perderti un nuovo progetto — iscriviti per gli aggiornamenti.",
+            en: "Be the first to see what comes next.",
+            it: "Scopri per primo cosa nasce dopo.",
           },
         },
       },
@@ -209,8 +209,8 @@ export const seed = internalMutation({
         section: "footer.subscribe",
         content: {
           prompt: {
-            en: "Stay in the loop.",
-            it: "Resta aggiornato.",
+            en: "Stay close to my journey.",
+            it: "Resta vicino al mio percorso.",
           },
         },
       },
@@ -218,8 +218,8 @@ export const seed = internalMutation({
         section: "connect.subscribe",
         content: {
           prompt: {
-            en: "Prefer to follow from a distance? Subscribe for project updates.",
-            it: "Preferisci seguire da lontano? Iscriviti per gli aggiornamenti.",
+            en: "Prefer to follow quietly? I'll only write when there's something new to see.",
+            it: "Preferisci seguire in silenzio? Ti scrivo solo quando c'è qualcosa di nuovo da vedere.",
           },
         },
       },
