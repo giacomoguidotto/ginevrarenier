@@ -70,7 +70,13 @@ function PostCardContent({ post, index }: PostCardProps) {
         <div
           className="space-y-3 p-6"
           onClick={
-            isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined
+            isEditMode
+              ? (e: React.MouseEvent) => {
+                  if (!(e.target as HTMLElement).closest("[data-navigate]")) {
+                    e.preventDefault();
+                  }
+                }
+              : undefined
           }
           onPointerDown={
             isEditMode
@@ -111,7 +117,10 @@ function PostCardContent({ post, index }: PostCardProps) {
             </>
           )}
 
-          <div className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
+          <div
+            className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground"
+            data-navigate
+          >
             <span>{t("readMore")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
