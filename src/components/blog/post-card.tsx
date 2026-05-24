@@ -23,19 +23,13 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, index }: PostCardProps) {
-  const { isEditMode } = useEditMode();
-
-  if (isEditMode) {
-    return (
-      <Section label={`Post: ${post.title.en}`} name={`post:${post._id}`}>
-        <ChromeEnablerProvider>
-          <PostCardContent index={index} post={post} />
-        </ChromeEnablerProvider>
-      </Section>
-    );
-  }
-
-  return <PostCardContent index={index} post={post} />;
+  return (
+    <Section label={`Post: ${post.title.en}`} name={`post:${post._id}`}>
+      <ChromeEnablerProvider>
+        <PostCardContent index={index} post={post} />
+      </ChromeEnablerProvider>
+    </Section>
+  );
 }
 
 function PostCardContent({ post, index }: PostCardProps) {

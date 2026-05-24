@@ -65,21 +65,16 @@ function PostCardWrapper({
     contentClass = "opacity-50";
   }
 
-  if (!isEditMode) {
-    return (
-      <motion.div variants={fadeUp}>
-        <PostCard index={index} post={post} />
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div className="relative h-full" variants={fadeUp}>
-      <div className={`h-full ${contentClass}`}>
+    <motion.div
+      className={isEditMode ? "relative h-full" : ""}
+      variants={fadeUp}
+    >
+      <div className={isEditMode ? `h-full ${contentClass}` : ""}>
         <PostCard index={index} post={post} />
       </div>
 
-      {pendingDeletion && (
+      {isEditMode && pendingDeletion && (
         <button
           className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
           onClick={() => cancelDeletion("post", post._id)}
@@ -90,7 +85,7 @@ function PostCardWrapper({
         </button>
       )}
 
-      {!pendingDeletion && publishOverride === true && (
+      {isEditMode && !pendingDeletion && publishOverride === true && (
         <button
           className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
           onClick={handleTogglePublish}
@@ -101,7 +96,7 @@ function PostCardWrapper({
         </button>
       )}
 
-      {!pendingDeletion && publishOverride !== true && (
+      {isEditMode && !pendingDeletion && publishOverride !== true && (
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
           <button
             className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
@@ -132,11 +127,13 @@ function PostCardWrapper({
         </div>
       )}
 
-      <EntityBadge
-        pendingDeletion={pendingDeletion}
-        published={post.published}
-        publishOverride={publishOverride}
-      />
+      {isEditMode && (
+        <EntityBadge
+          pendingDeletion={pendingDeletion}
+          published={post.published}
+          publishOverride={publishOverride}
+        />
+      )}
     </motion.div>
   );
 }

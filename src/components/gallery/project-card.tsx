@@ -34,28 +34,22 @@ export function ProjectCard({
   onDelete?: () => void;
   onCancelDeletion?: () => void;
 }) {
-  const { isEditMode } = useEditMode();
-
-  if (isEditMode) {
-    return (
-      <Section
-        label={`Project: ${project.title.en}`}
-        name={`project:${project._id}`}
-      >
-        <ChromeEnablerProvider>
-          <CardContent
-            index={index}
-            onCancelDeletion={onCancelDeletion}
-            onDelete={onDelete}
-            pendingDeletion={pendingDeletion}
-            project={project}
-          />
-        </ChromeEnablerProvider>
-      </Section>
-    );
-  }
-
-  return <CardContent index={index} project={project} />;
+  return (
+    <Section
+      label={`Project: ${project.title.en}`}
+      name={`project:${project._id}`}
+    >
+      <ChromeEnablerProvider>
+        <CardContent
+          index={index}
+          onCancelDeletion={onCancelDeletion}
+          onDelete={onDelete}
+          pendingDeletion={pendingDeletion}
+          project={project}
+        />
+      </ChromeEnablerProvider>
+    </Section>
+  );
 }
 
 function CardContent({
