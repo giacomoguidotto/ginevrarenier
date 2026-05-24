@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
@@ -38,9 +39,19 @@ export async function generateMetadata({
     it: "Ginevra Renier Studio",
   };
 
-  const descriptions: Record<Locale, string> = {
+  const footerContent = await fetchQuery(api.siteContent.getBySection, {
+    section: "footer",
+  });
+  const tagline = footerContent?.content?.tagline;
+
+  const defaultDescriptions: Record<Locale, string> = {
     en: "Capturing moments that transcend time. Photography portfolio of Ginevra Renier Studio - portraits, landscapes, and visual storytelling.",
     it: "Catturare momenti che trascendono il tempo. Portfolio fotografico di Ginevra Renier Studio - ritratti, paesaggi e narrazione visiva.",
+  };
+
+  const descriptions: Record<Locale, string> = {
+    en: tagline?.en || defaultDescriptions.en,
+    it: tagline?.it || defaultDescriptions.it,
   };
 
   function getLocaleValue<T extends Record<Locale, string>>(
@@ -141,6 +152,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                   <main className="flex-1">{children}</main>
                   <Footer />
                 </div>
+                <Analytics />
                 <UnsavedChangesGuard>
                   <EditFab />
                   <EditToolbarWrapper />
