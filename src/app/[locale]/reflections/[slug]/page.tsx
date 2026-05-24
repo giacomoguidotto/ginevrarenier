@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
@@ -13,11 +14,17 @@ interface PageProps {
 
 const baseUrl = "https://ginevrarenier.com";
 
+async function getConvexToken() {
+  const { getToken } = await auth();
+  return (await getToken({ template: "convex" })) ?? undefined;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = await fetchQuery(api.blogPosts.getBySlug, { slug });
+  const token = await getConvexToken();
+  const post = await fetchQuery(api.blogPosts.getBySlug, { slug }, { token });
 
   if (!post) {
     return { title: "Not Found" };
@@ -73,7 +80,8 @@ export default async function BlogPostPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const post = await fetchQuery(api.blogPosts.getBySlug, { slug });
+  const token = await getConvexToken();
+  const post = await fetchQuery(api.blogPosts.getBySlug, { slug }, { token });
   const loc = locale as Locale;
 
   return (
