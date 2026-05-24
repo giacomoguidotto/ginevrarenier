@@ -15,6 +15,7 @@ import {
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
+import { StatusBadge } from "@/components/admin/status-badge";
 import { Link } from "@/i18n/routing";
 import { fadeUp } from "@/lib/animations";
 import { useLocalized } from "@/lib/hooks";
@@ -243,6 +244,7 @@ function CardContent({
 
       {isEditMode && (
         <StatusBadge
+          className="top-6 left-6"
           pendingDeletion={pendingDeletion}
           published={project.published}
           publishOverride={publishOverride}
@@ -250,41 +252,4 @@ function CardContent({
       )}
     </motion.div>
   );
-}
-
-function StatusBadge({
-  pendingDeletion,
-  publishOverride,
-  published,
-}: {
-  pendingDeletion?: boolean;
-  publishOverride: boolean | undefined;
-  published: boolean;
-}) {
-  if (pendingDeletion) {
-    return (
-      <div className="absolute top-6 left-6 z-10 rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive uppercase backdrop-blur-sm">
-        Pending deletion
-      </div>
-    );
-  }
-  if (publishOverride !== undefined) {
-    return publishOverride ? (
-      <div className="absolute top-6 left-6 z-10 rounded bg-primary/20 px-2 py-0.5 font-mono text-[10px] text-primary uppercase backdrop-blur-sm">
-        Pending publish
-      </div>
-    ) : (
-      <div className="absolute top-6 left-6 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-        Pending unpublish
-      </div>
-    );
-  }
-  if (!published) {
-    return (
-      <div className="absolute top-6 left-6 z-10 rounded bg-foreground/10 px-2 py-0.5 font-mono text-[10px] text-foreground/50 uppercase backdrop-blur-sm">
-        Unpublished
-      </div>
-    );
-  }
-  return null;
 }
