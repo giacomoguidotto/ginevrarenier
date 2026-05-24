@@ -58,6 +58,6 @@ export function useStableEntity(entityType: EntityType, slug: string) {
   return {
     id: stableIdRef.current,
     entity: entity ?? undefined,
-    isLoading: !stableIdRef.current,
+    isLoading: !stableIdRef.current || entityResult === undefined,
   };
 }
