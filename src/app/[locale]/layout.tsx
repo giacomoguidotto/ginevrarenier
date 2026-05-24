@@ -1,3 +1,5 @@
+import { api } from "convex/_generated/api";
+import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
@@ -13,6 +15,7 @@ import { ConvexClientProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { type Locale, locales } from "@/i18n/config";
+import { PersonJsonLd, socialLinkToUrl, WebSiteJsonLd } from "@/lib/seo";
 
 interface Props {
   children: React.ReactNode;
@@ -73,8 +76,8 @@ export async function generateMetadata({
       "Ginevra Renier",
       "Ginevra Renier Studio",
     ],
-    authors: [{ name: "Giacomo Guidotto" }],
-    creator: "Giacomo Guidotto",
+    authors: [{ name: "Ginevra Renier" }],
+    creator: "Ginevra Renier",
     alternates: {
       canonical: `${baseUrl}/${locale}`,
       languages: {
@@ -112,7 +115,14 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale);
 
-  const messages = await getMessages();
+  const [messages, socialLinks] = await Promise.all([
+    getMessages(),
+    fetchQuery(api.socialLinks.list, {}),
+  ]);
+
+  const socialUrls = socialLinks
+    .map((link) => socialLinkToUrl(link.platform, link.handle ?? undefined))
+    .filter((url): url is string => url !== null && !url.startsWith("mailto:"));
 
   return (
     <ConvexClientProvider>
@@ -121,6 +131,11 @@ export default async function LocaleLayout({ children, params }: Props) {
           <TooltipProvider>
             <EditModeProvider>
               <DraftBufferProvider>
+                <WebSiteJsonLd locale={locale as Locale} />
+                <PersonJsonLd
+                  locale={locale as Locale}
+                  socialUrls={socialUrls}
+                />
                 <div className="flex min-h-screen flex-col">
                   <Navbar />
                   <main className="flex-1">{children}</main>

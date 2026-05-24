@@ -3,11 +3,14 @@ import { preloadQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
+import { BreadcrumbJsonLd } from "@/lib/seo";
 import { ReflectionsClient } from "./reflections-client";
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
+
+const baseUrl = "https://ginevrarenier.com";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -19,6 +22,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("title"),
     description: t("description"),
+    alternates: {
+      canonical: `${baseUrl}/${locale}/reflections`,
+      languages: {
+        en: `${baseUrl}/en/reflections`,
+        it: `${baseUrl}/it/reflections`,
+      },
+    },
   };
 }
 
@@ -30,6 +40,15 @@ export default async function ReflectionsPage({ params }: Props) {
 
   return (
     <PageBoundary page="reflections">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", href: `/${locale}` },
+          {
+            name: locale === "it" ? "Riflessioni" : "Reflections",
+            href: `/${locale}/reflections`,
+          },
+        ]}
+      />
       <ReflectionsClient preloadedPosts={preloadedPosts} />
     </PageBoundary>
   );
