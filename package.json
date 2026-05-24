@@ -2,6 +2,7 @@
   "name": "ginevra-renier-studio",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
   "packageManager": "bun@1.3.11",
   "scripts": {
     "dev": "concurrently -n fe,be -c blue,green \"bun run dev:fe\" \"bun run dev:be\"",
