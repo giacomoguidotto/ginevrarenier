@@ -5,21 +5,23 @@ import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Calendar, EyeOff } from "lucide-react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 import {
   useDraftBufferOps,
   useEditVersion,
+  useImageAssets,
 } from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
+import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
 import { useStableEntity } from "@/components/admin/use-stable-entity";
 import { ScrollProgress } from "@/components/blog/scroll-progress";
 import { PageTransition } from "@/components/layout/page-transition";
 import { Link } from "@/i18n/routing";
+import { cloudinaryFolder } from "@/lib/cloudinary";
 import { formatDate } from "@/lib/format";
 import { useLocalized } from "@/lib/hooks";
 
@@ -33,8 +35,14 @@ export function BlogPostClient() {
   const { slug } = useParams<{ slug: string }>();
   const { id: postId, entity: post, isLoading } = useStableEntity("post", slug);
   const { isEditMode, editingLocale } = useEditMode();
-  const { getPublishOverride, setPublishOverride, clearPublishOverride } =
-    useDraftBufferOps();
+  const {
+    getPublishOverride,
+    setPublishOverride,
+    clearPublishOverride,
+    read,
+    write,
+  } = useDraftBufferOps();
+  const { trackPendingDeletion, cancelPendingDeletion } = useImageAssets();
   useEditVersion();
   const t = useTranslations("common");
   const tr = useTranslations("reflections");
@@ -64,6 +72,42 @@ export function BlogPostClient() {
     [postId, post, editingLocale, updatePost]
   );
 
+  const handleCoverUpload = useCallback(
+    (url: string, publicId: string) => {
+      if (!postId) {
+        return;
+      }
+      const sectionName = `post:${postId}`;
+      const postData = post as Record<string, unknown> | undefined;
+      const existingPublicId =
+        read(sectionName, "coverImagePublicId", "en") ??
+        (postData?.coverImagePublicId as string | undefined);
+      if (existingPublicId) {
+        cancelPendingDeletion(existingPublicId);
+        trackPendingDeletion(existingPublicId);
+      }
+      write(sectionName, "coverImageUrl", "en", url);
+      write(sectionName, "coverImagePublicId", "en", publicId);
+    },
+    [postId, post, read, write, trackPendingDeletion, cancelPendingDeletion]
+  );
+
+  const handleCoverDelete = useCallback(() => {
+    if (!postId) {
+      return;
+    }
+    const sectionName = `post:${postId}`;
+    const postData = post as Record<string, unknown> | undefined;
+    const publicId =
+      read(sectionName, "coverImagePublicId", "en") ??
+      (postData?.coverImagePublicId as string | undefined);
+    if (publicId) {
+      trackPendingDeletion(publicId);
+    }
+    write(sectionName, "coverImageUrl", "en", "");
+    write(sectionName, "coverImagePublicId", "en", "");
+  }, [postId, post, read, write, trackPendingDeletion]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -82,6 +126,12 @@ export function BlogPostClient() {
   const postCoverImageUrl = postData.coverImageUrl as string | undefined;
   const postPublishedAt = postData.publishedAt as number | undefined;
   const postPublished = postData.published as boolean;
+
+  const sectionName = `post:${postId}`;
+  const bufferedCoverUrl = read(sectionName, "coverImageUrl", "en");
+  const effectiveCoverUrl =
+    (bufferedCoverUrl === undefined ? postCoverImageUrl : bufferedCoverUrl) ||
+    undefined;
 
   const publishOverride = postId
     ? getPublishOverride("post", postId as never)
@@ -175,51 +225,56 @@ export function BlogPostClient() {
                 </motion.div>
               )}
 
-              <motion.div
-                animate={{ opacity: 1, y: 0 }}
-                initial={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Field
-                  as="h1"
-                  className="mb-8 font-light text-4xl text-foreground leading-tight md:text-5xl lg:text-6xl"
-                  name="title"
-                />
-              </motion.div>
+              <div className="flex gap-8">
+                <div className="min-w-0 flex-1">
+                  <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <Field
+                      as="h1"
+                      className="mb-8 font-light text-3xl text-foreground leading-tight md:text-4xl lg:text-5xl"
+                      name="title"
+                    />
+                  </motion.div>
 
-              <motion.div
-                animate={{ opacity: 1, y: 0 }}
-                initial={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                <Field
-                  as="p"
-                  className="text-muted-foreground text-xl"
-                  multiline
-                  name="excerpt"
-                />
-              </motion.div>
+                  <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <Field
+                      as="p"
+                      className="text-muted-foreground text-xl"
+                      multiline
+                      name="excerpt"
+                    />
+                  </motion.div>
+                </div>
+
+                {/* Cover Image */}
+                {isEditMode || effectiveCoverUrl ? (
+                  <motion.figure
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative hidden aspect-square w-48 shrink-0 overflow-hidden rounded-lg md:block"
+                    initial={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <EditableImage
+                      alt={title}
+                      deleteLabel="cover image"
+                      folder={cloudinaryFolder("blog")}
+                      onDelete={handleCoverDelete}
+                      onUpload={handleCoverUpload}
+                      sizes="192px"
+                      src={effectiveCoverUrl}
+                    />
+                  </motion.figure>
+                ) : null}
+              </div>
             </header>
           </Section>
-
-          {/* Cover Image */}
-          {postCoverImageUrl ? (
-            <motion.figure
-              animate={{ opacity: 1, y: 0 }}
-              className="relative mb-16 aspect-video overflow-hidden rounded-lg"
-              initial={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <Image
-                alt={title}
-                className="object-cover"
-                fill
-                priority
-                sizes="(max-width: 896px) 100vw, 896px"
-                src={postCoverImageUrl}
-              />
-            </motion.figure>
-          ) : null}
 
           {/* Content */}
           <motion.div
