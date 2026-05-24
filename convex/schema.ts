@@ -115,6 +115,23 @@ export default defineSchema({
 
   // Transition schema: handle is optional until migration populates it.
   // After running socialLinks.migrateToHandles, narrow to { platform, handle, order }.
+  subscribers: defineTable({
+    email: v.string(),
+    locale: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("confirmed"),
+      v.literal("unsubscribed")
+    ),
+    consentTimestamp: v.number(),
+    confirmationToken: v.string(),
+    confirmedAt: v.optional(v.number()),
+    unsubscribedAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_confirmationToken", ["confirmationToken"])
+    .index("by_status", ["status"]),
+
   socialLinks: defineTable({
     platform: v.string(),
     handle: v.optional(v.string()),
