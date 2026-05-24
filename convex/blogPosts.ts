@@ -5,7 +5,7 @@ import { slugify } from "./slugify";
 
 export const list = adminQuery({
   args: {},
-  handler: async (ctx) => ctx.db.query("blogPosts").collect(),
+  handler: async (ctx) => ctx.db.query("blogPosts").order("desc").collect(),
 });
 
 export const listPublished = query({
