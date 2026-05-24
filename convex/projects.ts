@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { query } from "./_generated/server";
 import { adminMutation, adminQuery } from "./functions";
 import { slugify } from "./slugify";
@@ -117,6 +118,14 @@ export const update = adminMutation({
     }
 
     await ctx.db.patch(id, updates);
+
+    if (published === true && !existing.published) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.notifications.sendPublishNotification,
+        { projectId: id }
+      );
+    }
   },
 });
 

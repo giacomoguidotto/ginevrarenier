@@ -1,8 +1,10 @@
-bun run test
-
 #!/bin/sh
 # Exit on any error
 set -e
+
+# Run vitest through node (not bun) to avoid bun's module caching bug
+# with convex-test scheduled functions (finishAllScheduledFunctions hangs)
+PATH="$HOME/.local/share/mise/shims:$PATH" node ./node_modules/.bin/vitest run
 
 # Check if there are any staged files
 if [ -z "$(git diff --cached --name-only)" ]; then
