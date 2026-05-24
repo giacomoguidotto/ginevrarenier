@@ -210,7 +210,7 @@ export function Field({
         style={
           isEditMode
             ? { minHeight: "1lh", minWidth: "3ch", ...constraintStyle }
-            : constraintStyle
+            : { minHeight: "1lh", ...constraintStyle }
         }
         suppressContentEditableWarning={isEditMode}
       />
