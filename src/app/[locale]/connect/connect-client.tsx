@@ -56,6 +56,7 @@ import { FieldChrome } from "@/components/admin/field-chrome";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
 import { PageTransition } from "@/components/layout/page-transition";
+import { SubscribeForm } from "@/components/subscribe-form";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { locales } from "@/i18n/config";
 import { useLocalized, useSocialLinks } from "@/lib/hooks";
@@ -370,6 +371,9 @@ export function ConnectClient() {
                   <ConnectAvailability />
                 </ChromeEnablerProvider>
               </Section>
+
+              {/* Subscribe */}
+              <SubscribeForm sectionName="connect.subscribe" />
             </motion.div>
           </div>
         </div>

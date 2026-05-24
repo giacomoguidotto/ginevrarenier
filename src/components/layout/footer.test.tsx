@@ -48,6 +48,11 @@ let mockSocials: Record<string, unknown>[] = [];
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+}));
+
+vi.mock("convex/react", () => ({
+  useMutation: () => vi.fn(),
 }));
 
 vi.mock("@/lib/hooks", () => ({

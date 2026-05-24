@@ -113,6 +113,16 @@
       "subtitle": "Le fotografie di questo progetto sono in arrivo"
     }
   },
+  "subscribe": {
+    "email": "Email",
+    "placeholder": "la-tua@email.com",
+    "submit": "Iscriviti",
+    "submitting": "Iscrizione…",
+    "success": "Controlla la tua casella email per confermare l'iscrizione.",
+    "error": "Inserisci un indirizzo email valido.",
+    "submitError": "Qualcosa è andato storto. Riprova.",
+    "consent": "Riceverai un'email solo quando nuovi progetti saranno pubblicati. Puoi disiscriverti in qualsiasi momento."
+  },
   "metadata": {
     "home": {
       "title": "Ginevra Renier | Fotografia",

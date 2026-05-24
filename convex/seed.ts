@@ -197,6 +197,33 @@ export const seed = internalMutation({
         },
       },
       {
+        section: "home.subscribe",
+        content: {
+          prompt: {
+            en: "Never miss a new project — subscribe for updates.",
+            it: "Non perderti un nuovo progetto — iscriviti per gli aggiornamenti.",
+          },
+        },
+      },
+      {
+        section: "footer.subscribe",
+        content: {
+          prompt: {
+            en: "Stay in the loop.",
+            it: "Resta aggiornato.",
+          },
+        },
+      },
+      {
+        section: "connect.subscribe",
+        content: {
+          prompt: {
+            en: "Prefer to follow from a distance? Subscribe for project updates.",
+            it: "Preferisci seguire da lontano? Iscriviti per gli aggiornamenti.",
+          },
+        },
+      },
+      {
         section: "footer",
         content: {
           tagline: {

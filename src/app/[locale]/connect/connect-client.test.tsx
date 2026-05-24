@@ -61,6 +61,7 @@ vi.mock("convex/react", () => ({
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
 }));
 
 vi.mock("@/lib/hooks", () => ({

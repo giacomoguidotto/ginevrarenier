@@ -113,6 +113,16 @@
       "subtitle": "Photographs for this project are on their way"
     }
   },
+  "subscribe": {
+    "email": "Email",
+    "placeholder": "your@email.com",
+    "submit": "Subscribe",
+    "submitting": "Subscribing…",
+    "success": "Check your inbox to confirm your subscription.",
+    "error": "Please enter a valid email address.",
+    "submitError": "Something went wrong. Please try again.",
+    "consent": "You'll only receive an email when new projects are published. You can unsubscribe at any time."
+  },
   "metadata": {
     "home": {
       "title": "Ginevra Renier | Photography",

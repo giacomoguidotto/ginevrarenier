@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
+import { SubscribeForm } from "@/components/subscribe-form";
 import { Link } from "@/i18n/routing";
 import { useSocialLinks } from "@/lib/hooks";
 import { getHref, getIcon, getLabel } from "@/lib/platform-registry";
@@ -27,20 +28,23 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
-          <Section label="Footer" name="footer">
-            <div className="space-y-4">
-              <Link className="block" href="/">
-                <span className="font-light text-xl uppercase tracking-widest">
-                  Ginevra Renier
-                </span>
-              </Link>
-              <Field
-                as="p"
-                className="max-w-xs text-cream/60 text-sm"
-                name="tagline"
-              />
-            </div>
-          </Section>
+          <div className="space-y-6">
+            <Section label="Footer" name="footer">
+              <div className="space-y-4">
+                <Link className="block" href="/">
+                  <span className="font-light text-xl uppercase tracking-widest">
+                    Ginevra Renier
+                  </span>
+                </Link>
+                <Field
+                  as="p"
+                  className="max-w-xs text-cream/60 text-sm"
+                  name="tagline"
+                />
+              </div>
+            </Section>
+            <SubscribeForm sectionName="footer.subscribe" />
+          </div>
 
           {/* Navigation */}
           <div className="space-y-4">

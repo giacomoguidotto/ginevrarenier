@@ -15,6 +15,7 @@ import {
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
+import { SubscribeForm } from "@/components/subscribe-form";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Link } from "@/i18n/routing";
 import { useLocalized } from "@/lib/hooks";
@@ -248,6 +249,11 @@ function FeaturedWorkContent() {
             <span>{t("viewAllProjects")}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
+        </div>
+
+        {/* Subscribe */}
+        <div className="mx-auto mt-16 max-w-md px-6">
+          <SubscribeForm sectionName="home.subscribe" />
         </div>
       </section>
     </CollapsibleSection>
