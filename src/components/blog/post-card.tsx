@@ -52,7 +52,7 @@ function PostCardContent({ post, index }: PostCardProps) {
       variants={fadeUp}
     >
       <Link
-        className="block h-full overflow-hidden rounded-lg"
+        className="block h-full overflow-hidden rounded-lg bg-card shadow-sm transition-shadow duration-500 hover:shadow-md"
         href={`/reflections/${post.slug}`}
       >
         {post.coverImageUrl ? (
@@ -72,7 +72,7 @@ function PostCardContent({ post, index }: PostCardProps) {
         {/* biome-ignore lint/a11y/noStaticElementInteractions: see above */}
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: defensive handler only */}
         <div
-          className="mt-6 space-y-3"
+          className="space-y-3 p-6"
           onClick={
             isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined
           }
@@ -93,8 +93,8 @@ function PostCardContent({ post, index }: PostCardProps) {
           {isEditMode ? (
             <>
               <Field
-                as="h2"
-                className="font-light text-2xl text-foreground"
+                as="h3"
+                className="font-light text-foreground"
                 name="title"
               />
               <Field
@@ -106,9 +106,9 @@ function PostCardContent({ post, index }: PostCardProps) {
             </>
           ) : (
             <>
-              <h2 className="font-light text-2xl text-foreground transition-colors group-hover:text-foreground/80">
+              <h3 className="font-light text-foreground transition-colors group-hover:text-foreground/80">
                 {localized(post.title)}
-              </h2>
+              </h3>
               <p className="line-clamp-2 text-muted-foreground">
                 {localized(post.excerpt)}
               </p>
