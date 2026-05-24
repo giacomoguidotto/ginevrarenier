@@ -46,6 +46,7 @@ export const seed = internalMutation({
             it: "Dal momento in cui ho impugnato per la prima volta una fotocamera, inseguo la luce in ogni angolo che scopro, cercando quei momenti fugaci in cui la realtà trascende in qualcosa di magico.\n\nIl mio lavoro è un'esplorazione dell'esperienza umana. Cerco la quieta intensità di uno sguardo, la danza delle ombre sui muri antichi, la poesia nascosta nelle scene quotidiane.",
           },
           cta: { en: "Discover My Story", it: "Scopri la Mia Storia" },
+          credential: { en: "", it: "" },
           portraitImage: { en: "", it: "" },
         },
       },

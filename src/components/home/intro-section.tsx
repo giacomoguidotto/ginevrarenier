@@ -11,6 +11,7 @@ import {
   useDraftBufferOps,
   useImageAssets,
 } from "@/components/admin/draft-buffer-context";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
@@ -38,6 +39,7 @@ function IntroSectionContent() {
   const imageY = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   const { data } = useSection();
+  const { isEditMode } = useEditMode();
   const {
     read,
     write,
@@ -141,6 +143,13 @@ function IntroSectionContent() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
+            {(isEditMode || data?.credential?.en || data?.credential?.it) && (
+              <Field
+                as="p"
+                className="mt-6 text-cream/50 text-sm"
+                name="credential"
+              />
+            )}
           </motion.div>
 
           {/* Image */}
