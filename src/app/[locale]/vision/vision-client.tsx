@@ -114,17 +114,14 @@ export function VisionClient({
 
   const allProjects = useQuery(
     api.projects.list,
-    isEditMode && isAuthenticated ? {} : "skip"
+    isAuthenticated ? {} : "skip"
   );
-  const publishedProjects = useQuery(
-    api.projects.listPublished,
-    isEditMode ? "skip" : {}
-  );
+  const publishedProjects = useQuery(api.projects.listPublished);
   const preloaded = preloadedProjects
     ? preloadedQueryResult(preloadedProjects)
     : undefined;
   const projects = isEditMode
-    ? (allProjects ?? [])
+    ? (allProjects ?? publishedProjects ?? preloaded ?? [])
     : (publishedProjects ?? preloaded ?? []);
 
   const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();

@@ -186,19 +186,13 @@ export function ReflectionsClient({
   const { isEditMode } = useEditMode();
   const { isAuthenticated } = useConvexAuth();
 
-  const allPosts = useQuery(
-    api.blogPosts.list,
-    isEditMode && isAuthenticated ? {} : "skip"
-  );
-  const publishedPosts = useQuery(
-    api.blogPosts.listPublished,
-    isEditMode ? "skip" : {}
-  );
+  const allPosts = useQuery(api.blogPosts.list, isAuthenticated ? {} : "skip");
+  const publishedPosts = useQuery(api.blogPosts.listPublished);
   const preloaded = preloadedPosts
     ? preloadedQueryResult(preloadedPosts)
     : undefined;
   const posts = isEditMode
-    ? (allPosts ?? [])
+    ? (allPosts ?? publishedPosts ?? preloaded ?? [])
     : (publishedPosts ?? preloaded ?? []);
 
   const { trackCreation } = useDraftBufferOps();
@@ -270,7 +264,7 @@ export function ReflectionsClient({
             {isEditMode ? (
               <motion.div variants={fadeUp}>
                 <button
-                  className="flex aspect-video w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+                  className="flex h-full min-h-48 w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
                   onClick={handleCreate}
                   type="button"
                 >
