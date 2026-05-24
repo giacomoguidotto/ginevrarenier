@@ -106,7 +106,7 @@ function PostCardContent({ post, index }: PostCardProps) {
                 {localized(post.title)}
               </h3>
               <p className="line-clamp-2 text-muted-foreground">
-                {localized(post.excerpt)}
+                {localized(post.excerpt) || " "}
               </p>
             </>
           )}
