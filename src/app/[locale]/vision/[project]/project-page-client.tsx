@@ -128,6 +128,7 @@ export function ProjectPageClient() {
               images={images}
               onHoverChange={setIsHoveringImage}
               onImageClick={handleImageClick}
+              projectTitle={_localized(projectTitle ?? { en: "", it: "" })}
             />
           ) : null}
 

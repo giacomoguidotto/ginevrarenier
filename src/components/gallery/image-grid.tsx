@@ -8,10 +8,12 @@ interface ImageGridProps {
   images: { url: string; id: string }[];
   onHoverChange?: (isHovering: boolean) => void;
   onImageClick: (index: number) => void;
+  projectTitle?: string;
 }
 
 export function ImageGrid({
   images,
+  projectTitle,
   onImageClick,
   onHoverChange,
 }: ImageGridProps) {
@@ -40,7 +42,11 @@ export function ImageGrid({
         >
           <div className="relative aspect-auto">
             <Image
-              alt={`Photograph ${index + 1}`}
+              alt={
+                projectTitle
+                  ? `Photography by Ginevra Renier — ${projectTitle}, image ${index + 1}`
+                  : `Photograph ${index + 1}`
+              }
               className="w-full transition-transform duration-700 group-hover:scale-105"
               height={1200}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
