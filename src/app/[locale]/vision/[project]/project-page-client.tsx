@@ -18,6 +18,7 @@ import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
+import { useSlugDerivation } from "@/components/admin/use-slug-derivation";
 import { useStableEntity } from "@/components/admin/use-stable-entity";
 import { ProjectGalleryEmptyState } from "@/components/empty-states/project-gallery-empty-state";
 import { CursorFollower } from "@/components/gallery/cursor-follower";
@@ -105,6 +106,11 @@ export function ProjectPageClient() {
           >
             <ChromeEnablerProvider>
               <ProjectHeader
+                currentSlug={
+                  (project as Record<string, unknown>).slug as
+                    | string
+                    | undefined
+                }
                 imageCount={images.length}
                 projectId={projectId as string}
                 published={
@@ -154,10 +160,12 @@ export function ProjectPageClient() {
 }
 
 function ProjectHeader({
+  currentSlug,
   imageCount,
   projectId,
   published,
 }: {
+  currentSlug: string | undefined;
   imageCount: number;
   projectId: string;
   published: boolean;
@@ -167,6 +175,7 @@ function ProjectHeader({
   const { getPublishOverride, setPublishOverride, clearPublishOverride } =
     useDraftBufferOps();
   useEditVersion();
+  useSlugDerivation(`project:${projectId}`, "project", currentSlug);
   const t = useTranslations("common");
 
   const publishOverride = getPublishOverride("project", projectId);
