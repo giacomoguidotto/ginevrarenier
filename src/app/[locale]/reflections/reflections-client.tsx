@@ -6,8 +6,8 @@ import { preloadedQueryResult } from "convex/nextjs";
 import type { Preloaded } from "convex/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { ArrowUpRight, EyeOff, Plus, Trash2, Undo2 } from "lucide-react";
+import { useCallback } from "react";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
@@ -22,12 +22,6 @@ import { Section, useSection } from "@/components/admin/section";
 import { PostCard } from "@/components/blog/post-card";
 import { ReflectionsEmptyState } from "@/components/empty-states/reflections-empty-state";
 import { PageTransition } from "@/components/layout/page-transition";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { useLocalized } from "@/lib/hooks";
 
@@ -80,58 +74,69 @@ function PostCardWrapper({
   }
 
   return (
-    <motion.div variants={fadeUp}>
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div className="relative">
-            <div className={contentClass}>
-              <PostCard index={index} post={post} />
-            </div>
+    <motion.div className="relative h-full" variants={fadeUp}>
+      <div className={`h-full ${contentClass}`}>
+        <PostCard index={index} post={post} />
+      </div>
 
-            {pendingDeletion && (
-              <button
-                className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
-                onClick={() => cancelDeletion("post", post._id)}
-                type="button"
-              >
-                <Undo2 className="h-3 w-3" />
-                Cancel deletion
-              </button>
-            )}
+      {pendingDeletion && (
+        <button
+          className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
+          onClick={() => cancelDeletion("post", post._id)}
+          type="button"
+        >
+          <Undo2 className="h-3 w-3" />
+          Cancel deletion
+        </button>
+      )}
 
-            {!pendingDeletion && (
-              <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
-                <button
-                  className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
-                  onClick={() => trackDeletion("post", post._id)}
-                  type="button"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              </div>
-            )}
+      {!pendingDeletion && publishOverride === true && (
+        <button
+          className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
+          onClick={handleTogglePublish}
+          type="button"
+        >
+          <Undo2 className="h-3 w-3" />
+          Cancel publish
+        </button>
+      )}
 
-            <EntityBadge
-              pendingDeletion={pendingDeletion}
-              published={post.published}
-              publishOverride={publishOverride}
-            />
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={handleTogglePublish}>
-            {effectivePublished ? (
-              <>
-                <EyeOff className="mr-2 h-4 w-4" /> Unpublish
-              </>
-            ) : (
-              <>
-                <Eye className="mr-2 h-4 w-4" /> Publish
-              </>
-            )}
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+      {!pendingDeletion && publishOverride !== true && (
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+          <button
+            className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
+            onClick={() => trackDeletion("post", post._id)}
+            type="button"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+          {effectivePublished ? (
+            <button
+              className="flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
+              onClick={handleTogglePublish}
+              type="button"
+            >
+              <EyeOff className="h-3 w-3" />
+              Unpublish
+            </button>
+          ) : (
+            <button
+              className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-medium text-[11px] text-primary-foreground uppercase tracking-wider transition-all hover:bg-primary/90 hover:shadow-md"
+              onClick={handleTogglePublish}
+              type="button"
+            >
+              <ArrowUpRight className="h-3 w-3" />
+              Publish
+            </button>
+          )}
+        </div>
+      )}
+
+      <EntityBadge
+        pendingDeletion={pendingDeletion}
+        published={post.published}
+        publishOverride={publishOverride}
+      />
     </motion.div>
   );
 }
@@ -199,23 +204,40 @@ export function ReflectionsClient({
   const { trackCreation } = useDraftBufferOps();
   const createPost = useMutation(api.blogPosts.create);
 
-  const [creating, setCreating] = useState(false);
-  const [newSlug, setNewSlug] = useState("");
-
   const handleCreate = useCallback(async () => {
-    if (!newSlug.trim()) {
-      return;
-    }
-    const slug = newSlug.trim().toLowerCase().replace(/\s+/g, "-");
+    const titles = [
+      "Reverie",
+      "Threshold",
+      "Coda",
+      "Interlude",
+      "Parenthesis",
+      "Caesura",
+      "Marginalia",
+      "Palimpsest",
+      "Fugue",
+      "Ellipsis",
+      "Postlude",
+      "Lacuna",
+      "Tessera",
+      "Sotto Voce",
+      "Filigree",
+      "Interstice",
+      "Resonance",
+      "Apocrypha",
+      "Etude",
+      "Fermata",
+      "Rubato",
+      "Sforzando",
+      "Glissando",
+      "Ostinato",
+      "Clair-Obscur",
+    ];
+    const title = titles[Math.floor(Math.random() * titles.length)];
     const id = await createPost({
-      slug,
-      title: { en: slug, it: slug },
-      excerpt: { en: "", it: "" },
+      title: { en: title, it: title },
     });
     trackCreation("post", id);
-    setNewSlug("");
-    setCreating(false);
-  }, [newSlug, createPost, trackCreation]);
+  }, [createPost, trackCreation]);
 
   return (
     <PageTransition>
@@ -247,53 +269,13 @@ export function ReflectionsClient({
             {/* Create new post */}
             {isEditMode ? (
               <motion.div variants={fadeUp}>
-                {creating ? (
-                  <div className="flex aspect-video flex-col items-center justify-center gap-4 rounded-lg border-2 border-foreground/15 border-dashed p-6">
-                    <input
-                      autoFocus
-                      className="w-full rounded bg-transparent px-3 py-2 text-center text-foreground outline-none ring-1 ring-foreground/20 placeholder:text-foreground/30 focus:ring-foreground/40"
-                      onChange={(e) => setNewSlug(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleCreate();
-                        }
-                        if (e.key === "Escape") {
-                          setCreating(false);
-                          setNewSlug("");
-                        }
-                      }}
-                      placeholder="post-slug"
-                      value={newSlug}
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        className="rounded-full bg-foreground/10 px-4 py-1.5 text-foreground text-xs transition-colors hover:bg-foreground/20"
-                        onClick={handleCreate}
-                        type="button"
-                      >
-                        Create
-                      </button>
-                      <button
-                        className="rounded-full px-4 py-1.5 text-foreground/50 text-xs transition-colors hover:text-foreground"
-                        onClick={() => {
-                          setCreating(false);
-                          setNewSlug("");
-                        }}
-                        type="button"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    className="flex aspect-video w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
-                    onClick={() => setCreating(true)}
-                    type="button"
-                  >
-                    <Plus className="h-8 w-8" />
-                  </button>
-                )}
+                <button
+                  className="flex aspect-video w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+                  onClick={handleCreate}
+                  type="button"
+                >
+                  <Plus className="h-8 w-8" />
+                </button>
               </motion.div>
             ) : null}
           </motion.div>

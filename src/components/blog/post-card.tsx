@@ -5,6 +5,13 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import {
+  ChromeEnablerProvider,
+  useChromeEnabler,
+} from "@/components/admin/chrome-enabler";
+import { useEditMode } from "@/components/admin/edit-mode-context";
+import { Field } from "@/components/admin/field";
+import { Section } from "@/components/admin/section";
 import { Link } from "@/i18n/routing";
 import { fadeUp } from "@/lib/animations";
 import { formatDate } from "@/lib/format";
@@ -16,16 +23,38 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, index }: PostCardProps) {
+  const { isEditMode } = useEditMode();
+
+  if (isEditMode) {
+    return (
+      <Section label={`Post: ${post.title.en}`} name={`post:${post._id}`}>
+        <ChromeEnablerProvider>
+          <PostCardContent index={index} post={post} />
+        </ChromeEnablerProvider>
+      </Section>
+    );
+  }
+
+  return <PostCardContent index={index} post={post} />;
+}
+
+function PostCardContent({ post, index }: PostCardProps) {
+  const { isEditMode } = useEditMode();
+  const { enable } = useChromeEnabler();
   const t = useTranslations("reflections");
   const localized = useLocalized();
 
   return (
-    <motion.article className="group" custom={index} variants={fadeUp}>
+    <motion.article
+      className="group h-full"
+      custom={index}
+      onAnimationComplete={enable}
+      variants={fadeUp}
+    >
       <Link
-        className="block overflow-hidden rounded-lg"
+        className="block h-full overflow-hidden rounded-lg"
         href={`/reflections/${post.slug}`}
       >
-        {/* Image */}
         {post.coverImageUrl ? (
           <div className="relative aspect-video overflow-hidden">
             <Image
@@ -39,9 +68,20 @@ export function PostCard({ post, index }: PostCardProps) {
           </div>
         ) : null}
 
-        {/* Content */}
-        <div className="mt-6 space-y-3">
-          {/* Meta */}
+        {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: overlay intercepts events to prevent link navigation while editing */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: see above */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: defensive handler only */}
+        <div
+          className="mt-6 space-y-3"
+          onClick={
+            isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined
+          }
+          onPointerDown={
+            isEditMode
+              ? (e: React.PointerEvent) => e.stopPropagation()
+              : undefined
+          }
+        >
           {post.publishedAt ? (
             <div className="flex items-center gap-4 text-muted-foreground text-xs uppercase tracking-widest">
               <time dateTime={new Date(post.publishedAt).toISOString()}>
@@ -50,21 +90,37 @@ export function PostCard({ post, index }: PostCardProps) {
             </div>
           ) : null}
 
-          {/* Title */}
-          <h2 className="font-light text-2xl text-foreground transition-colors group-hover:text-foreground/80">
-            {localized(post.title)}
-          </h2>
+          {isEditMode ? (
+            <>
+              <Field
+                as="h2"
+                className="font-light text-2xl text-foreground"
+                name="title"
+              />
+              <Field
+                as="p"
+                className="line-clamp-2 text-muted-foreground"
+                multiline
+                name="excerpt"
+              />
+            </>
+          ) : (
+            <>
+              <h2 className="font-light text-2xl text-foreground transition-colors group-hover:text-foreground/80">
+                {localized(post.title)}
+              </h2>
+              <p className="line-clamp-2 text-muted-foreground">
+                {localized(post.excerpt)}
+              </p>
+            </>
+          )}
 
-          {/* Excerpt */}
-          <p className="line-clamp-2 text-muted-foreground">
-            {localized(post.excerpt)}
-          </p>
-
-          {/* Read More */}
-          <div className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
-            <span>{t("readMore")}</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </div>
+          {!isEditMode && (
+            <div className="flex items-center gap-2 pt-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors group-hover:text-foreground">
+              <span>{t("readMore")}</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </div>
+          )}
         </div>
       </Link>
     </motion.article>

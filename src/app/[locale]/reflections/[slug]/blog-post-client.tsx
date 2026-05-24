@@ -3,12 +3,16 @@
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Calendar, EyeOff } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section } from "@/components/admin/section";
@@ -29,6 +33,9 @@ export function BlogPostClient() {
   const { slug } = useParams<{ slug: string }>();
   const { id: postId, entity: post, isLoading } = useStableEntity("post", slug);
   const { isEditMode, editingLocale } = useEditMode();
+  const { getPublishOverride, setPublishOverride, clearPublishOverride } =
+    useDraftBufferOps();
+  useEditVersion();
   const t = useTranslations("common");
   const tr = useTranslations("reflections");
   const localized = useLocalized();
@@ -74,6 +81,25 @@ export function BlogPostClient() {
   const postContent = postData.content as { en: string; it: string };
   const postCoverImageUrl = postData.coverImageUrl as string | undefined;
   const postPublishedAt = postData.publishedAt as number | undefined;
+  const postPublished = postData.published as boolean;
+
+  const publishOverride = postId
+    ? getPublishOverride("post", postId as never)
+    : undefined;
+  const effectivePublished =
+    publishOverride === undefined ? postPublished : publishOverride;
+
+  const handleTogglePublish = () => {
+    if (!postId) {
+      return;
+    }
+    const target = !effectivePublished;
+    if (target === postPublished) {
+      clearPublishOverride("post", postId as never);
+    } else {
+      setPublishOverride("post", postId as never, target);
+    }
+  };
 
   const title = localized(postTitle);
   const content = isEditMode
@@ -119,6 +145,35 @@ export function BlogPostClient() {
                   </span>
                 </motion.div>
               ) : null}
+
+              {isEditMode && (
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: 0.15 }}
+                >
+                  {effectivePublished ? (
+                    <button
+                      className="flex items-center gap-1.5 rounded-full bg-foreground/20 px-4 py-1.5 font-medium text-foreground text-xs uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
+                      onClick={handleTogglePublish}
+                      type="button"
+                    >
+                      <EyeOff className="h-3.5 w-3.5" />
+                      Unpublish
+                    </button>
+                  ) : (
+                    <button
+                      className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 font-medium text-primary-foreground text-xs uppercase tracking-wider transition-all hover:bg-primary/90 hover:shadow-md"
+                      onClick={handleTogglePublish}
+                      type="button"
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                      Publish
+                    </button>
+                  )}
+                </motion.div>
+              )}
 
               <motion.div
                 animate={{ opacity: 1, y: 0 }}

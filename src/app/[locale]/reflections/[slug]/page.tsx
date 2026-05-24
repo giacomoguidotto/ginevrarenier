@@ -2,6 +2,7 @@ import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
+import { PageBoundary } from "@/components/admin/page-boundary";
 import type { Locale } from "@/i18n/config";
 import { BlogPostingJsonLd, BreadcrumbJsonLd } from "@/lib/seo";
 import { BlogPostClient } from "./blog-post-client";
@@ -76,7 +77,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const loc = locale as Locale;
 
   return (
-    <>
+    <PageBoundary page="post">
       {post && (
         <>
           <BreadcrumbJsonLd
@@ -110,6 +111,6 @@ export default async function BlogPostPage({ params }: PageProps) {
         </>
       )}
       <BlogPostClient />
-    </>
+    </PageBoundary>
   );
 }
