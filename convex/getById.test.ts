@@ -95,14 +95,12 @@ describe("blogPosts.getById", () => {
     const t = convexTest(schema, modules);
     const admin = asAdmin(t);
     const id = await admin.mutation(api.blogPosts.create, {
-      slug: "test-post",
       title: { en: "Post", it: "Articolo" },
-      excerpt: { en: "Exc", it: "Exc" },
     });
 
     const post = await admin.query(api.blogPosts.getById, { id });
     expect(post).toMatchObject({
-      slug: "test-post",
+      slug: "post",
       title: { en: "Post", it: "Articolo" },
     });
   });
@@ -111,9 +109,7 @@ describe("blogPosts.getById", () => {
     const t = convexTest(schema, modules);
     const admin = asAdmin(t);
     const id = await admin.mutation(api.blogPosts.create, {
-      slug: "temp-post",
       title: { en: "T", it: "T" },
-      excerpt: { en: "E", it: "E" },
     });
     await admin.mutation(api.blogPosts.remove, { id });
 

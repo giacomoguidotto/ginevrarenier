@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { adminMutation, adminQuery } from "./functions";
+import { slugify } from "./slugify";
 
 export const list = adminQuery({
   args: {},
@@ -57,18 +58,31 @@ export const getById = query({
 
 export const create = adminMutation({
   args: {
-    slug: v.string(),
     title: v.object({ en: v.string(), it: v.string() }),
-    excerpt: v.object({ en: v.string(), it: v.string() }),
   },
-  handler: async (ctx, args) =>
-    ctx.db.insert("blogPosts", {
-      ...args,
+  handler: async (ctx, { title }) => {
+    const all = await ctx.db.query("blogPosts").collect();
+
+    let slug = slugify(title.en);
+    const existingSlugs = new Set(all.map((p) => p.slug));
+    if (existingSlugs.has(slug)) {
+      let counter = 2;
+      while (existingSlugs.has(`${slug}-${counter}`)) {
+        counter++;
+      }
+      slug = `${slug}-${counter}`;
+    }
+
+    return ctx.db.insert("blogPosts", {
+      title,
+      slug,
+      excerpt: { en: "", it: "" },
       content: { en: "[]", it: "[]" },
       coverImageUrl: undefined,
       publishedAt: undefined,
       published: false,
-    }),
+    });
+  },
 });
 
 export const update = adminMutation({
