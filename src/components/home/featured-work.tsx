@@ -4,10 +4,10 @@ import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useConvexAuth, useQuery } from "convex/react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
@@ -43,6 +43,7 @@ function ProjectCard({
   return (
     <motion.div
       className="group relative h-[70vh] min-w-[80vw] snap-center overflow-hidden rounded-lg md:min-w-[40vw]"
+      data-card
       initial={{ opacity: 0, x: 100 }}
       ref={cardRef}
       transition={{
@@ -135,6 +136,35 @@ function FeaturedWorkContent() {
   const { isEditMode } = useEditMode();
   const { enable } = useChromeEnabler();
   const featured = useSelectedWorks();
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollState = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) {
+      return;
+    }
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  }, []);
+
+  const scroll = useCallback(
+    (direction: "left" | "right") => {
+      const el = containerRef.current;
+      if (!el) {
+        return;
+      }
+      const cardWidth =
+        el.querySelector<HTMLElement>("[data-card]")?.offsetWidth ??
+        el.clientWidth * 0.8;
+      el.scrollBy({
+        left: direction === "left" ? -cardWidth - 24 : cardWidth + 24,
+        behavior: "smooth",
+      });
+      setTimeout(updateScrollState, 400);
+    },
+    [updateScrollState]
+  );
 
   return (
     <CollapsibleSection visible={featured.length > 0 || isEditMode}>
@@ -155,13 +185,35 @@ function FeaturedWorkContent() {
             />
             <div className="flex items-end justify-between">
               <Field as="h2" className="text-foreground" name="title" />
-              <Link
-                className="hidden items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground md:flex"
-                href="/vision"
-              >
-                <span>{t("viewAll")}</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <div className="hidden items-center gap-4 md:flex">
+                <div className="flex gap-2">
+                  <button
+                    aria-label="Previous project"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/20 text-foreground/60 transition-all hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                    disabled={!canScrollLeft}
+                    onClick={() => scroll("left")}
+                    type="button"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    aria-label="Next project"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/20 text-foreground/60 transition-all hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                    disabled={!canScrollRight}
+                    onClick={() => scroll("right")}
+                    type="button"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+                <Link
+                  className="flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
+                  href="/vision"
+                >
+                  <span>{t("viewAll")}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -169,6 +221,7 @@ function FeaturedWorkContent() {
         {/* Horizontal Scroll Container */}
         <div
           className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto px-6 pb-8"
+          onScroll={updateScrollState}
           ref={containerRef}
           style={{
             scrollbarWidth: "none",
