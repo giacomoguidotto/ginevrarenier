@@ -3,7 +3,8 @@ import type { FunctionReference } from "convex/server";
 
 export interface EntityDescriptor {
   buildUpdates?: (
-    fields: Record<string, Record<string, string>>
+    fields: Record<string, Record<string, string>>,
+    existingData?: Record<string, Record<string, string>>
   ) => Record<string, unknown>;
   collection?: {
     list: FunctionReference<"query", "public">;
@@ -67,7 +68,8 @@ const postDescriptor: EntityDescriptor = {
 };
 
 function buildAchievementUpdates(
-  fields: Record<string, Record<string, string>>
+  fields: Record<string, Record<string, string>>,
+  existingData?: Record<string, Record<string, string>>
 ): Record<string, unknown> {
   const updates: Record<string, unknown> = {};
   for (const [field, locales] of Object.entries(fields)) {
@@ -80,7 +82,10 @@ function buildAchievementUpdates(
         }
       }
     } else {
-      updates[field] = locales as { en: string; it: string };
+      const existing = existingData?.[field];
+      updates[field] = existing
+        ? { ...existing, ...locales }
+        : (locales as { en: string; it: string });
     }
   }
   return updates;

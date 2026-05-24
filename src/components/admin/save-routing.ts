@@ -19,14 +19,18 @@ export function routeSection(section: string): SectionRoute {
 
 export function buildEntityUpdates(
   fields: Record<string, Record<string, string>>,
-  localized = true
+  localized = true,
+  existingData?: Record<string, Record<string, string>>
 ): Record<string, unknown> {
   const updates: Record<string, unknown> = {};
   for (const [field, locales] of Object.entries(fields)) {
     if (!localized || field === "slug" || field === "coverImageUrl") {
       updates[field] = locales.en ?? locales.it;
     } else {
-      updates[field] = locales as { en: string; it: string };
+      const existing = existingData?.[field];
+      updates[field] = existing
+        ? { ...existing, ...locales }
+        : (locales as { en: string; it: string });
     }
   }
   return updates;

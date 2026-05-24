@@ -159,6 +159,16 @@ describe("formatEntityType", () => {
   });
 });
 
+describe("achievement buildUpdates", () => {
+  it("merges partial locale edits with existing data", () => {
+    const descriptor = getDescriptor("achievement");
+    const fields = { title: { en: "Updated" } };
+    const existing = { title: { en: "Original", it: "Originale" } };
+    const result = descriptor?.buildUpdates?.(fields, existing);
+    expect(result).toEqual({ title: { en: "Updated", it: "Originale" } });
+  });
+});
+
 describe("routeSection (descriptor-based)", () => {
   it("routes project: prefix to entity route with project descriptor", () => {
     const route = routeSection("project:abc123");

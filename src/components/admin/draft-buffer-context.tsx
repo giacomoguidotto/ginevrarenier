@@ -92,6 +92,10 @@ interface DraftBufferOps {
   isSessionCreated: (entityType: string, id: string) => boolean;
   markAutoTranslated: (section: string, field: string, locale: string) => void;
   read: Buffer["read"];
+  registerSectionData: (
+    section: string,
+    data: Record<string, Record<string, string>>
+  ) => void;
   removeEdit: (section: string, field: string, locale: string) => void;
   sectionChanges: Buffer["sectionChanges"];
   setPublishOverride: (
@@ -146,6 +150,7 @@ const OpsContext = createContext<DraftBufferOps>({
   isSessionCreated: () => false,
   markAutoTranslated: noop,
   read: () => undefined,
+  registerSectionData: noop,
   removeEdit: noop,
   sectionChanges: () => ({}),
   setPublishOverride: noop,
@@ -201,6 +206,9 @@ async function saveEntityDeletions(
 export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const bufferRef = useRef<Buffer>(null as unknown as Buffer);
   const imageAssetsRef = useRef<Assets>(null as unknown as Assets);
+  const sectionDataRef = useRef<
+    Map<string, Record<string, Record<string, string>>>
+  >(new Map());
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
@@ -570,9 +578,14 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         if (route.kind === "entity") {
           const mutations = entityMutations.get(route.descriptor.type);
           if (mutations?.update) {
+            const existingData = sectionDataRef.current.get(sectionName);
             const updates = route.descriptor.buildUpdates
-              ? route.descriptor.buildUpdates(fields)
-              : buildEntityUpdates(fields, route.descriptor.localized);
+              ? route.descriptor.buildUpdates(fields, existingData)
+              : buildEntityUpdates(
+                  fields,
+                  route.descriptor.localized,
+                  existingData
+                );
             await mutations.update({ id: route.id, ...updates } as never);
           }
         } else {
@@ -712,6 +725,12 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       markAutoTranslated,
       read: ((section: string, field: string, locale: string) =>
         bufferRef.current.read(section, field, locale)) as Buffer["read"],
+      registerSectionData: (
+        section: string,
+        data: Record<string, Record<string, string>>
+      ) => {
+        sectionDataRef.current.set(section, data);
+      },
       removeEdit,
       sectionChanges: ((section: string) =>
         bufferRef.current.sectionChanges(section)) as Buffer["sectionChanges"],

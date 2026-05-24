@@ -70,6 +70,29 @@ describe("buildEntityUpdates", () => {
     });
   });
 
+  it("merges partial locale edits with existing data", () => {
+    const fields = { title: { en: "Updated" } };
+    const existing = { title: { en: "Original", it: "Originale" } };
+    expect(buildEntityUpdates(fields, true, existing)).toEqual({
+      title: { en: "Updated", it: "Originale" },
+    });
+  });
+
+  it("works without existing data (backward compat)", () => {
+    const fields = { title: { en: "Only EN" } };
+    expect(buildEntityUpdates(fields, true)).toEqual({
+      title: { en: "Only EN" },
+    });
+  });
+
+  it("does not merge scalar fields with existing data", () => {
+    const fields = { slug: { en: "new-slug" } };
+    const existing = { slug: { en: "old-slug", it: "old-slug" } };
+    expect(buildEntityUpdates(fields, true, existing)).toEqual({
+      slug: "new-slug",
+    });
+  });
+
   it("extracts slug as plain string for localized entities", () => {
     const fields = { slug: { en: "my-slug" } };
     expect(buildEntityUpdates(fields, true)).toEqual({ slug: "my-slug" });

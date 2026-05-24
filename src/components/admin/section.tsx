@@ -4,7 +4,8 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import type { ReactNode } from "react";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
+import { useDraftBufferOps } from "./draft-buffer-context";
 import { usePageBoundaryRegistration } from "./page-boundary";
 import { routeSection } from "./save-routing";
 
@@ -50,6 +51,7 @@ export function Section({
   );
 
   usePageBoundaryRegistration(name, label ?? name);
+  const { registerSectionData } = useDraftBufferOps();
 
   let data: Record<string, { en: string; it: string }> | undefined;
 
@@ -78,6 +80,12 @@ export function Section({
       description: achievement.description,
     };
   }
+
+  useEffect(() => {
+    if (data) {
+      registerSectionData(name, data);
+    }
+  }, [name, data, registerSectionData]);
 
   return (
     <SectionContext value={{ name, data, label }}>{children}</SectionContext>
