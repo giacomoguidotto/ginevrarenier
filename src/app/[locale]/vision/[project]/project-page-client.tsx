@@ -1,10 +1,8 @@
 "use client";
 
-import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
-import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, EyeOff } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -12,6 +10,10 @@ import {
   ChromeEnablerProvider,
   useChromeEnabler,
 } from "@/components/admin/chrome-enabler";
+import {
+  useDraftBufferOps,
+  useEditVersion,
+} from "@/components/admin/draft-buffer-context";
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { EditableImageGrid } from "@/components/admin/editable-image-grid";
 import { Field } from "@/components/admin/field";
@@ -162,8 +164,23 @@ function ProjectHeader({
 }) {
   const { enable } = useChromeEnabler();
   const { isEditMode } = useEditMode();
+  const { getPublishOverride, setPublishOverride, clearPublishOverride } =
+    useDraftBufferOps();
+  useEditVersion();
   const t = useTranslations("common");
-  const updateProject = useMutation(api.projects.update);
+
+  const publishOverride = getPublishOverride("project", projectId);
+  const effectivePublished =
+    publishOverride === undefined ? published : publishOverride;
+
+  const handleTogglePublish = () => {
+    const target = !effectivePublished;
+    if (target === published) {
+      clearPublishOverride("project", projectId);
+    } else {
+      setPublishOverride("project", projectId, target);
+    }
+  };
 
   return (
     <div className="mb-16 max-w-3xl">
@@ -206,25 +223,32 @@ function ProjectHeader({
       >
         {t("photographs", { count: imageCount })}
       </motion.p>
-      {isEditMode && !published && (
+      {isEditMode && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
+          className="mt-6"
           initial={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <button
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-primary/90 hover:shadow-md"
-            onClick={() =>
-              updateProject({
-                id: projectId as Id<"projects">,
-                published: true,
-              })
-            }
-            type="button"
-          >
-            <ArrowUpRight className="h-4 w-4" />
-            Publish project
-          </button>
+          {effectivePublished ? (
+            <button
+              className="inline-flex items-center gap-2 rounded-full bg-foreground/20 px-6 py-2.5 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:bg-foreground/30 hover:shadow-md"
+              onClick={handleTogglePublish}
+              type="button"
+            >
+              <EyeOff className="h-4 w-4" />
+              Unpublish
+            </button>
+          ) : (
+            <button
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-primary/90 hover:shadow-md"
+              onClick={handleTogglePublish}
+              type="button"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              Publish
+            </button>
+          )}
         </motion.div>
       )}
     </div>
