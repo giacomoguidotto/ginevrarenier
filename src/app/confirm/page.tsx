@@ -1,3 +1,4 @@
+import { track } from "@vercel/analytics/server";
 import { api } from "convex/_generated/api";
 import { fetchMutation } from "convex/nextjs";
 import type { Metadata } from "next";
@@ -19,6 +20,10 @@ export default async function ConfirmPage({ searchParams }: Props) {
   }
 
   const result = await fetchMutation(api.subscribers.confirm, { token });
+
+  if (result.status === "confirmed") {
+    await track("subscription_confirmed");
+  }
 
   return <ConfirmLayout status={result.status} />;
 }

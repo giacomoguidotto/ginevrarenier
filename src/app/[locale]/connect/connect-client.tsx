@@ -17,6 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import { track } from "@vercel/analytics";
 import { api } from "convex/_generated/api";
 import type { Doc } from "convex/_generated/dataModel";
 import { useAction, useMutation } from "convex/react";
@@ -105,6 +106,7 @@ export function ConnectClient() {
         website,
         ...(turnstileToken ? { turnstileToken } : {}),
       });
+      track("inquiry_submitted", { type: data.inquiryType });
       reset();
       setWebsite("");
       setTurnstileToken(null);

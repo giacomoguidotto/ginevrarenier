@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
@@ -59,6 +60,7 @@ function SubscribeFormContent({ sectionName }: { sectionName: string }) {
       });
       setFormState("success");
       setEmail("");
+      track("subscribe", { placement: sectionName });
       setTimeout(() => setFormState("idle"), 4000);
     } catch {
       setError(t("submitError"));
