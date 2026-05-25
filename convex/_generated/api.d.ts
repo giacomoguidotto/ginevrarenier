@@ -15,6 +15,7 @@ import type * as emails_inquiryEmail from "../emails/inquiryEmail.js";
 import type * as emails_publishNotificationEmail from "../emails/publishNotificationEmail.js";
 import type * as functions from "../functions.js";
 import type * as inquiries from "../inquiries.js";
+import type * as lib_sentry from "../lib/sentry.js";
 import type * as notifications from "../notifications.js";
 import type * as projectImages from "../projectImages.js";
 import type * as projects from "../projects.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   "emails/publishNotificationEmail": typeof emails_publishNotificationEmail;
   functions: typeof functions;
   inquiries: typeof inquiries;
+  "lib/sentry": typeof lib_sentry;
   notifications: typeof notifications;
   projectImages: typeof projectImages;
   projects: typeof projects;

@@ -8,6 +8,7 @@ import {
   internalQuery,
 } from "./_generated/server";
 import { renderInquiryEmail } from "./emails/inquiryEmail";
+import { captureException } from "./lib/sentry";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -201,6 +202,15 @@ export const sendInquiryEmail = internalAction({
           emailStatus: "failed",
           attempts: newAttempts,
         });
+        await captureException(
+          new Error(`Inquiry email permanently failed: ${error.message}`),
+          {
+            action: "inquiries.sendInquiryEmail",
+            inquiryId: args.inquiryId,
+            attempts: newAttempts,
+            email: inquiry.email,
+          }
+        );
       }
       return;
     }

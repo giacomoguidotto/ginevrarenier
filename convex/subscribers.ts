@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { internal } from "./_generated/api";
 import { internalAction, internalQuery, mutation } from "./_generated/server";
 import { renderConfirmationEmail } from "./emails/confirmationEmail";
+import { captureException } from "./lib/sentry";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -138,14 +139,23 @@ export const sendConfirmation = internalAction({
     const html = await renderConfirmationEmail({ confirmUrl, locale });
 
     const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
-      to: [subscriber.email],
-      subject:
-        locale === "it"
-          ? "Conferma la tua iscrizione"
-          : "Confirm your subscription",
-      html,
-    });
+    try {
+      await resend.emails.send({
+        from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
+        to: [subscriber.email],
+        subject:
+          locale === "it"
+            ? "Conferma la tua iscrizione"
+            : "Confirm your subscription",
+        html,
+      });
+    } catch (err) {
+      await captureException(err, {
+        action: "subscribers.sendConfirmation",
+        subscriberId: args.subscriberId,
+        email: subscriber.email,
+      });
+      throw err;
+    }
   },
 });

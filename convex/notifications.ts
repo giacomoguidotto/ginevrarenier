@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { internal } from "./_generated/api";
 import { internalAction, internalQuery } from "./_generated/server";
 import { renderPublishNotificationEmail } from "./emails/publishNotificationEmail";
+import { captureException } from "./lib/sentry";
 
 export const getPublishNotificationData = internalQuery({
   args: { projectId: v.id("projects") },
@@ -64,15 +65,23 @@ export const sendPublishNotification = internalAction({
         locale,
       });
 
-      await resend.emails.send({
-        from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
-        to: [subscriber.email],
-        subject:
-          locale === "it"
-            ? `Nuovo progetto: ${project.title.it}`
-            : `New project: ${project.title.en}`,
-        html,
-      });
+      try {
+        await resend.emails.send({
+          from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
+          to: [subscriber.email],
+          subject:
+            locale === "it"
+              ? `Nuovo progetto: ${project.title.it}`
+              : `New project: ${project.title.en}`,
+          html,
+        });
+      } catch (err) {
+        await captureException(err, {
+          action: "notifications.sendPublishNotification",
+          projectId: args.projectId,
+          subscriberEmail: subscriber.email,
+        });
+      }
     }
   },
 });
