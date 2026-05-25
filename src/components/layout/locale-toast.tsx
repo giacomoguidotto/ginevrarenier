@@ -62,11 +62,11 @@ export function LocaleToast() {
 
   return (
     <div
-      className="pointer-events-none fixed top-0 right-0 left-0 z-50 flex justify-center"
+      className="pointer-events-none fixed top-20 right-0 left-0 z-50 flex justify-center"
       role="status"
     >
       <div
-        className={`pointer-events-auto mt-4 overflow-hidden rounded-full border border-cream/10 bg-charcoal/90 shadow-lg backdrop-blur-sm transition-all duration-500 ${
+        className={`pointer-events-auto overflow-hidden rounded-full border border-cream/10 bg-charcoal/90 shadow-lg backdrop-blur-sm transition-all duration-500 ${
           visible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
         }`}
       >
@@ -80,9 +80,9 @@ export function LocaleToast() {
         {visible && (
           <div className="h-0.5 w-full bg-cream/5">
             <div
-              className="h-full bg-cream/30"
+              className="h-full w-full bg-cream/30"
               style={{
-                animation: `locale-toast-progress ${VISIBLE_DURATION}ms linear forwards`,
+                animation: `locale-toast-progress ${VISIBLE_DURATION}ms linear 500ms forwards`,
               }}
             />
           </div>
