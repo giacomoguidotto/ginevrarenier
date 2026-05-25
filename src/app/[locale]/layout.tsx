@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
@@ -154,6 +155,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                 </div>
                 <LocaleToast />
                 <Analytics />
+                <SpeedInsights />
                 <UnsavedChangesGuard>
                   <EditFab />
                   <EditToolbarWrapper />
