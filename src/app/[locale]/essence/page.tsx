@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
+import { localePath, locales } from "@/i18n/config";
 import { BreadcrumbJsonLd } from "@/lib/seo";
 import { EssenceClient } from "./essence-client";
 
@@ -18,11 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${baseUrl}/${locale}/essence`,
-      languages: {
-        en: `${baseUrl}/en/essence`,
-        it: `${baseUrl}/it/essence`,
-      },
+      canonical: `${baseUrl}${localePath(locale, "/essence")}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `${baseUrl}${localePath(l, "/essence")}`])
+      ),
     },
   };
 }
@@ -35,10 +35,10 @@ export default async function EssencePage({ params }: Props) {
     <PageBoundary page="essence">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", href: `/${locale}` },
+          { name: "Home", href: localePath(locale) || "/" },
           {
             name: locale === "it" ? "Essenza" : "Essence",
-            href: `/${locale}/essence`,
+            href: localePath(locale, "/essence"),
           },
         ]}
       />

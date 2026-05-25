@@ -4,7 +4,7 @@ import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
-import type { Locale } from "@/i18n/config";
+import { type Locale, localePath, locales } from "@/i18n/config";
 import { BreadcrumbJsonLd, ImageGalleryJsonLd } from "@/lib/seo";
 import { ProjectPageClient } from "./project-page-client";
 
@@ -39,17 +39,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: {
-      canonical: `${baseUrl}/${locale}/vision/${slug}`,
-      languages: {
-        en: `${baseUrl}/en/vision/${slug}`,
-        it: `${baseUrl}/it/vision/${slug}`,
-      },
+      canonical: `${baseUrl}${localePath(locale, `/vision/${slug}`)}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `${baseUrl}${localePath(l, `/vision/${slug}`)}`])
+      ),
     },
     openGraph: {
       type: "article",
       title,
       description,
-      url: `${baseUrl}/${locale}/vision/${slug}`,
+      url: `${baseUrl}${localePath(locale, `/vision/${slug}`)}`,
       locale: locale === "it" ? "it_IT" : "en_US",
       siteName: "Ginevra Renier Studio",
       ...(project.coverImageUrl
@@ -90,15 +89,15 @@ export default async function ProjectPage({ params }: Props) {
             items={[
               {
                 name: "Home",
-                href: `/${locale}`,
+                href: localePath(locale) || "/",
               },
               {
                 name: "Vision",
-                href: `/${locale}/vision`,
+                href: localePath(locale, "/vision"),
               },
               {
                 name: loc === "it" ? project.title.it : project.title.en,
-                href: `/${locale}/vision/${slug}`,
+                href: localePath(locale, `/vision/${slug}`),
               },
             ]}
           />
@@ -109,7 +108,7 @@ export default async function ProjectPage({ params }: Props) {
             imageUrls={project.coverImageUrl ? [project.coverImageUrl] : []}
             locale={loc}
             name={loc === "it" ? project.title.it : project.title.en}
-            url={`/${locale}/vision/${slug}`}
+            url={localePath(locale, `/vision/${slug}`)}
           />
         </>
       )}

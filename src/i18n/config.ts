@@ -12,3 +12,8 @@ export const localeFlags: Record<Locale, string> = {
   en: "🇺🇸",
   it: "🇮🇹",
 };
+
+export function localePath(locale: Locale | string, path = ""): string {
+  const prefix = locale === defaultLocale ? "" : `/${locale}`;
+  return `${prefix}${path}`;
+}

@@ -3,6 +3,7 @@ import { preloadQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
+import { localePath, locales } from "@/i18n/config";
 import { BreadcrumbJsonLd } from "@/lib/seo";
 import { ReflectionsClient } from "./reflections-client";
 
@@ -23,11 +24,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${baseUrl}/${locale}/reflections`,
-      languages: {
-        en: `${baseUrl}/en/reflections`,
-        it: `${baseUrl}/it/reflections`,
-      },
+      canonical: `${baseUrl}${localePath(locale, "/reflections")}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `${baseUrl}${localePath(l, "/reflections")}`])
+      ),
     },
   };
 }
@@ -42,10 +42,10 @@ export default async function ReflectionsPage({ params }: Props) {
     <PageBoundary page="reflections">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", href: `/${locale}` },
+          { name: "Home", href: localePath(locale) || "/" },
           {
             name: locale === "it" ? "Riflessioni" : "Reflections",
-            href: `/${locale}/reflections`,
+            href: localePath(locale, "/reflections"),
           },
         ]}
       />

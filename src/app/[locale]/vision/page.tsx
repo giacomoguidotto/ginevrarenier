@@ -3,6 +3,7 @@ import { preloadQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
+import { localePath, locales } from "@/i18n/config";
 import { BreadcrumbJsonLd } from "@/lib/seo";
 import { VisionClient } from "./vision-client";
 
@@ -20,11 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${baseUrl}/${locale}/vision`,
-      languages: {
-        en: `${baseUrl}/en/vision`,
-        it: `${baseUrl}/it/vision`,
-      },
+      canonical: `${baseUrl}${localePath(locale, "/vision")}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `${baseUrl}${localePath(l, "/vision")}`])
+      ),
     },
   };
 }
@@ -39,8 +39,8 @@ export default async function VisionPage({ params }: Props) {
     <PageBoundary page="vision">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", href: `/${locale}` },
-          { name: "Vision", href: `/${locale}/vision` },
+          { name: "Home", href: localePath(locale) || "/" },
+          { name: "Vision", href: localePath(locale, "/vision") },
         ]}
       />
       <VisionClient preloadedProjects={preloadedProjects} />

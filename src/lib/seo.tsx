@@ -1,5 +1,5 @@
 // biome-ignore-all lint/security/noDangerouslySetInnerHtml: JSON-LD requires dangerouslySetInnerHTML — data is from our own schema objects, never user input.
-import type { Locale } from "@/i18n/config";
+import { type Locale, localePath } from "@/i18n/config";
 
 const baseUrl = "https://ginevrarenier.com";
 
@@ -75,7 +75,7 @@ export function PersonJsonLd({ locale, socialUrls }: PersonJsonLdProps) {
     "@type": "Person",
     name: "Ginevra Renier",
     jobTitle: "Photographer",
-    url: `${baseUrl}/${locale}`,
+    url: `${baseUrl}${localePath(locale)}`,
     sameAs: socialUrls,
   };
 

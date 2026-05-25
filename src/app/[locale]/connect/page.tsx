@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
+import { localePath, locales } from "@/i18n/config";
 import { BreadcrumbJsonLd } from "@/lib/seo";
 import { ConnectClient } from "./connect-client";
 
@@ -18,11 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${baseUrl}/${locale}/connect`,
-      languages: {
-        en: `${baseUrl}/en/connect`,
-        it: `${baseUrl}/it/connect`,
-      },
+      canonical: `${baseUrl}${localePath(locale, "/connect")}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `${baseUrl}${localePath(l, "/connect")}`])
+      ),
     },
   };
 }
@@ -35,10 +35,10 @@ export default async function ConnectPage({ params }: Props) {
     <PageBoundary page="connect">
       <BreadcrumbJsonLd
         items={[
-          { name: "Home", href: `/${locale}` },
+          { name: "Home", href: localePath(locale) || "/" },
           {
             name: locale === "it" ? "Contatti" : "Connect",
-            href: `/${locale}/connect`,
+            href: localePath(locale, "/connect"),
           },
         ]}
       />

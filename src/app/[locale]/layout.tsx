@@ -16,7 +16,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { type Locale, locales } from "@/i18n/config";
+import { type Locale, localePath, locales } from "@/i18n/config";
 import { PersonJsonLd, socialLinkToUrl, WebSiteJsonLd } from "@/lib/seo";
 
 interface Props {
@@ -91,11 +91,10 @@ export async function generateMetadata({
     authors: [{ name: "Ginevra Renier" }],
     creator: "Ginevra Renier",
     alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages: {
-        en: `${baseUrl}/en`,
-        it: `${baseUrl}/it`,
-      },
+      canonical: `${baseUrl}${localePath(locale)}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [l, `${baseUrl}${localePath(l)}`] as const)
+      ),
     },
     openGraph: {
       type: "website",

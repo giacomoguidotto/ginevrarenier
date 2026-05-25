@@ -4,7 +4,7 @@ import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
-import type { Locale } from "@/i18n/config";
+import { type Locale, localePath, locales } from "@/i18n/config";
 import { BlogPostingJsonLd, BreadcrumbJsonLd } from "@/lib/seo";
 import { BlogPostClient } from "./blog-post-client";
 
@@ -38,17 +38,19 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${baseUrl}/${locale}/reflections/${slug}`,
-      languages: {
-        en: `${baseUrl}/en/reflections/${slug}`,
-        it: `${baseUrl}/it/reflections/${slug}`,
-      },
+      canonical: `${baseUrl}${localePath(locale, `/reflections/${slug}`)}`,
+      languages: Object.fromEntries(
+        locales.map((l) => [
+          l,
+          `${baseUrl}${localePath(l, `/reflections/${slug}`)}`,
+        ])
+      ),
     },
     openGraph: {
       type: "article",
       title,
       description,
-      url: `${baseUrl}/${locale}/reflections/${slug}`,
+      url: `${baseUrl}${localePath(locale, `/reflections/${slug}`)}`,
       locale: locale === "it" ? "it_IT" : "en_US",
       siteName: "Ginevra Renier Studio",
       ...(post.publishedAt
@@ -91,16 +93,16 @@ export default async function BlogPostPage({ params }: PageProps) {
           <BreadcrumbJsonLd
             items={[
               {
-                name: loc === "it" ? "Home" : "Home",
-                href: `/${locale}`,
+                name: "Home",
+                href: localePath(locale) || "/",
               },
               {
                 name: loc === "it" ? "Riflessioni" : "Reflections",
-                href: `/${locale}/reflections`,
+                href: localePath(locale, "/reflections"),
               },
               {
                 name: loc === "it" ? post.title.it : post.title.en,
-                href: `/${locale}/reflections/${slug}`,
+                href: localePath(locale, `/reflections/${slug}`),
               },
             ]}
           />
@@ -114,7 +116,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             description={loc === "it" ? post.excerpt.it : post.excerpt.en}
             locale={loc}
             title={loc === "it" ? post.title.it : post.title.en}
-            url={`/${locale}/reflections/${slug}`}
+            url={localePath(locale, `/reflections/${slug}`)}
           />
         </>
       )}
