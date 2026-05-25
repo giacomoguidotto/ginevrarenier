@@ -32,11 +32,12 @@ export function proxy(request: Parameters<typeof intlMiddleware>[0]) {
 export const config = {
   matcher: [
     // Match all pathnames except for
+    // - /monitoring (Sentry tunnel route)
     // - /_next (Next.js internals)
     // - /_vercel (Vercel internals)
     // - /images, /fonts (static files)
     // - files with extensions (e.g. favicon.ico)
-    "/((?!_next|_vercel|images|fonts|.*\\..*).*)",
+    "/((?!monitoring|_next|_vercel|images|fonts|.*\\..*).*)",
     // Always run for API routes (needed for Clerk auth)
     "/(api)(.*)",
   ],
