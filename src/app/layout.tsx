@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { ThemeScript } from "@/components/providers/theme-script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,6 +20,9 @@ interface Props {
 export default function RootLayout({ children }: Props) {
   return (
     <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
