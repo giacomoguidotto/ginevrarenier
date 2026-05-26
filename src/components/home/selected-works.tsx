@@ -20,7 +20,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Link } from "@/i18n/routing";
 import { useLocalized } from "@/lib/hooks";
 
-function ProjectCard({
+function SelectedWorkCard({
   project,
   index,
 }: {
@@ -92,11 +92,11 @@ function ProjectCard({
   );
 }
 
-export function FeaturedWork() {
+export function SelectedWorks() {
   return (
-    <Section label="Featured Work" name="home.featured">
+    <Section label="Selected Works" name="home.selectedWorks">
       <ChromeEnablerProvider>
-        <FeaturedWorkContent />
+        <SelectedWorksContent />
       </ChromeEnablerProvider>
     </Section>
   );
@@ -131,7 +131,7 @@ function useSelectedWorks() {
   }, [isEditMode, adminSelectedWorks, allProjects, publishedWorks]);
 }
 
-function FeaturedWorkContent() {
+function SelectedWorksContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("common");
   const { isEditMode } = useEditMode();
@@ -233,7 +233,11 @@ function FeaturedWorkContent() {
           <div className="min-w-[5vw] shrink-0 md:min-w-[10vw]" />
 
           {featured.map((project, index) => (
-            <ProjectCard index={index} key={project._id} project={project} />
+            <SelectedWorkCard
+              index={index}
+              key={project._id}
+              project={project}
+            />
           ))}
 
           {/* Spacer for centering last item */}

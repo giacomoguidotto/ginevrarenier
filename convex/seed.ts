@@ -124,7 +124,7 @@ const SECTIONS: Array<{
     },
   },
   {
-    section: "home.featured",
+    section: "home.selectedWorks",
     content: {
       label: {
         en: "Featured Projects",

@@ -1,8 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
-import { FeaturedWork } from "@/components/home/featured-work";
 import { Hero } from "@/components/home/hero";
 import { IntroSection } from "@/components/home/intro-section";
+import { SelectedWorks } from "@/components/home/selected-works";
 import { Testimonial } from "@/components/home/testimonial";
 
 interface Props {
@@ -17,7 +17,7 @@ export default async function HomePage({ params }: Props) {
     <PageBoundary page="home">
       <Hero />
       <IntroSection />
-      <FeaturedWork />
+      <SelectedWorks />
       <Testimonial />
     </PageBoundary>
   );

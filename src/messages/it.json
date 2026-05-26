@@ -31,7 +31,7 @@
     "photographs": "{count} fotografie"
   },
   "home": {
-    "featured": {
+    "selectedWorks": {
       "label": "Progetti in Evidenza",
       "title": "Opere Selezionate"
     }
