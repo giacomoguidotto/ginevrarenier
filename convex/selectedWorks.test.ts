@@ -187,6 +187,41 @@ describe("selectedWorks.listPublished", () => {
   });
 });
 
+describe("selectedWorks.createWithOrder", () => {
+  it("creates a selectedWork with the given order value", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const projectId = await createProject(admin, "Solstice");
+
+    const id = await admin.mutation(api.selectedWorks.createWithOrder, {
+      projectId,
+      order: 5,
+    });
+
+    const list = await admin.query(api.selectedWorks.list, {});
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject({ _id: id, projectId, order: 5 });
+  });
+
+  it("rejects duplicate projectId", async () => {
+    const t = convexTest(schema, modules);
+    const admin = asAdmin(t);
+    const projectId = await createProject(admin, "Solstice");
+
+    await admin.mutation(api.selectedWorks.createWithOrder, {
+      projectId,
+      order: 0,
+    });
+
+    await expect(
+      admin.mutation(api.selectedWorks.createWithOrder, {
+        projectId,
+        order: 1,
+      })
+    ).rejects.toThrow();
+  });
+});
+
 describe("cascade on project deletion", () => {
   it("projects.remove deletes referencing selectedWorks", async () => {
     const t = convexTest(schema, modules);

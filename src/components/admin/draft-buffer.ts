@@ -16,6 +16,11 @@ export interface PublishOverrideEntry {
   published: boolean;
 }
 
+export interface SelectionOverrideEntry {
+  projectId: string;
+  selected: boolean;
+}
+
 export interface ChangeSummary {
   autoTranslations: { section: string; field: string; locale: string }[];
   createdEntities: EntityRef[];
@@ -24,6 +29,7 @@ export interface ChangeSummary {
   pendingDeletions: EntityRef[];
   publishOverrides: PublishOverrideEntry[];
   reorderedEntityTypes: string[];
+  selectionOverrides: SelectionOverrideEntry[];
   textEdits: TextEdit[];
 }
 
@@ -41,6 +47,7 @@ export interface SerializedDraftBuffer {
   dismissals?: string[];
   publishOverrides?: [string, boolean][];
   reorderLists?: [string, string[]][];
+  selectionOverrides?: [string, boolean][];
   store: [string, string][];
   version: number;
 }
@@ -50,6 +57,7 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
   const creations = new Set<string>(initial?.creations);
   const deletions = new Set<string>(initial?.deletions);
   const pubOverrides = new Map<string, boolean>(initial?.publishOverrides);
+  const selOverrides = new Map<string, boolean>(initial?.selectionOverrides);
   const reorderLists = new Map<string, string[]>(initial?.reorderLists);
   const dismissals = new Set<string>(initial?.dismissals);
   const autoTranslations = new Set<string>(initial?.autoTranslations);
@@ -98,6 +106,7 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         creations.size > 0 ||
         deletions.size > 0 ||
         pubOverrides.size > 0 ||
+        selOverrides.size > 0 ||
         reorderLists.size > 0
       );
     },
@@ -178,12 +187,17 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
           return { section: s, field: f, locale: l };
         });
 
+      const selOvrs: SelectionOverrideEntry[] = [...selOverrides].map(
+        ([projectId, selected]) => ({ projectId, selected })
+      );
+
       return {
         imageSwaps: [],
         textEdits,
         createdEntities,
         pendingDeletions,
         publishOverrides: pubOvrs,
+        selectionOverrides: selOvrs,
         reorderedEntityTypes: [...reorderLists.keys()],
         dismissals: toFieldLocaleList(dismissals),
         autoTranslations: toFieldLocaleList(autoTranslations),
@@ -252,6 +266,21 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         return { entityType, id, published };
       });
     },
+    setSelectionOverride(projectId: string, selected: boolean): void {
+      selOverrides.set(projectId, selected);
+    },
+    getSelectionOverride(projectId: string): boolean | undefined {
+      return selOverrides.get(projectId);
+    },
+    clearSelectionOverride(projectId: string): void {
+      selOverrides.delete(projectId);
+    },
+    selectionOverrides(): SelectionOverrideEntry[] {
+      return [...selOverrides].map(([projectId, selected]) => ({
+        projectId,
+        selected,
+      }));
+    },
     dismiss(section: string, field: string, locale: string): void {
       dismissals.add(key(section, field, locale));
     },
@@ -283,6 +312,7 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
       creations.clear();
       deletions.clear();
       pubOverrides.clear();
+      selOverrides.clear();
       reorderLists.clear();
       dismissals.clear();
       autoTranslations.clear();
@@ -294,6 +324,7 @@ export function createDraftBuffer(initial?: SerializedDraftBuffer) {
         creations: [...creations],
         deletions: [...deletions],
         publishOverrides: [...pubOverrides.entries()],
+        selectionOverrides: [...selOverrides.entries()],
         reorderLists: [...reorderLists.entries()],
         dismissals: [...dismissals],
         autoTranslations: [...autoTranslations],

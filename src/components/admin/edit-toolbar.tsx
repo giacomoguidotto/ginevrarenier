@@ -13,6 +13,7 @@ import {
   Power,
   RotateCcw,
   Save,
+  Star,
   Trash2,
   TriangleAlert,
 } from "lucide-react";
@@ -500,6 +501,8 @@ export function SaveConfirmDialog({
   const hasCreations = createdEntities.length > 0;
   const hasDeletions = pendingDeletions.length > 0;
   const hasPublishOverrides = summary && summary.publishOverrides.length > 0;
+  const hasSelectionOverrides =
+    summary && summary.selectionOverrides.length > 0;
   const hasReorder = summary && summary.reorderedEntityTypes.length > 0;
 
   const undismissedStaleFields = summary
@@ -573,6 +576,22 @@ export function SaveConfirmDialog({
                   <span>
                     {ovr.published ? "Publish" : "Unpublish"}{" "}
                     {formatEntityRef(ovr.entityType, ovr.id, sectionLabels)}
+                  </span>
+                </li>
+              ))
+            : null}
+          {hasSelectionOverrides
+            ? summary?.selectionOverrides.map((ovr) => (
+                <li
+                  className="flex items-baseline gap-2"
+                  key={`selection\0${ovr.projectId}`}
+                >
+                  <Star
+                    className={`h-3 w-3 shrink-0 ${ovr.selected ? "fill-emerald-500 text-emerald-500" : "text-muted-foreground"}`}
+                  />
+                  <span>
+                    {ovr.selected ? "Select" : "Unselect"}{" "}
+                    {formatEntityRef("project", ovr.projectId, sectionLabels)}
                   </span>
                 </li>
               ))

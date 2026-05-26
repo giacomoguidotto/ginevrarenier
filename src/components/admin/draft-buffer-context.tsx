@@ -81,11 +81,13 @@ interface DraftBufferOps {
   cancelCreation: (entityType: string, id: string) => void;
   cancelDeletion: (entityType: string, id: string) => void;
   clearPublishOverride: (entityType: string, id: string) => void;
+  clearSelectionOverride: (projectId: string) => void;
   dismiss: (section: string, field: string, locale: string) => void;
   editedLocales: Buffer["editedLocales"];
   fieldStatus: (section: string, field: string, locale: string) => FieldStatus;
   getPublishOverride: (entityType: string, id: string) => boolean | undefined;
   getReorderList: (entityType: string) => string[] | undefined;
+  getSelectionOverride: (projectId: string) => boolean | undefined;
   isAutoTranslated: (section: string, field: string, locale: string) => boolean;
   isDismissed: (section: string, field: string, locale: string) => boolean;
   isPendingDeletion: (entityType: string, id: string) => boolean;
@@ -104,6 +106,7 @@ interface DraftBufferOps {
     published: boolean
   ) => void;
   setReorderList: (entityType: string, ids: string[]) => void;
+  setSelectionOverride: (projectId: string, selected: boolean) => void;
   trackCreation: (entityType: string, id: string) => void;
   trackDeletion: (entityType: string, id: string) => void;
   write: (
@@ -139,11 +142,13 @@ const OpsContext = createContext<DraftBufferOps>({
   cancelCreation: noop,
   cancelDeletion: noop,
   clearPublishOverride: noop,
+  clearSelectionOverride: noop,
   dismiss: noop,
   editedLocales: () => new Set<string>(),
   fieldStatus: () => "fresh" as FieldStatus,
   getPublishOverride: () => undefined,
   getReorderList: () => undefined,
+  getSelectionOverride: () => undefined,
   isAutoTranslated: () => false,
   isDismissed: () => false,
   isPendingDeletion: () => false,
@@ -155,6 +160,7 @@ const OpsContext = createContext<DraftBufferOps>({
   sectionChanges: () => ({}),
   setPublishOverride: noop,
   setReorderList: noop,
+  setSelectionOverride: noop,
   trackCreation: noop,
   trackDeletion: noop,
   write: noop,
@@ -178,6 +184,7 @@ const StateContext = createContext<DraftBufferState>({
     imageSwaps: [],
     pendingDeletions: [],
     publishOverrides: [],
+    selectionOverrides: [],
     reorderedEntityTypes: [],
     textEdits: [],
   }),
@@ -257,6 +264,9 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
   const updateSocialLink = useMutation(api.socialLinks.update);
   const removeSocialLink = useMutation(api.socialLinks.remove);
   const reorderSocialLinks = useMutation(api.socialLinks.reorder);
+  const createSelectedWorkWithOrder = useMutation(
+    api.selectedWorks.createWithOrder
+  );
   const removeSelectedWork = useMutation(api.selectedWorks.remove);
   const reorderSelectedWorks = useMutation(api.selectedWorks.reorder);
   const selectedWorks = useQuery(
@@ -499,6 +509,26 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [schedulePersist]
   );
 
+  const setSelectionOverride = useCallback(
+    (projectId: string, selected: boolean) => {
+      bufferRef.current.setSelectionOverride(projectId, selected);
+      setHasChanges(true);
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
+  const clearSelectionOverride = useCallback(
+    (projectId: string) => {
+      bufferRef.current.clearSelectionOverride(projectId);
+      setHasChanges(bufferRef.current.hasChanges());
+      setEditVersion((v) => v + 1);
+      schedulePersist();
+    },
+    [schedulePersist]
+  );
+
   const setReorderList = useCallback(
     (entityType: string, ids: string[]) => {
       bufferRef.current.setReorderList(entityType, ids);
@@ -601,6 +631,27 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     [allContent, upsertSiteContent, entityMutations]
   );
 
+  const saveSelectionOverrides = useCallback(
+    async (buffer: Buffer) => {
+      for (const ovr of buffer.selectionOverrides()) {
+        if (ovr.selected) {
+          const reorderList = buffer.getReorderList("selectedWork");
+          const order = reorderList ? reorderList.length : 0;
+          await createSelectedWorkWithOrder({
+            projectId: ovr.projectId as never,
+            order,
+          });
+        } else if (selectedWorks) {
+          const sw = selectedWorks.find((s) => s.projectId === ovr.projectId);
+          if (sw) {
+            await removeSelectedWork({ id: sw._id });
+          }
+        }
+      }
+    },
+    [createSelectedWorkWithOrder, removeSelectedWork, selectedWorks]
+  );
+
   const save = useCallback(async () => {
     await saveSections(bufferRef.current);
 
@@ -613,6 +664,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         } as never);
       }
     }
+
+    await saveSelectionOverrides(bufferRef.current);
 
     const pendingDeletionIds = new Set(
       bufferRef.current.deletions().map((d) => d.id)
@@ -639,7 +692,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
     clearPersistedState();
-  }, [saveSections, entityMutations, removeEntity]);
+  }, [saveSections, entityMutations, removeEntity, saveSelectionOverrides]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
@@ -671,6 +724,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       createdEntities: textSummary.createdEntities,
       pendingDeletions: textSummary.pendingDeletions,
       publishOverrides: textSummary.publishOverrides,
+      selectionOverrides: textSummary.selectionOverrides,
       reorderedEntityTypes: textSummary.reorderedEntityTypes,
       dismissals: textSummary.dismissals,
       autoTranslations: textSummary.autoTranslations,
@@ -684,6 +738,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       cancelCreation,
       cancelDeletion,
       clearPublishOverride,
+      clearSelectionOverride,
       dismiss,
       editedLocales: ((section: string, field: string) =>
         bufferRef.current.editedLocales(
@@ -714,6 +769,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         bufferRef.current.getPublishOverride(entityType, id),
       getReorderList: (entityType: string) =>
         bufferRef.current.getReorderList(entityType),
+      getSelectionOverride: (projectId: string) =>
+        bufferRef.current.getSelectionOverride(projectId),
       isAutoTranslated: (section: string, field: string, locale: string) =>
         bufferRef.current.isAutoTranslated(section, field, locale),
       isDismissed: (section: string, field: string, locale: string) =>
@@ -736,6 +793,7 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
         bufferRef.current.sectionChanges(section)) as Buffer["sectionChanges"],
       setPublishOverride,
       setReorderList,
+      setSelectionOverride,
       trackCreation,
       trackDeletion,
       write,
@@ -746,11 +804,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
       cancelCreation,
       cancelDeletion,
       clearPublishOverride,
+      clearSelectionOverride,
       dismiss,
       markAutoTranslated,
       removeEdit,
       setPublishOverride,
       setReorderList,
+      setSelectionOverride,
       trackCreation,
       trackDeletion,
       write,
