@@ -1,8 +1,17 @@
 "use client";
 
+import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
+import { useConvexAuth, useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, EyeOff } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  EyeOff,
+  Star,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -25,7 +34,7 @@ import { CursorFollower } from "@/components/gallery/cursor-follower";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { ImageModal } from "@/components/gallery/image-modal";
 import { PageTransition } from "@/components/layout/page-transition";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { useLocalized, useProjectImages } from "@/lib/hooks";
 
 export function ProjectPageClient() {
@@ -39,6 +48,14 @@ export function ProjectPageClient() {
     projectId as Id<"projects"> | undefined
   );
   const { isEditMode } = useEditMode();
+  const { isAuthenticated } = useConvexAuth();
+
+  const selectedWorks = useQuery(
+    api.selectedWorks.list,
+    isEditMode && isAuthenticated ? {} : "skip"
+  );
+  const isSelected =
+    selectedWorks?.some((sw) => sw.projectId === projectId) ?? false;
 
   const t = useTranslations("common");
   const _localized = useLocalized();
@@ -112,6 +129,7 @@ export function ProjectPageClient() {
                     | undefined
                 }
                 imageCount={images.length}
+                isSelected={isSelected}
                 projectId={projectId as string}
                 published={
                   (project as Record<string, unknown>).published as boolean
@@ -159,28 +177,44 @@ export function ProjectPageClient() {
   );
 }
 
-function ProjectHeader({
+export function ProjectHeader({
   currentSlug,
   imageCount,
+  isSelected,
   projectId,
   published,
 }: {
   currentSlug: string | undefined;
   imageCount: number;
+  isSelected: boolean;
   projectId: string;
   published: boolean;
 }) {
   const { enable } = useChromeEnabler();
   const { isEditMode } = useEditMode();
-  const { getPublishOverride, setPublishOverride, clearPublishOverride } =
-    useDraftBufferOps();
+  const {
+    getPublishOverride,
+    setPublishOverride,
+    clearPublishOverride,
+    getSelectionOverride,
+    setSelectionOverride,
+    clearSelectionOverride,
+    isPendingDeletion,
+    trackDeletion,
+    cancelDeletion,
+  } = useDraftBufferOps();
   useEditVersion();
   useSlugDerivation(`project:${projectId}`, "project", currentSlug);
   const t = useTranslations("common");
+  const router = useRouter();
 
   const publishOverride = getPublishOverride("project", projectId);
   const effectivePublished =
     publishOverride === undefined ? published : publishOverride;
+
+  const selectionOverride = getSelectionOverride(projectId);
+  const effectiveSelected =
+    selectionOverride === undefined ? isSelected : selectionOverride;
 
   const handleTogglePublish = () => {
     const target = !effectivePublished;
@@ -189,6 +223,26 @@ function ProjectHeader({
     } else {
       setPublishOverride("project", projectId, target);
     }
+  };
+
+  const handleToggleSelect = () => {
+    const target = !effectiveSelected;
+    if (target === isSelected) {
+      clearSelectionOverride(projectId);
+    } else {
+      setSelectionOverride(projectId, target);
+    }
+  };
+
+  const pendingDeletion = isPendingDeletion("project", projectId);
+
+  const handleDelete = () => {
+    trackDeletion("project", projectId);
+    router.push("/vision");
+  };
+
+  const handleCancelDeletion = () => {
+    cancelDeletion("project", projectId);
   };
 
   return (
@@ -235,28 +289,76 @@ function ProjectHeader({
       {isEditMode && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="mt-6"
+          className="mt-6 flex items-center gap-3"
           initial={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          {effectivePublished ? (
+          {pendingDeletion ? (
             <button
-              className="inline-flex items-center gap-2 rounded-full bg-foreground/20 px-6 py-2.5 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:bg-foreground/30 hover:shadow-md"
-              onClick={handleTogglePublish}
+              className="inline-flex items-center gap-2 rounded-full bg-destructive/90 px-6 py-2.5 font-medium text-sm text-white uppercase tracking-widest transition-all hover:bg-destructive hover:shadow-md"
+              data-testid="header-cancel-deletion-button"
+              onClick={handleCancelDeletion}
               type="button"
             >
-              <EyeOff className="h-4 w-4" />
-              Unpublish
+              <Undo2 className="h-4 w-4" />
+              Cancel deletion
             </button>
           ) : (
-            <button
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-primary/90 hover:shadow-md"
-              onClick={handleTogglePublish}
-              type="button"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              Publish
-            </button>
+            <>
+              {effectiveSelected ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-full bg-foreground/20 px-6 py-2.5 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:bg-foreground/30 hover:shadow-md"
+                  data-testid="header-unselect-button"
+                  onClick={handleToggleSelect}
+                  type="button"
+                >
+                  <Star className="h-4 w-4 fill-current" />
+                  Unselect
+                </button>
+              ) : (
+                <button
+                  className="inline-flex items-center gap-2 rounded-full bg-foreground/20 px-6 py-2.5 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:bg-foreground/30 hover:shadow-md"
+                  data-testid="header-select-button"
+                  onClick={handleToggleSelect}
+                  type="button"
+                >
+                  <Star className="h-4 w-4" />
+                  Select
+                </button>
+              )}
+
+              {effectivePublished ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-full bg-foreground/20 px-6 py-2.5 font-medium text-foreground text-sm uppercase tracking-widest transition-all hover:bg-foreground/30 hover:shadow-md"
+                  data-testid="header-unpublish-button"
+                  onClick={handleTogglePublish}
+                  type="button"
+                >
+                  <EyeOff className="h-4 w-4" />
+                  Unpublish
+                </button>
+              ) : (
+                <button
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground text-sm uppercase tracking-widest transition-all hover:bg-primary/90 hover:shadow-md"
+                  data-testid="header-publish-button"
+                  onClick={handleTogglePublish}
+                  type="button"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  Publish
+                </button>
+              )}
+
+              <button
+                className="inline-flex items-center gap-2 rounded-full bg-destructive/80 px-6 py-2.5 font-medium text-sm text-white uppercase tracking-widest transition-all hover:bg-destructive hover:shadow-md"
+                data-testid="header-delete-button"
+                onClick={handleDelete}
+                type="button"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </>
           )}
         </motion.div>
       )}
