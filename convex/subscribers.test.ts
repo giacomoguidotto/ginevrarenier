@@ -71,7 +71,7 @@ describe("subscribers.subscribe", () => {
       vi.advanceTimersByTime(1);
     });
 
-    mockSend.mockClear();
+    const callsAfterFirst = mockSend.mock.calls.length;
 
     const result = await t.mutation(api.subscribers.subscribe, {
       email: "visitor@example.com",
@@ -85,7 +85,7 @@ describe("subscribers.subscribe", () => {
       vi.advanceTimersByTime(1);
     });
 
-    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend.mock.calls.length - callsAfterFirst).toBe(1);
 
     const subscribers = await t.run(
       async (ctx) => await ctx.db.query("subscribers").take(10)
