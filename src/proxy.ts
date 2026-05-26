@@ -37,7 +37,7 @@ export const config = {
     // - /_vercel (Vercel internals)
     // - /images, /fonts (static files)
     // - files with extensions (e.g. favicon.ico)
-    "/((?!monitoring|_next|_vercel|images|fonts|.*\\..*).*)",
+    "/((?!monitoring|confirm|unsubscribe|_next|_vercel|images|fonts|.*\\..*).*)",
     // Always run for API routes (needed for Clerk auth)
     "/(api)(.*)",
   ],
