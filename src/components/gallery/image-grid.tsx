@@ -44,7 +44,7 @@ export function ImageGrid({
             <Image
               alt={
                 projectTitle
-                  ? `Photography by Ginevra Renier — ${projectTitle}, image ${index + 1}`
+                  ? `Photography by Ginevra Renier: ${projectTitle}, image ${index + 1}`
                   : `Photograph ${index + 1}`
               }
               className="w-full transition-transform duration-700 group-hover:scale-105"

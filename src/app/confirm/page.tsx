@@ -4,7 +4,7 @@ import { fetchMutation } from "convex/nextjs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Subscription Confirmed — Ginevra Renier",
+  title: "Subscription Confirmed | Ginevra Renier",
   robots: { index: false },
 };
 

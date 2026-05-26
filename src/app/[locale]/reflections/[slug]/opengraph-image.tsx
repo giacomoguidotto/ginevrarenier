@@ -4,7 +4,7 @@ import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { ImageResponse } from "next/og";
 
-export const alt = "Ginevra Renier — Reflections";
+export const alt = "Ginevra Renier | Reflections";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
