@@ -266,7 +266,7 @@ describe("subscribers.sendConfirmation", () => {
 
     expect(mockSend).toHaveBeenCalledTimes(1);
     const call = mockSend.mock.calls[0][0];
-    expect(call.from).toBe("Ginevra Renier Studio <noreply@ginevrarenier.com>");
+    expect(call.from).toBe("Ginevra Renier <noreply@ginevrarenier.com>");
     expect(call.to).toEqual(["visitor@example.com"]);
     expect(call.subject).toBe("Conferma la tua iscrizione");
     expect(call.html).toContain("https://ginevrarenier.com/confirm?token=");

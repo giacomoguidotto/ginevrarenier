@@ -335,7 +335,7 @@ describe("sendInquiryEmail", () => {
     );
     expect(call).toBeDefined();
     expect(call?.[0]).toMatchObject({
-      from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
+      from: "Ginevra Renier <noreply@ginevrarenier.com>",
       to: ["artist@test.com"],
       replyTo: "ada@example.com",
       subject: "New inquiry: press from Ada Lovelace",

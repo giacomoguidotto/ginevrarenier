@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `${baseUrl}${localePath(locale, `/vision/${slug}`)}`,
       locale: locale === "it" ? "it_IT" : "en_US",
-      siteName: "Ginevra Renier Studio",
+      siteName: "Ginevra Renier",
       ...(project.coverImageUrl
         ? {
             images: [

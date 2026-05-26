@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in Ginevra Renier Studio! Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
+Thanks for your interest in Ginevra Renier! Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
 
 This is a personal project with a specific vision, so contributions are accepted on a **limited basis**.
 

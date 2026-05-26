@@ -171,7 +171,7 @@ export const sendInquiryEmail = internalAction({
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
-      from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
+      from: "Ginevra Renier <noreply@ginevrarenier.com>",
       to: [artistEmail],
       replyTo: inquiry.email,
       subject: `New inquiry: ${inquiry.inquiryType} from ${inquiry.name}`,

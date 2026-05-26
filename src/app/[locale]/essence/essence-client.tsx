@@ -158,7 +158,7 @@ function EssenceHero() {
             transition={{ duration: 0.8 }}
           >
             <EditableImage
-              alt="Ginevra Renier Studio"
+              alt="Ginevra Renier"
               deleteLabel="Essence Artist Image"
               folder={cloudinaryFolder("site")}
               onDelete={handlePortraitDelete}

@@ -50,7 +50,7 @@ export function WebSiteJsonLd({ locale }: WebSiteJsonLdProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Ginevra Renier Studio",
+    name: "Ginevra Renier",
     url: baseUrl,
     inLanguage: [locale === "it" ? "it-IT" : "en-US"],
     alternateName: "Ginevra Renier Photography",

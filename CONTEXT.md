@@ -1,4 +1,4 @@
-# Ginevra Renier Studio
+# Ginevra Renier
 
 A bilingual (EN/IT) photography portfolio with an inline editing system that lets the site owner edit content directly on the live site.
 

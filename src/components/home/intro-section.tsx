@@ -166,7 +166,7 @@ function IntroSectionContent() {
               style={{ y: imageY }}
             >
               <EditableImage
-                alt="Ginevra Renier Studio"
+                alt="Ginevra Renier"
                 deleteLabel="Home Artist Image"
                 folder={cloudinaryFolder("site")}
                 onDelete={handlePortraitDelete}

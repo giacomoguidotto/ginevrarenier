@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(withNextIntl(nextConfig), {
   org: process.env.SENTRY_ORG ?? "guidottodev",
-  project: process.env.SENTRY_PROJECT ?? "javascript-nextjs",
+  project: process.env.SENTRY_PROJECT ?? "ginevrarenier",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   tunnelRoute: "/monitoring",

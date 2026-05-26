@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png" alt="Ginevra Renier Studio" width="160" />
+  <img src="https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png" alt="Ginevra Renier" width="160" />
 </p>
 
-<h1 align="center">Ginevra Renier Studio</h1>
+<h1 align="center">Ginevra Renier</h1>
 
 <p align="center">
   <strong>A personal portfolio for an artist who sees the world differently.</strong><br>

@@ -67,7 +67,7 @@ export const sendPublishNotification = internalAction({
 
       try {
         await resend.emails.send({
-          from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
+          from: "Ginevra Renier <noreply@ginevrarenier.com>",
           to: [subscriber.email],
           subject:
             locale === "it"

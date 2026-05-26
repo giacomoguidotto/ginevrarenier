@@ -52,7 +52,7 @@ export async function generateMetadata({
       description,
       url: `${baseUrl}${localePath(locale, `/reflections/${slug}`)}`,
       locale: locale === "it" ? "it_IT" : "en_US",
-      siteName: "Ginevra Renier Studio",
+      siteName: "Ginevra Renier",
       ...(post.publishedAt
         ? { publishedTime: new Date(post.publishedAt).toISOString() }
         : {}),

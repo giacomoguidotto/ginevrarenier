@@ -3,7 +3,7 @@ import { fetchMutation } from "convex/nextjs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Unsubscribed — Ginevra Renier Studio",
+  title: "Unsubscribed — Ginevra Renier",
   robots: { index: false },
 };
 
@@ -33,11 +33,8 @@ function UnsubscribeLayout({
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f4f1ec] px-6 dark:bg-[#080808]">
       <div className="w-full max-w-md text-center">
-        <p className="mb-4 font-light text-[#1a1816] text-[15px] tracking-[4px] dark:text-[#ede8e0]">
+        <p className="mb-12 font-light text-[#1a1816] text-[15px] tracking-[4px] dark:text-[#ede8e0]">
           GINEVRA RENIER
-        </p>
-        <p className="mb-12 font-normal text-[#9a958d] text-[9px] tracking-[3px]">
-          STUDIO
         </p>
 
         {success ? (

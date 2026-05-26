@@ -141,7 +141,7 @@ export const sendConfirmation = internalAction({
     const resend = new Resend(process.env.RESEND_API_KEY);
     try {
       await resend.emails.send({
-        from: "Ginevra Renier Studio <noreply@ginevrarenier.com>",
+        from: "Ginevra Renier <noreply@ginevrarenier.com>",
         to: [subscriber.email],
         subject:
           locale === "it"

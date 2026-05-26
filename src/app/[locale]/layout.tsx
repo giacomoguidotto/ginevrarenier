@@ -37,8 +37,8 @@ export async function generateMetadata({
   const { locale } = await params;
 
   const titles: Record<Locale, string> = {
-    en: "Ginevra Renier Studio",
-    it: "Ginevra Renier Studio",
+    en: "Ginevra Renier",
+    it: "Ginevra Renier",
   };
 
   const footerContent = await fetchQuery(api.siteContent.getBySection, {
@@ -47,8 +47,8 @@ export async function generateMetadata({
   const tagline = footerContent?.content?.tagline;
 
   const defaultDescriptions: Record<Locale, string> = {
-    en: "Capturing moments that transcend time. Photography portfolio of Ginevra Renier Studio - portraits, landscapes, and visual storytelling.",
-    it: "Catturare momenti che trascendono il tempo. Portfolio fotografico di Ginevra Renier Studio - ritratti, paesaggi e narrazione visiva.",
+    en: "Capturing moments that transcend time. Photography portfolio of Ginevra Renier - portraits, landscapes, and visual storytelling.",
+    it: "Catturare momenti che trascendono il tempo. Portfolio fotografico di Ginevra Renier - ritratti, paesaggi e narrazione visiva.",
   };
 
   const descriptions: Record<Locale, string> = {
@@ -77,7 +77,7 @@ export async function generateMetadata({
     metadataBase: new URL(baseUrl),
     title: {
       default: getTitle(locale),
-      template: "%s | Ginevra Renier Studio",
+      template: "%s | Ginevra Renier",
     },
     description: getDescription(locale),
     keywords: [
@@ -87,7 +87,7 @@ export async function generateMetadata({
       "landscape",
       "fine art",
       "Ginevra Renier",
-      "Ginevra Renier Studio",
+      "Ginevra Renier",
     ],
     authors: [{ name: "Ginevra Renier" }],
     creator: "Ginevra Renier",
@@ -101,7 +101,7 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "it" ? "it_IT" : "en_US",
       alternateLocale: locale === "it" ? "en_US" : "it_IT",
-      siteName: "Ginevra Renier Studio",
+      siteName: "Ginevra Renier",
       title: getTitle(locale),
       description: getDescription(locale),
     },

@@ -19,7 +19,7 @@ interface ConfirmationEmailProps {
 
 const copy = {
   en: {
-    preview: "Confirm your subscription to Ginevra Renier Studio",
+    preview: "Confirm your subscription to Ginevra Renier",
     greeting: "Thank you for your interest in my work.",
     body: "I'd love to keep you updated on new projects, exhibitions, and stories from the studio. To confirm your subscription, simply click below.",
     cta: "Confirm subscription",
@@ -27,7 +27,7 @@ const copy = {
       "If you didn't sign up, you can safely ignore this email — nothing will happen.",
   },
   it: {
-    preview: "Conferma la tua iscrizione a Ginevra Renier Studio",
+    preview: "Conferma la tua iscrizione a Ginevra Renier",
     greeting: "Grazie per il tuo interesse nel mio lavoro.",
     body: "Mi piacerebbe tenerti aggiornato su nuovi progetti, mostre e storie dallo studio. Per confermare la tua iscrizione, clicca qui sotto.",
     cta: "Conferma iscrizione",
@@ -47,7 +47,6 @@ function ConfirmationEmail({ confirmUrl, locale }: ConfirmationEmailProps) {
         <Container style={container}>
           <Section style={header}>
             <Text style={brandName}>GINEVRA RENIER</Text>
-            <Text style={brandSub}>STUDIO</Text>
           </Section>
 
           <Hr style={divider} />
@@ -108,14 +107,6 @@ const brandName: CSSProperties = {
   fontWeight: 300,
   letterSpacing: "4px",
   margin: "0 0 6px 0",
-};
-
-const brandSub: CSSProperties = {
-  color: "#9a958d",
-  fontSize: "9px",
-  fontWeight: 400,
-  letterSpacing: "3px",
-  margin: "0",
 };
 
 const divider: CSSProperties = {
