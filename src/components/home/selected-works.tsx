@@ -415,28 +415,36 @@ function SelectedWorksContent() {
                     )}
                   </button>
                 )}
-                {!isGridMode && (
-                  <div className="flex gap-2">
-                    <button
-                      aria-label="Previous project"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/20 text-foreground/60 transition-all hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
-                      disabled={!canScrollLeft}
-                      onClick={() => scroll("left")}
-                      type="button"
+                <AnimatePresence initial={false}>
+                  {!isGridMode && (
+                    <motion.div
+                      animate={{ opacity: 1, width: "auto" }}
+                      className="flex gap-2 overflow-hidden"
+                      exit={{ opacity: 0, width: 0 }}
+                      initial={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
                     >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      aria-label="Next project"
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/20 text-foreground/60 transition-all hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
-                      disabled={!canScrollRight}
-                      onClick={() => scroll("right")}
-                      type="button"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                )}
+                      <button
+                        aria-label="Previous project"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/20 text-foreground/60 transition-all hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                        disabled={!canScrollLeft}
+                        onClick={() => scroll("left")}
+                        type="button"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        aria-label="Next project"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/20 text-foreground/60 transition-all hover:border-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                        disabled={!canScrollRight}
+                        onClick={() => scroll("right")}
+                        type="button"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <Link
                   className="flex items-center gap-2 text-foreground/60 text-sm uppercase tracking-widest transition-colors hover:text-foreground"
                   href="/vision"
