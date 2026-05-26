@@ -24,7 +24,7 @@ const copy = {
     body: "I'd love to keep you updated on new projects, exhibitions, and stories from the studio. To confirm your subscription, simply click below.",
     cta: "Confirm subscription",
     footer:
-      "If you didn't sign up, you can safely ignore this email — nothing will happen.",
+      "If you didn't sign up, you can safely ignore this email. Nothing will happen.",
   },
   it: {
     preview: "Conferma la tua iscrizione a Ginevra Renier",
@@ -32,7 +32,7 @@ const copy = {
     body: "Mi piacerebbe tenerti aggiornato su nuovi progetti, mostre e storie dallo studio. Per confermare la tua iscrizione, clicca qui sotto.",
     cta: "Conferma iscrizione",
     footer:
-      "Se non ti sei iscritto, puoi ignorare questa email — non succederà nulla.",
+      "Se non ti sei iscritto, puoi ignorare questa email: non succederà nulla.",
   },
 };
 

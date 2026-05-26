@@ -49,7 +49,7 @@
     "header": {
       "label": "Parliamo",
       "title": "Contatti",
-      "description": "Che tu stia immaginando una collaborazione, cercando una commissione, o semplicemente voglia salutare—mi piacerebbe sentirti."
+      "description": "Che tu stia immaginando una collaborazione, cercando una commissione, o semplicemente voglia salutare: mi piacerebbe sentirti."
     },
     "form": {
       "name": "Nome",
@@ -118,7 +118,7 @@
     "placeholder": "la-tua@email.com",
     "submit": "Seguimi",
     "submitting": "…",
-    "success": "Controlla la tua casella — una conferma è in arrivo.",
+    "success": "Controlla la tua casella: una conferma è in arrivo.",
     "error": "Inserisci un indirizzo email valido.",
     "submitError": "Qualcosa è andato storto. Riprova.",
     "consent": "Riceverai un'email solo quando nuovi progetti saranno pubblicati. Puoi disiscriverti in qualsiasi momento."

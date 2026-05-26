@@ -49,7 +49,7 @@
     "header": {
       "label": "Let's Talk",
       "title": "Connect",
-      "description": "Whether you're envisioning a collaboration, seeking a commission, or simply want to say hello—I'd love to hear from you."
+      "description": "Whether you're envisioning a collaboration, seeking a commission, or simply want to say hello. I'd love to hear from you."
     },
     "form": {
       "name": "Name",
@@ -118,7 +118,7 @@
     "placeholder": "your@email.com",
     "submit": "Follow",
     "submitting": "…",
-    "success": "Check your inbox — a confirmation is on its way.",
+    "success": "Check your inbox; a confirmation is on its way.",
     "error": "Please enter a valid email address.",
     "submitError": "Something went wrong. Please try again.",
     "consent": "You'll only receive an email when new projects are published. You can unsubscribe at any time."
