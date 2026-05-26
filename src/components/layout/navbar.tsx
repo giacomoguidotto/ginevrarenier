@@ -10,6 +10,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import {
@@ -230,14 +231,35 @@ export function Navbar() {
         />
         <nav className="relative mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
           {/* Logo */}
-          <Link className="group relative z-10" href="/">
-            <motion.span
-              className="font-light text-xl uppercase tracking-widest"
+          <Link
+            className="group relative z-10 flex items-center gap-3"
+            href="/"
+          >
+            <motion.div
+              className="flex items-center gap-3"
               transition={{ duration: 0.3 }}
               whileHover={{ scale: 1.02 }}
             >
-              Ginevra Renier
-            </motion.span>
+              <Image
+                alt=""
+                className="block h-8 w-auto dark:hidden"
+                height={32}
+                priority
+                src="/images/logo-light.svg"
+                width={33}
+              />
+              <Image
+                alt=""
+                className="hidden h-8 w-auto dark:block"
+                height={32}
+                priority
+                src="/images/logo-dark.svg"
+                width={33}
+              />
+              <span className="font-light text-xl uppercase tracking-widest">
+                Ginevra Renier
+              </span>
+            </motion.div>
           </Link>
 
           {/* Desktop Navigation */}

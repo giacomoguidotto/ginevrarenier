@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="https://assets.vercel.com/image/upload/front/favicon/vercel/180x180.png" alt="Ginevra Renier" width="160" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/images/logo-dark.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="public/images/logo-light.svg" />
+    <img src="public/images/logo-light.svg" alt="Ginevra Renier" width="160" />
+  </picture>
 </p>
 
 <h1 align="center">Ginevra Renier</h1>
