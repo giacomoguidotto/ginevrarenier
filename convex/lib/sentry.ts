@@ -26,6 +26,9 @@ export async function captureException(
     timestamp,
     platform: "node",
     server_name: "convex",
+    environment: process.env.CONVEX_CLOUD_URL?.includes("prod")
+      ? "production"
+      : "preview",
     tags: {
       runtime: "convex",
       ...(context?.action ? { action: context.action } : {}),
