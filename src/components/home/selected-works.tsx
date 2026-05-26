@@ -4,6 +4,8 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
@@ -181,11 +183,7 @@ function CurationGridCard({
         scale: 1,
         filter: effectiveSelected ? "grayscale(0)" : "grayscale(1)",
       }}
-      className={`group relative cursor-pointer transition-shadow ${
-        effectiveSelected
-          ? "rounded-lg shadow-lg shadow-primary/10 ring-2 ring-primary/40 dark:shadow-primary/20 dark:ring-primary/50"
-          : "opacity-60"
-      }`}
+      className={`group relative cursor-pointer ${isDragging ? "opacity-30" : ""} ${isDragging || effectiveSelected ? "" : "opacity-60"}`}
       data-selected={effectiveSelected}
       data-testid="curation-card"
       initial={false}
@@ -197,7 +195,13 @@ function CurationGridCard({
       {...attributes}
       {...listeners}
     >
-      <div className="relative aspect-4/5 overflow-hidden rounded-lg">
+      <div
+        className={`relative aspect-4/5 overflow-hidden rounded-lg transition-shadow ${
+          effectiveSelected
+            ? "shadow-[0_0_20px_4px] shadow-foreground/15 ring-2 ring-foreground/20"
+            : ""
+        }`}
+      >
         <Image
           alt={localized(project.title)}
           className="object-cover"
@@ -308,6 +312,7 @@ function SelectedWorksContent() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isGridMode, setIsGridMode] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const reorderList = getReorderList("selectedWork");
   const displayGridProjects = useMemo(() => {
@@ -327,8 +332,13 @@ function SelectedWorksContent() {
     })
   );
 
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      setActiveId(null);
       const { active, over } = event;
       if (!over || active.id === over.id) {
         return;
@@ -469,6 +479,7 @@ function SelectedWorksContent() {
               <DndContext
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
+                onDragStart={handleDragStart}
                 sensors={sensors}
               >
                 <SortableContext
@@ -488,6 +499,33 @@ function SelectedWorksContent() {
                     ))}
                   </div>
                 </SortableContext>
+                <DragOverlay>
+                  {activeId
+                    ? (() => {
+                        const project = displayGridProjects.find(
+                          (p) => p._id === activeId
+                        );
+                        if (!project) {
+                          return null;
+                        }
+                        const coverSrc =
+                          project.coverImageUrl || "/images/placeholder.svg";
+                        return (
+                          <div className="w-full cursor-grabbing">
+                            <div className="relative aspect-4/5 overflow-hidden rounded-lg shadow-2xl ring-2 ring-foreground/20">
+                              <Image
+                                alt=""
+                                className="object-cover"
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                src={coverSrc}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()
+                    : null}
+                </DragOverlay>
               </DndContext>
             </motion.div>
           ) : (

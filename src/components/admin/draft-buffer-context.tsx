@@ -673,9 +673,19 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     for (const [entityType, mutations] of entityMutations) {
       const reorderList = bufferRef.current.getReorderList(entityType);
       if (mutations.reorder && reorderList) {
-        await mutations.reorder({
-          ids: reorderList.filter((id) => !pendingDeletionIds.has(id)) as never,
-        });
+        let ids = reorderList.filter((id) => !pendingDeletionIds.has(id));
+        if (entityType === "selectedWork" && selectedWorks) {
+          const projectToSw = new Map(
+            selectedWorks.map((sw) => [
+              sw.projectId as string,
+              sw._id as string,
+            ])
+          );
+          ids = ids
+            .map((pid) => projectToSw.get(pid))
+            .filter((id): id is string => id != null);
+        }
+        await mutations.reorder({ ids } as never);
       }
     }
 
@@ -692,7 +702,13 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
     clearPersistedState();
-  }, [saveSections, entityMutations, removeEntity, saveSelectionOverrides]);
+  }, [
+    saveSections,
+    entityMutations,
+    removeEntity,
+    saveSelectionOverrides,
+    selectedWorks,
+  ]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();

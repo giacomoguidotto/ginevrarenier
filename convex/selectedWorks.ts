@@ -77,11 +77,17 @@ export const remove = adminMutation({
 
 export const reorder = adminMutation({
   args: {
-    ids: v.array(v.id("selectedWorks")),
+    ids: v.array(v.id("projects")),
   },
   handler: async (ctx, { ids }) => {
     for (let i = 0; i < ids.length; i++) {
-      await ctx.db.patch(ids[i], { order: i });
+      const sw = await ctx.db
+        .query("selectedWorks")
+        .withIndex("by_project", (q) => q.eq("projectId", ids[i]))
+        .unique();
+      if (sw) {
+        await ctx.db.patch(sw._id, { order: i });
+      }
     }
   },
 });

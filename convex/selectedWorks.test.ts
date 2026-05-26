@@ -80,24 +80,18 @@ describe("selectedWorks.reorder", () => {
     const p2 = await createProject(admin, "Second");
     const p3 = await createProject(admin, "Third");
 
-    const sw1 = await admin.mutation(api.selectedWorks.create, {
-      projectId: p1,
-    });
-    const sw2 = await admin.mutation(api.selectedWorks.create, {
-      projectId: p2,
-    });
-    const sw3 = await admin.mutation(api.selectedWorks.create, {
-      projectId: p3,
-    });
+    await admin.mutation(api.selectedWorks.create, { projectId: p1 });
+    await admin.mutation(api.selectedWorks.create, { projectId: p2 });
+    await admin.mutation(api.selectedWorks.create, { projectId: p3 });
 
     await admin.mutation(api.selectedWorks.reorder, {
-      ids: [sw3, sw1, sw2],
+      ids: [p3, p1, p2],
     });
 
     const list = await admin.query(api.selectedWorks.list, {});
-    expect(list[0]._id).toBe(sw3);
-    expect(list[1]._id).toBe(sw1);
-    expect(list[2]._id).toBe(sw2);
+    expect(list[0].projectId).toBe(p3);
+    expect(list[1].projectId).toBe(p1);
+    expect(list[2].projectId).toBe(p2);
   });
 });
 
@@ -160,17 +154,11 @@ describe("selectedWorks.listPublished", () => {
     await publishProject(admin, p1);
     await publishProject(admin, p2);
     await publishProject(admin, p3);
-    const sw1 = await admin.mutation(api.selectedWorks.create, {
-      projectId: p1,
-    });
-    const sw2 = await admin.mutation(api.selectedWorks.create, {
-      projectId: p2,
-    });
-    const sw3 = await admin.mutation(api.selectedWorks.create, {
-      projectId: p3,
-    });
+    await admin.mutation(api.selectedWorks.create, { projectId: p1 });
+    await admin.mutation(api.selectedWorks.create, { projectId: p2 });
+    await admin.mutation(api.selectedWorks.create, { projectId: p3 });
     await admin.mutation(api.selectedWorks.reorder, {
-      ids: [sw3, sw1, sw2],
+      ids: [p3, p1, p2],
     });
 
     const result = await t.query(api.selectedWorks.listPublished, {});
