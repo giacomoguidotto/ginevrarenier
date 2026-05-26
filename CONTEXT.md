@@ -67,7 +67,7 @@ The period between entering and exiting edit mode. All uncommitted changes live 
 _Avoid_: Edit mode (use for the boolean toggle only, not the session concept)
 
 **Draft Buffer**:
-In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, reorder changes, Pending Deletions, Dismissals, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
+In-memory accumulator for all uncommitted operations within an Edit Session: text edits (both section fields and entity fields), image swaps, Publish Overrides, Selection Overrides, reorder changes, Pending Deletions, Dismissals, and Session-Created Entity tracking. Exposes a structured summary for confirmation dialogs. On save, routes changes to the correct backend: real sections → `siteContent.upsert`, virtual sections → entity-specific mutations (`projects.update`, `blogPosts.update`), Publish Overrides → entity publish/unpublish mutations, reorder → entity reorder mutation. Global discard reverts everything including compensating actions (image cleanup, Session-Created Entity removal).
 _Avoid_: Change tracker, command buffer, undo stack
 
 **Session-Created Entity**:
@@ -81,6 +81,10 @@ _Avoid_: Soft delete, marked for removal
 **Publish Override**:
 A Draft Buffer entry recording the intended visibility state (Published or Unpublished) for an entity during an Edit Session. Present only when the intended state differs from the current database value. On save, applied as a publish/unpublish mutation. On discard, cleared. The UI renders the overridden state: cards appear at full opacity for a pending publish and dimmed for a pending unpublish.
 _Avoid_: Toggle, publish flag, visibility toggle
+
+**Selection Override**:
+A Draft Buffer entry recording the intended membership state (selected or unselected) of a Project in Selected Works during an Edit Session. Present only when the intended state differs from the current database value. On save, applied as a create or remove mutation on the selectedWorks table. On discard, cleared. Analogous to Publish Override but for Selected Work membership rather than visibility.
+_Avoid_: Selection toggle, feature toggle, highlight toggle
 
 **Chrome**:
 The stateless visual layer for editing cues on Active Fields. Draws outlines (line animation as a state-transition cue), hatching, and semantic dots (warning for Stale Fields, info for system-filled content such as auto-translation). Rendered per-Field as an SVG child of the Field's DOM wrapper, so it moves, resizes, and unmounts with its Field automatically. Owns no content state — reads everything from the Draft Buffer and edit-mode state. Shows an on-focus tooltip with the human-readable Section label and Field name.
@@ -123,7 +127,7 @@ A Visible Field during an Edit Session. `contentEditable="plaintext-only"` is en
 - A **Selected Work** references a **Project** — it does not own content
 - An **Achievement** is a standalone **Entity** with bilingual title/description and a year range
 - An **Artist Image** is a singleton **Entity** — one per page slot (Home, Essence)
-- The **Draft Buffer** accumulates changes from **Fields**, image swaps, **Publish Overrides**, reorder intents, **Pending Deletions**, and **Session-Created Entities** for all **Entity** types
+- The **Draft Buffer** accumulates changes from **Fields**, image swaps, **Publish Overrides**, **Selection Overrides**, reorder intents, **Pending Deletions**, and **Session-Created Entities** for all **Entity** types
 - Each **Entity** type is described by an **Entity Descriptor** declaring its capabilities and backend routing
 - **Chrome** is rendered by each **Field** as a DOM child — it reads **Draft Buffer** state but owns none
 - **Chrome** renders semantic dots: warning (amber) for **Stale Fields**, info (blue) for system-filled content
