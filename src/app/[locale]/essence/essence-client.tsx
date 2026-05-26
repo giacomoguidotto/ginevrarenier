@@ -448,7 +448,7 @@ function AchievementEntry({
                 name="startYear"
                 numericOnly
               />
-              <span className="shrink-0 text-cream/30">—</span>
+              <span className="shrink-0 text-cream/30">–</span>
               <Field
                 as="span"
                 className="min-h-[1.2em] min-w-[4ch] text-cream/40"

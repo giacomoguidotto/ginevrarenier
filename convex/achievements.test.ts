@@ -198,7 +198,7 @@ describe("formatYearRange", () => {
   });
 
   it("shows range when endYear differs", () => {
-    expect(formatYearRange(2018, 2020)).toBe("2018 — 2020");
+    expect(formatYearRange(2018, 2020)).toBe("2018–2020");
   });
 
   it("shows single year when startYear equals endYear", () => {

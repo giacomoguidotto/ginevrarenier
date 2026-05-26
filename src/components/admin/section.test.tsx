@@ -143,7 +143,7 @@ describe("Section with virtual sections", () => {
   it("includes endYear when achievement has a date range", () => {
     render(
       <Section
-        label="Achievement: 2018 — 2020"
+        label="Achievement: 2018–2020"
         name="achievement:achievement-id-2"
       >
         <SectionConsumer />
