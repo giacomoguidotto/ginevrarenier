@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,30 @@ vi.mock("@/components/admin/edit-mode-context", () => ({
     isEditMode: editMode,
     editingLocale: "en",
   }),
+}));
+
+let mockGetPublishOverride: (
+  entityType: string,
+  id: string
+) => boolean | undefined = () => undefined;
+let mockGetSelectionOverride: (projectId: string) => boolean | undefined = () =>
+  undefined;
+const mockSetPublishOverride = vi.fn();
+const mockClearPublishOverride = vi.fn();
+const mockSetSelectionOverride = vi.fn();
+const mockClearSelectionOverride = vi.fn();
+
+vi.mock("@/components/admin/draft-buffer-context", () => ({
+  useDraftBufferOps: () => ({
+    getPublishOverride: (et: string, id: string) =>
+      mockGetPublishOverride(et, id),
+    setPublishOverride: mockSetPublishOverride,
+    clearPublishOverride: mockClearPublishOverride,
+    getSelectionOverride: (pid: string) => mockGetSelectionOverride(pid),
+    setSelectionOverride: mockSetSelectionOverride,
+    clearSelectionOverride: mockClearSelectionOverride,
+  }),
+  useEditVersion: () => 0,
 }));
 
 vi.mock("next-intl", () => ({
@@ -79,6 +103,12 @@ import { ProjectCard } from "./project-card";
 afterEach(() => {
   cleanup();
   editMode = false;
+  mockGetPublishOverride = () => undefined;
+  mockGetSelectionOverride = () => undefined;
+  mockSetPublishOverride.mockClear();
+  mockClearPublishOverride.mockClear();
+  mockSetSelectionOverride.mockClear();
+  mockClearSelectionOverride.mockClear();
 });
 
 const project = {
@@ -109,11 +139,19 @@ vi.mock("@/components/admin/field", () => ({
     as: Tag = "span",
     className,
     name,
+    readOnly,
   }: {
     as?: string;
     className?: string;
     name: string;
-  }) => <Tag className={className} data-testid={`field-${name}`} />,
+    readOnly?: boolean;
+  }) => (
+    <Tag
+      className={className}
+      data-readonly={readOnly ? "true" : undefined}
+      data-testid={`field-${name}`}
+    />
+  ),
 }));
 
 vi.mock("@/components/admin/chrome-enabler", () => ({
@@ -190,5 +228,126 @@ describe("ProjectCard", () => {
     );
 
     expect(screen.queryByTestId("card-publish-button")).toBeNull();
+  });
+
+  it("shows filled amber star on selected project in edit mode", () => {
+    editMode = true;
+    render(<ProjectCard index={0} isSelected project={project} />);
+
+    const star = screen.getByTestId("card-select-button");
+    expect(star.querySelector("svg")?.getAttribute("class")).toContain(
+      "fill-amber"
+    );
+  });
+
+  it("shows outline star on unselected project in edit mode", () => {
+    editMode = true;
+    render(<ProjectCard index={0} isSelected={false} project={project} />);
+
+    const star = screen.getByTestId("card-select-button");
+    expect(star.querySelector("svg")?.getAttribute("class")).not.toContain(
+      "fill-amber"
+    );
+  });
+
+  it("hides star button when not in edit mode", () => {
+    editMode = false;
+    render(<ProjectCard index={0} isSelected project={project} />);
+
+    expect(screen.queryByTestId("card-select-button")).toBeNull();
+  });
+
+  it("clicking star on unselected project sets selection override to true", () => {
+    editMode = true;
+    render(<ProjectCard index={0} isSelected={false} project={project} />);
+
+    fireEvent.click(screen.getByTestId("card-select-button"));
+    expect(mockSetSelectionOverride).toHaveBeenCalledWith("proj-1", true);
+  });
+
+  it("clicking star on selected project sets selection override to false", () => {
+    editMode = true;
+    render(<ProjectCard index={0} isSelected project={project} />);
+
+    fireEvent.click(screen.getByTestId("card-select-button"));
+    expect(mockSetSelectionOverride).toHaveBeenCalledWith("proj-1", false);
+  });
+
+  it("selection override flips effective state: DB unselected + override true → filled", () => {
+    editMode = true;
+    mockGetSelectionOverride = () => true;
+    render(<ProjectCard index={0} isSelected={false} project={project} />);
+
+    const star = screen.getByTestId("card-select-button");
+    expect(star.querySelector("svg")?.getAttribute("class")).toContain(
+      "fill-amber"
+    );
+  });
+
+  it("selection override flips effective state: DB selected + override false → outline", () => {
+    editMode = true;
+    mockGetSelectionOverride = () => false;
+    render(<ProjectCard index={0} isSelected project={project} />);
+
+    const star = screen.getByTestId("card-select-button");
+    expect(star.querySelector("svg")?.getAttribute("class")).not.toContain(
+      "fill-amber"
+    );
+  });
+
+  it("publish button is icon-only (no text)", () => {
+    editMode = true;
+    render(
+      <ProjectCard index={0} project={{ ...project, published: false }} />
+    );
+
+    const btn = screen.getByTestId("card-publish-button");
+    expect(btn.textContent).toBe("");
+  });
+
+  it("unpublish button is icon-only (no text)", () => {
+    editMode = true;
+    render(<ProjectCard index={0} project={{ ...project, published: true }} />);
+
+    const btn = screen.getByTestId("card-unpublish-button");
+    expect(btn.textContent).toBe("");
+  });
+
+  it("pending deletion hides select, delete, and publish buttons", () => {
+    editMode = true;
+    const onDelete = vi.fn();
+    const onCancelDeletion = vi.fn();
+    render(
+      <ProjectCard
+        index={0}
+        isSelected
+        onCancelDeletion={onCancelDeletion}
+        onDelete={onDelete}
+        pendingDeletion
+        project={{ ...project, published: false }}
+      />
+    );
+
+    expect(screen.queryByTestId("card-select-button")).toBeNull();
+    expect(screen.queryByTestId("card-delete-button")).toBeNull();
+    expect(screen.queryByTestId("card-publish-button")).toBeNull();
+    expect(screen.getByTestId("card-cancel-deletion-button")).toBeTruthy();
+  });
+
+  it("pending deletion makes Fields non-editable", () => {
+    editMode = true;
+    render(
+      <ProjectCard
+        index={0}
+        onCancelDeletion={vi.fn()}
+        pendingDeletion
+        project={project}
+      />
+    );
+
+    const tagline = screen.getByTestId("field-tagline");
+    const title = screen.getByTestId("field-title");
+    expect(tagline.getAttribute("data-readonly")).toBe("true");
+    expect(title.getAttribute("data-readonly")).toBe("true");
   });
 });

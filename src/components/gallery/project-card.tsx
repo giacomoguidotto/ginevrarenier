@@ -2,7 +2,7 @@
 
 import type { Doc } from "convex/_generated/dataModel";
 import { motion } from "framer-motion";
-import { ArrowUpRight, EyeOff, Trash2, Undo2 } from "lucide-react";
+import { ArrowUpRight, EyeOff, Star, Trash2, Undo2 } from "lucide-react";
 import Image from "next/image";
 import {
   ChromeEnablerProvider,
@@ -25,12 +25,14 @@ type Project = Doc<"projects">;
 export function ProjectCard({
   project,
   index,
+  isSelected,
   pendingDeletion,
   onDelete,
   onCancelDeletion,
 }: {
   project: Project;
   index: number;
+  isSelected?: boolean;
   pendingDeletion?: boolean;
   onDelete?: () => void;
   onCancelDeletion?: () => void;
@@ -45,6 +47,7 @@ export function ProjectCard({
       <ChromeEnablerProvider active={isEditMode}>
         <CardContent
           index={index}
+          isSelected={isSelected}
           onCancelDeletion={onCancelDeletion}
           onDelete={onDelete}
           pendingDeletion={pendingDeletion}
@@ -55,15 +58,118 @@ export function ProjectCard({
   );
 }
 
+function CardActions({
+  effectivePublished,
+  effectiveSelected,
+  onCancelDeletion,
+  onDelete,
+  onTogglePublish,
+  onToggleSelect,
+  pendingDeletion,
+  publishOverride,
+}: {
+  effectivePublished: boolean;
+  effectiveSelected: boolean;
+  onCancelDeletion?: () => void;
+  onDelete?: () => void;
+  onTogglePublish: () => void;
+  onToggleSelect: () => void;
+  pendingDeletion?: boolean;
+  publishOverride: boolean | undefined;
+}) {
+  if (pendingDeletion && onCancelDeletion) {
+    return (
+      <button
+        className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
+        data-testid="card-cancel-deletion-button"
+        onClick={onCancelDeletion}
+        onPointerDown={(e) => e.stopPropagation()}
+        type="button"
+      >
+        <Undo2 className="h-3 w-3" />
+        Cancel deletion
+      </button>
+    );
+  }
+
+  if (publishOverride === true) {
+    return (
+      <button
+        className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
+        data-testid="card-cancel-publish-button"
+        onClick={onTogglePublish}
+        onPointerDown={(e) => e.stopPropagation()}
+        type="button"
+      >
+        <Undo2 className="h-3 w-3" />
+        Cancel publish
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className="absolute top-6 right-6 z-10 flex items-center gap-1.5"
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <button
+        className={`flex items-center rounded-full p-1.5 transition-all hover:shadow-md ${
+          effectiveSelected
+            ? "bg-amber-500/80 text-white hover:bg-amber-500"
+            : "bg-foreground/20 text-foreground hover:bg-foreground/30"
+        }`}
+        data-testid="card-select-button"
+        onClick={onToggleSelect}
+        type="button"
+      >
+        <Star
+          className={`h-3 w-3 ${effectiveSelected ? "fill-amber-300 text-amber-300" : ""}`}
+        />
+      </button>
+      {onDelete && (
+        <button
+          className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
+          data-testid="card-delete-button"
+          onClick={onDelete}
+          type="button"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
+      {effectivePublished ? (
+        <button
+          className="flex items-center rounded-full bg-foreground/20 p-1.5 text-foreground transition-all hover:bg-foreground/30 hover:shadow-md"
+          data-testid="card-unpublish-button"
+          onClick={onTogglePublish}
+          type="button"
+        >
+          <EyeOff className="h-3 w-3" />
+        </button>
+      ) : (
+        <button
+          className="flex items-center rounded-full bg-primary p-1.5 text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md"
+          data-testid="card-publish-button"
+          onClick={onTogglePublish}
+          type="button"
+        >
+          <ArrowUpRight className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 function CardContent({
   project,
   index,
+  isSelected,
   pendingDeletion,
   onDelete,
   onCancelDeletion,
 }: {
   project: Project;
   index: number;
+  isSelected?: boolean;
   pendingDeletion?: boolean;
   onDelete?: () => void;
   onCancelDeletion?: () => void;
@@ -71,8 +177,14 @@ function CardContent({
   const { isEditMode } = useEditMode();
   const { enable } = useChromeEnabler();
   const localized = useLocalized();
-  const { getPublishOverride, setPublishOverride, clearPublishOverride } =
-    useDraftBufferOps();
+  const {
+    getPublishOverride,
+    setPublishOverride,
+    clearPublishOverride,
+    getSelectionOverride,
+    setSelectionOverride,
+    clearSelectionOverride,
+  } = useDraftBufferOps();
   useEditVersion();
   const coverSrc = project.coverImageUrl || "/images/placeholder.svg";
 
@@ -95,6 +207,19 @@ function CardContent({
       clearPublishOverride("project", project._id);
     } else {
       setPublishOverride("project", project._id, target);
+    }
+  };
+
+  const selectionOverride = getSelectionOverride(project._id);
+  const effectiveSelected =
+    selectionOverride === undefined ? (isSelected ?? false) : selectionOverride;
+
+  const handleToggleSelect = () => {
+    const target = !effectiveSelected;
+    if (target === (isSelected ?? false)) {
+      clearSelectionOverride(project._id);
+    } else {
+      setSelectionOverride(project._id, target);
     }
   };
 
@@ -145,11 +270,13 @@ function CardContent({
                   as="p"
                   className="mb-2 text-cream/60 text-xs uppercase tracking-widest"
                   name="tagline"
+                  readOnly={pendingDeletion}
                 />
                 <Field
                   as="h3"
                   className="font-light text-2xl text-cream"
                   name="title"
+                  readOnly={pendingDeletion}
                 />
               </>
             ) : (
@@ -177,69 +304,17 @@ function CardContent({
         )}
       </Link>
 
-      {isEditMode && pendingDeletion && onCancelDeletion && (
-        <button
-          className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-destructive/90 px-3 py-1 font-medium text-[11px] text-white uppercase tracking-wider transition-all hover:bg-destructive hover:shadow-md"
-          data-testid="card-cancel-deletion-button"
-          onClick={onCancelDeletion}
-          onPointerDown={(e) => e.stopPropagation()}
-          type="button"
-        >
-          <Undo2 className="h-3 w-3" />
-          Cancel deletion
-        </button>
-      )}
-
-      {isEditMode && !pendingDeletion && publishOverride === true && (
-        <button
-          className="absolute top-6 right-6 z-10 flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
-          data-testid="card-cancel-publish-button"
-          onClick={handleTogglePublish}
-          onPointerDown={(e) => e.stopPropagation()}
-          type="button"
-        >
-          <Undo2 className="h-3 w-3" />
-          Cancel publish
-        </button>
-      )}
-
-      {isEditMode && !pendingDeletion && publishOverride !== true && (
-        <div
-          className="absolute top-6 right-6 z-10 flex items-center gap-1.5"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          {onDelete && (
-            <button
-              className="flex items-center rounded-full bg-destructive/80 p-1.5 text-white transition-all hover:bg-destructive hover:shadow-md"
-              data-testid="card-delete-button"
-              onClick={onDelete}
-              type="button"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          )}
-          {effectivePublished ? (
-            <button
-              className="flex items-center gap-1.5 rounded-full bg-foreground/20 px-3 py-1 font-medium text-[11px] text-foreground uppercase tracking-wider transition-all hover:bg-foreground/30 hover:shadow-md"
-              data-testid="card-unpublish-button"
-              onClick={handleTogglePublish}
-              type="button"
-            >
-              <EyeOff className="h-3 w-3" />
-              Unpublish
-            </button>
-          ) : (
-            <button
-              className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-medium text-[11px] text-primary-foreground uppercase tracking-wider transition-all hover:bg-primary/90 hover:shadow-md"
-              data-testid="card-publish-button"
-              onClick={handleTogglePublish}
-              type="button"
-            >
-              <ArrowUpRight className="h-3 w-3" />
-              Publish
-            </button>
-          )}
-        </div>
+      {isEditMode && (
+        <CardActions
+          effectivePublished={effectivePublished}
+          effectiveSelected={effectiveSelected}
+          onCancelDeletion={onCancelDeletion}
+          onDelete={onDelete}
+          onTogglePublish={handleTogglePublish}
+          onToggleSelect={handleToggleSelect}
+          pendingDeletion={pendingDeletion}
+          publishOverride={publishOverride}
+        />
       )}
 
       {isEditMode && (
