@@ -17,6 +17,7 @@ function makeSummary(overrides: Partial<ChangeSummary> = {}): ChangeSummary {
     createdEntities: [],
     pendingDeletions: [],
     publishOverrides: [],
+    selectionOverrides: [],
     reorderedEntityTypes: [],
     dismissals: [],
     autoTranslations: [],
@@ -308,6 +309,52 @@ describe("SaveConfirmDialog", () => {
       )
     ).toBe(true);
     expect(screen.queryByText(PORTRAIT_IMAGE_RE)).toBeNull();
+  });
+
+  it("shows Select for selection addition", () => {
+    const summary = makeSummary({
+      selectionOverrides: [{ projectId: "p1", selected: true }],
+    });
+    const labels = new Map([["project:p1", "Project: Solstice"]]);
+
+    render(
+      <SaveConfirmDialog
+        changeSummary={() => summary}
+        loading={false}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        open
+        sectionLabels={labels}
+      />
+    );
+
+    const items = screen.getAllByText(
+      (_content, el) => el?.textContent === "Select Project: Solstice"
+    );
+    expect(items.length).toBeGreaterThan(0);
+  });
+
+  it("shows Unselect for selection removal", () => {
+    const summary = makeSummary({
+      selectionOverrides: [{ projectId: "p2", selected: false }],
+    });
+    const labels = new Map([["project:p2", "Project: Venetian Light"]]);
+
+    render(
+      <SaveConfirmDialog
+        changeSummary={() => summary}
+        loading={false}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        open
+        sectionLabels={labels}
+      />
+    );
+
+    const items = screen.getAllByText(
+      (_content, el) => el?.textContent === "Unselect Project: Venetian Light"
+    );
+    expect(items.length).toBeGreaterThan(0);
   });
 
   it("lists each undismissed stale field with human-readable label", () => {

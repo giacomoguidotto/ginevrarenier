@@ -44,6 +44,7 @@ const emptySummary = () => ({
   imageSwaps: [],
   pendingDeletions: [],
   publishOverrides: [],
+  selectionOverrides: [],
   reorderedEntityTypes: [],
   textEdits: [],
 });

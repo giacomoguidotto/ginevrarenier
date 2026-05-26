@@ -50,6 +50,24 @@ export const create = adminMutation({
   },
 });
 
+export const createWithOrder = adminMutation({
+  args: {
+    projectId: v.id("projects"),
+    order: v.number(),
+  },
+  handler: async (ctx, { projectId, order }) => {
+    const existing = await ctx.db
+      .query("selectedWorks")
+      .withIndex("by_project", (q) => q.eq("projectId", projectId))
+      .unique();
+    if (existing) {
+      throw new Error("Project is already in Selected Works");
+    }
+
+    return ctx.db.insert("selectedWorks", { projectId, order });
+  },
+});
+
 export const remove = adminMutation({
   args: { id: v.id("selectedWorks") },
   handler: async (ctx, { id }) => {

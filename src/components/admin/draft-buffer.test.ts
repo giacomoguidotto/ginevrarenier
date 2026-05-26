@@ -65,6 +65,7 @@ describe("Draft Buffer", () => {
       imageSwaps: [],
       pendingDeletions: [],
       publishOverrides: [],
+      selectionOverrides: [],
       reorderedEntityTypes: [],
       textEdits: [],
     });
@@ -147,6 +148,7 @@ describe("Draft Buffer", () => {
       imageSwaps: [],
       pendingDeletions: [],
       publishOverrides: [],
+      selectionOverrides: [],
       reorderedEntityTypes: [],
       textEdits: [],
     });
@@ -419,6 +421,7 @@ describe("Draft Buffer", () => {
         creations: [],
         deletions: [],
         publishOverrides: [],
+        selectionOverrides: [],
         reorderLists: [],
         dismissals: [],
         autoTranslations: [],
@@ -518,6 +521,119 @@ describe("Draft Buffer", () => {
         ])
       );
       expect(summary.publishOverrides).toHaveLength(2);
+    });
+  });
+
+  describe("Selection Overrides", () => {
+    it("records intended selection state and reads it back", () => {
+      const buffer = createDraftBuffer();
+      expect(buffer.getSelectionOverride("p1")).toBeUndefined();
+      buffer.setSelectionOverride("p1", true);
+      expect(buffer.getSelectionOverride("p1")).toBe(true);
+    });
+
+    it("records unselect intent (false)", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", false);
+      expect(buffer.getSelectionOverride("p1")).toBe(false);
+    });
+
+    it("clearSelectionOverride removes the override", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", true);
+      buffer.clearSelectionOverride("p1");
+      expect(buffer.getSelectionOverride("p1")).toBeUndefined();
+    });
+
+    it("overwriting an override replaces the previous value", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", true);
+      buffer.setSelectionOverride("p1", false);
+      expect(buffer.getSelectionOverride("p1")).toBe(false);
+    });
+
+    it("hasChanges reports true when Selection Overrides exist", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", true);
+      expect(buffer.hasChanges()).toBe(true);
+    });
+
+    it("discard clears Selection Overrides", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", true);
+      buffer.setSelectionOverride("p2", false);
+      buffer.discard();
+      expect(buffer.getSelectionOverride("p1")).toBeUndefined();
+      expect(buffer.getSelectionOverride("p2")).toBeUndefined();
+      expect(buffer.hasChanges()).toBe(false);
+    });
+
+    it("selectionOverrides accessor lists all overrides", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", true);
+      buffer.setSelectionOverride("p2", false);
+      expect(buffer.selectionOverrides()).toEqual(
+        expect.arrayContaining([
+          { projectId: "p1", selected: true },
+          { projectId: "p2", selected: false },
+        ])
+      );
+      expect(buffer.selectionOverrides()).toHaveLength(2);
+    });
+
+    it("serialize/hydrate roundtrips Selection Overrides", () => {
+      const original = createDraftBuffer();
+      original.setSelectionOverride("p1", true);
+      original.setSelectionOverride("p2", false);
+
+      const restored = createDraftBuffer(original.serialize());
+      expect(restored.getSelectionOverride("p1")).toBe(true);
+      expect(restored.getSelectionOverride("p2")).toBe(false);
+      expect(restored.selectionOverrides()).toHaveLength(2);
+    });
+
+    it("hydrating old format without selectionOverrides defaults to empty", () => {
+      const legacy = {
+        store: [] as [string, string][],
+        creations: [],
+        deletions: [],
+      };
+      const buffer = createDraftBuffer(legacy);
+      expect(buffer.getSelectionOverride("p1")).toBeUndefined();
+      expect(buffer.selectionOverrides()).toHaveLength(0);
+    });
+
+    it("selecting a session-created entity then discarding does not leave orphaned state", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackCreation("project", "p1");
+      buffer.setSelectionOverride("p1", true);
+      buffer.discard();
+      expect(buffer.isSessionCreated("project", "p1")).toBe(false);
+      expect(buffer.getSelectionOverride("p1")).toBeUndefined();
+      expect(buffer.hasChanges()).toBe(false);
+    });
+
+    it("selecting a project marked for deletion is tracked independently", () => {
+      const buffer = createDraftBuffer();
+      buffer.trackDeletion("project", "p1");
+      buffer.setSelectionOverride("p1", true);
+      expect(buffer.isPendingDeletion("project", "p1")).toBe(true);
+      expect(buffer.getSelectionOverride("p1")).toBe(true);
+    });
+
+    it("changeSummary includes Selection Overrides", () => {
+      const buffer = createDraftBuffer();
+      buffer.setSelectionOverride("p1", true);
+      buffer.setSelectionOverride("p2", false);
+
+      const summary = buffer.changeSummary();
+      expect(summary.selectionOverrides).toEqual(
+        expect.arrayContaining([
+          { projectId: "p1", selected: true },
+          { projectId: "p2", selected: false },
+        ])
+      );
+      expect(summary.selectionOverrides).toHaveLength(2);
     });
   });
 
