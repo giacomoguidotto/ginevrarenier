@@ -242,7 +242,9 @@ function CardContent({
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             src={coverSrc}
           />
-          <div className="absolute inset-0 bg-linear-to-t from-charcoal/90 via-charcoal/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div
+            className={`absolute inset-0 bg-linear-to-t from-charcoal/90 via-charcoal/20 to-transparent transition-opacity duration-500 ${isEditMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+          />
           {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: overlay intercepts events to prevent link navigation and drag activation while editing */}
           {/* biome-ignore lint/a11y/noStaticElementInteractions: see above */}
           {/* biome-ignore lint/a11y/useKeyWithClickEvents: defensive handler only */}
