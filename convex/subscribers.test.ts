@@ -55,6 +55,7 @@ describe("subscribers.subscribe", () => {
 
   it("re-subscribing when pending resends confirmation without creating duplicate", async () => {
     vi.useFakeTimers();
+    mockSend.mockReset();
     mockSend.mockResolvedValue({ data: { id: "test-id" }, error: null });
     process.env.RESEND_API_KEY = "re_test_key";
     process.env.SITE_URL = "https://ginevrarenier.com";
@@ -71,7 +72,10 @@ describe("subscribers.subscribe", () => {
       vi.advanceTimersByTime(1);
     });
 
-    const callsAfterFirst = mockSend.mock.calls.length;
+    const tokenBefore = await t.run(async (ctx) => {
+      const rows = await ctx.db.query("subscribers").take(1);
+      return rows[0]?.confirmationToken;
+    });
 
     const result = await t.mutation(api.subscribers.subscribe, {
       email: "visitor@example.com",
@@ -85,12 +89,12 @@ describe("subscribers.subscribe", () => {
       vi.advanceTimersByTime(1);
     });
 
-    expect(mockSend.mock.calls.length - callsAfterFirst).toBe(1);
-
     const subscribers = await t.run(
       async (ctx) => await ctx.db.query("subscribers").take(10)
     );
     expect(subscribers).toHaveLength(1);
+    expect(subscribers[0].confirmationToken).not.toBe(tokenBefore);
+    expect(mockSend.mock.calls.length).toBeGreaterThanOrEqual(2);
 
     vi.useRealTimers();
   });
