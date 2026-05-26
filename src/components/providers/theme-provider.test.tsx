@@ -3,6 +3,13 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+Object.defineProperty(window, "matchMedia", {
+  value: vi.fn().mockReturnValue({
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }),
+});
+
 let capturedProps: Record<string, unknown> = {};
 
 vi.mock("next-themes", () => ({
@@ -10,6 +17,7 @@ vi.mock("next-themes", () => ({
     capturedProps = props;
     return props.children;
   },
+  useTheme: () => ({ theme: "system", setTheme: vi.fn() }),
 }));
 
 import { ThemeProvider } from "./theme-provider";

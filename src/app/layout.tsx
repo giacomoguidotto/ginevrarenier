@@ -21,6 +21,18 @@ export default function RootLayout({ children }: Props) {
     <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
       <head>
         <script src="/theme-init.js" />
+        <link
+          href="/images/logo-light.svg"
+          media="(prefers-color-scheme: light)"
+          rel="icon"
+          type="image/svg+xml"
+        />
+        <link
+          href="/images/logo-dark.svg"
+          media="(prefers-color-scheme: dark)"
+          rel="icon"
+          type="image/svg+xml"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
