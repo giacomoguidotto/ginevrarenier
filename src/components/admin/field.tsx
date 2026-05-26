@@ -30,8 +30,10 @@ interface FieldProps {
   multiline?: boolean;
   name: string;
   numericOnly?: boolean;
+  readOnly?: boolean;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Field is a leaf component with many editing concerns
 export function Field({
   name,
   as: Tag = "span",
@@ -43,6 +45,7 @@ export function Field({
   maxWidth,
   multiline,
   numericOnly,
+  readOnly,
 }: FieldProps) {
   const { name: section, data } = useSection();
   const { isEditMode, editingLocale } = useEditMode();
@@ -179,7 +182,9 @@ export function Field({
       ? () => dismiss(section, name, staleLocale)
       : undefined;
 
-  const showChrome = enabled && isEditMode;
+  const editable = isEditMode && !readOnly;
+
+  const showChrome = enabled && editable;
   const chrome = showChrome ? (
     <FieldChrome
       fieldStatus={status}
@@ -198,21 +203,21 @@ export function Field({
       style={{ position: "relative" }}
     >
       <Tag
-        className={isEditMode ? "editable-field" : undefined}
-        contentEditable={isEditMode ? ("plaintext-only" as const) : undefined}
-        onBlur={isEditMode ? handleBlur : undefined}
+        className={editable ? "editable-field" : undefined}
+        contentEditable={editable ? ("plaintext-only" as const) : undefined}
+        onBlur={editable ? handleBlur : undefined}
         onClick={
-          isEditMode ? (e: React.MouseEvent) => e.preventDefault() : undefined
+          editable ? (e: React.MouseEvent) => e.preventDefault() : undefined
         }
-        onFocus={isEditMode ? handleFocus : undefined}
-        onInput={isEditMode ? handleInput : undefined}
+        onFocus={editable ? handleFocus : undefined}
+        onInput={editable ? handleInput : undefined}
         ref={elRef as React.RefObject<never>}
         style={
-          isEditMode
+          editable
             ? { minHeight: "1lh", minWidth: "3ch", ...constraintStyle }
             : { minHeight: "1lh", ...constraintStyle }
         }
-        suppressContentEditableWarning={isEditMode}
+        suppressContentEditableWarning={editable}
       />
       {containerRef?.current
         ? createPortal(chrome, containerRef.current)

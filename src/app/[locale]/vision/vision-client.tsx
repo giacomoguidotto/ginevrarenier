@@ -22,7 +22,7 @@ import type { Preloaded } from "convex/react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ChromeEnablerProvider,
   useChromeEnabler,
@@ -43,9 +43,11 @@ import { useLocalized } from "@/lib/hooks";
 function SortableProjectCard({
   project,
   index,
+  isSelected,
 }: {
   project: Doc<"projects">;
   index: number;
+  isSelected: boolean;
 }) {
   const { isEditMode } = useEditMode();
   const { isPendingDeletion, trackDeletion, cancelDeletion } =
@@ -95,6 +97,7 @@ function SortableProjectCard({
     >
       <ProjectCard
         index={index}
+        isSelected={isSelected}
         onCancelDeletion={() => cancelDeletion("project", project._id)}
         onDelete={() => trackDeletion("project", project._id)}
         pendingDeletion={pendingDeletion}
@@ -123,6 +126,15 @@ export function VisionClient({
   const projects = isEditMode
     ? (allProjects ?? publishedProjects ?? preloaded ?? [])
     : (publishedProjects ?? preloaded ?? []);
+
+  const selectedWorks = useQuery(
+    api.selectedWorks.list,
+    isAuthenticated && isEditMode ? {} : "skip"
+  );
+  const selectedProjectIds = useMemo(
+    () => new Set(selectedWorks?.map((sw) => sw.projectId)),
+    [selectedWorks]
+  );
 
   const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();
   useEditVersion();
@@ -232,6 +244,7 @@ export function VisionClient({
                 {displayProjects.map((project, index) => (
                   <SortableProjectCard
                     index={index}
+                    isSelected={selectedProjectIds.has(project._id)}
                     key={project._id}
                     project={project}
                   />
