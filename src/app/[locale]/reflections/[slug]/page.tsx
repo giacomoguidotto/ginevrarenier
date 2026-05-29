@@ -4,15 +4,14 @@ import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
-import { type Locale, localePath, locales } from "@/i18n/config";
+import { type Locale, localePath } from "@/i18n/config";
 import { BlogPostingJsonLd, BreadcrumbJsonLd } from "@/lib/seo";
+import { canonicalUrl, languageAlternates, siteOrigin } from "@/lib/seo-url";
 import { BlogPostClient } from "./blog-post-client";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
 }
-
-const baseUrl = "https://ginevrarenier.com";
 
 async function getConvexToken() {
   const { getToken } = await auth();
@@ -38,19 +37,14 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${baseUrl}${localePath(locale, `/reflections/${slug}`)}`,
-      languages: Object.fromEntries(
-        locales.map((l) => [
-          l,
-          `${baseUrl}${localePath(l, `/reflections/${slug}`)}`,
-        ])
-      ),
+      canonical: canonicalUrl(locale, `/reflections/${slug}`),
+      languages: languageAlternates(`/reflections/${slug}`),
     },
     openGraph: {
       type: "article",
       title,
       description,
-      url: `${baseUrl}${localePath(locale, `/reflections/${slug}`)}`,
+      url: canonicalUrl(locale, `/reflections/${slug}`),
       locale: locale === "it" ? "it_IT" : "en_US",
       siteName: "Ginevra Renier",
       ...(post.publishedAt
@@ -116,7 +110,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             description={loc === "it" ? post.excerpt.it : post.excerpt.en}
             locale={loc}
             title={loc === "it" ? post.title.it : post.title.en}
-            url={localePath(locale, `/reflections/${slug}`)}
+            url={`${siteOrigin}${localePath(locale, `/reflections/${slug}`)}`}
           />
         </>
       )}

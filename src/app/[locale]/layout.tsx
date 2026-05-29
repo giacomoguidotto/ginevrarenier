@@ -17,8 +17,9 @@ import { Navbar } from "@/components/layout/navbar";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { type Locale, localePath, locales } from "@/i18n/config";
+import { type Locale, locales } from "@/i18n/config";
 import { PersonJsonLd, socialLinkToUrl, WebSiteJsonLd } from "@/lib/seo";
+import { canonicalUrl, languageAlternates, siteOrigin } from "@/lib/seo-url";
 
 interface Props {
   children: React.ReactNode;
@@ -71,10 +72,8 @@ export async function generateMetadata({
     return getLocaleValue(descriptions, loc);
   }
 
-  const baseUrl = "https://ginevrarenier.com";
-
   return {
-    metadataBase: new URL(baseUrl),
+    metadataBase: new URL(siteOrigin),
     title: {
       default: getTitle(locale),
       template: "%s | Ginevra Renier",
@@ -92,10 +91,8 @@ export async function generateMetadata({
     authors: [{ name: "Ginevra Renier" }],
     creator: "Ginevra Renier",
     alternates: {
-      canonical: `${baseUrl}${localePath(locale)}`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `${baseUrl}${localePath(l)}`] as const)
-      ),
+      canonical: canonicalUrl(locale),
+      languages: languageAlternates(),
     },
     openGraph: {
       type: "website",

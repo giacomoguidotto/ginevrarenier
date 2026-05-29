@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
+import { siteOrigin } from "@/lib/seo-url";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://ginevrarenier.com";
-
   return {
     rules: [
       {
@@ -11,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/sign-in"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${siteOrigin}/sitemap.xml`,
   };
 }

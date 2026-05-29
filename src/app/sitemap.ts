@@ -2,8 +2,7 @@ import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import type { MetadataRoute } from "next";
 import { localePath, locales } from "@/i18n/config";
-
-const baseUrl = "https://ginevrarenier.com";
+import { languageAlternates, siteOrigin } from "@/lib/seo-url";
 
 const staticPages = ["", "/vision", "/reflections", "/essence", "/connect"];
 
@@ -28,31 +27,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.flatMap((page) =>
     locales.map((locale) => ({
-      url: `${baseUrl}${localePath(locale, page)}`,
-      lastModified: new Date(),
+      url: `${siteOrigin}${localePath(locale, page)}`,
       changeFrequency: "monthly" as const,
       priority: page === "" ? 1.0 : 0.8,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [l, `${baseUrl}${localePath(l, page)}`])
-        ),
+        languages: languageAlternates(page),
       },
     }))
   );
 
   const projectEntries: MetadataRoute.Sitemap = projects.flatMap((project) =>
     locales.map((locale) => ({
-      url: `${baseUrl}${localePath(locale, `/vision/${project.slug}`)}`,
-      lastModified: new Date(),
+      url: `${siteOrigin}${localePath(locale, `/vision/${project.slug}`)}`,
+      ...(project.publishedAt
+        ? { lastModified: new Date(project.publishedAt) }
+        : {}),
       changeFrequency: "monthly" as const,
       priority: 0.7,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [
-            l,
-            `${baseUrl}${localePath(l, `/vision/${project.slug}`)}`,
-          ])
-        ),
+        languages: languageAlternates(`/vision/${project.slug}`),
       },
       images: projectImagesBySlug.get(project.slug) ?? [],
     }))
@@ -60,17 +53,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const postEntries: MetadataRoute.Sitemap = posts.flatMap((post) =>
     locales.map((locale) => ({
-      url: `${baseUrl}${localePath(locale, `/reflections/${post.slug}`)}`,
-      lastModified: post.publishedAt ? new Date(post.publishedAt) : new Date(),
+      url: `${siteOrigin}${localePath(locale, `/reflections/${post.slug}`)}`,
+      ...(post.publishedAt ? { lastModified: new Date(post.publishedAt) } : {}),
       changeFrequency: "weekly" as const,
       priority: 0.6,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [
-            l,
-            `${baseUrl}${localePath(l, `/reflections/${post.slug}`)}`,
-          ])
-        ),
+        languages: languageAlternates(`/reflections/${post.slug}`),
       },
       ...(post.coverImageUrl ? { images: [post.coverImageUrl] } : {}),
     }))

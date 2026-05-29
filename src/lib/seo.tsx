@@ -1,7 +1,8 @@
 // biome-ignore-all lint/security/noDangerouslySetInnerHtml: JSON-LD requires dangerouslySetInnerHTML — data is from our own schema objects, never user input.
 import { type Locale, localePath } from "@/i18n/config";
+import { siteOrigin } from "./seo-url";
 
-const baseUrl = "https://ginevrarenier.com";
+const baseUrl = siteOrigin;
 
 const hrefPrefixes: Record<string, string> = {
   instagram: "https://www.instagram.com/",

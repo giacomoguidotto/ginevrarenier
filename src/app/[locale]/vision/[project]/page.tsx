@@ -4,15 +4,14 @@ import { fetchQuery } from "convex/nextjs";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { PageBoundary } from "@/components/admin/page-boundary";
-import { type Locale, localePath, locales } from "@/i18n/config";
+import { type Locale, localePath } from "@/i18n/config";
 import { BreadcrumbJsonLd, ImageGalleryJsonLd } from "@/lib/seo";
+import { canonicalUrl, languageAlternates, siteOrigin } from "@/lib/seo-url";
 import { ProjectPageClient } from "./project-page-client";
 
 interface Props {
   params: Promise<{ locale: string; project: string }>;
 }
-
-const baseUrl = "https://ginevrarenier.com";
 
 async function getConvexToken() {
   const { getToken } = await auth();
@@ -39,16 +38,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: {
-      canonical: `${baseUrl}${localePath(locale, `/vision/${slug}`)}`,
-      languages: Object.fromEntries(
-        locales.map((l) => [l, `${baseUrl}${localePath(l, `/vision/${slug}`)}`])
-      ),
+      canonical: canonicalUrl(locale, `/vision/${slug}`),
+      languages: languageAlternates(`/vision/${slug}`),
     },
     openGraph: {
       type: "article",
       title,
       description,
-      url: `${baseUrl}${localePath(locale, `/vision/${slug}`)}`,
+      url: canonicalUrl(locale, `/vision/${slug}`),
       locale: locale === "it" ? "it_IT" : "en_US",
       siteName: "Ginevra Renier",
       ...(project.coverImageUrl
@@ -108,7 +105,7 @@ export default async function ProjectPage({ params }: Props) {
             imageUrls={project.coverImageUrl ? [project.coverImageUrl] : []}
             locale={loc}
             name={loc === "it" ? project.title.it : project.title.en}
-            url={localePath(locale, `/vision/${slug}`)}
+            url={`${siteOrigin}${localePath(locale, `/vision/${slug}`)}`}
           />
         </>
       )}
