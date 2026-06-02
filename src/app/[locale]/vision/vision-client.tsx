@@ -4,8 +4,7 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
-  MouseSensor,
-  TouchSensor,
+  PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -149,10 +148,7 @@ export function VisionClient({
     : projects;
 
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
   const handleDragEnd = useCallback(
@@ -226,45 +222,49 @@ export function VisionClient({
           {displayProjects.length === 0 ? <VisionEmptyState /> : null}
 
           {/* Projects Grid */}
-          <DndContext
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
+          <motion.div
+            animate="visible"
+            className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+            initial="hidden"
+            variants={staggerContainer}
           >
-            <SortableContext
-              items={displayProjects.map((p) => p._id)}
-              strategy={rectSortingStrategy}
-            >
-              <motion.div
-                animate="visible"
-                className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
-                initial="hidden"
-                variants={staggerContainer}
+            {displayProjects.length > 0 ? (
+              <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                sensors={sensors}
               >
-                {displayProjects.map((project, index) => (
-                  <SortableProjectCard
-                    index={index}
-                    isSelected={selectedProjectIds.has(project._id)}
-                    key={project._id}
-                    project={project}
-                  />
-                ))}
+                <SortableContext
+                  items={displayProjects.map((p) => p._id)}
+                  strategy={rectSortingStrategy}
+                >
+                  {displayProjects.map((project, index) => (
+                    <SortableProjectCard
+                      index={index}
+                      isSelected={selectedProjectIds.has(project._id)}
+                      key={project._id}
+                      project={project}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            ) : null}
 
-                {/* Create new project card */}
-                {isEditMode ? (
-                  <motion.div variants={fadeUp}>
-                    <button
-                      className="flex aspect-4/5 w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
-                      onClick={handleCreate}
-                      type="button"
-                    >
-                      <Plus className="h-8 w-8" />
-                    </button>
-                  </motion.div>
-                ) : null}
+            {/* Create new project card */}
+            {isEditMode ? (
+              <motion.div variants={fadeUp}>
+                <button
+                  aria-label="Create project"
+                  className="flex aspect-4/5 w-full items-center justify-center rounded-lg border-2 border-foreground/15 border-dashed text-foreground/30 transition-colors hover:border-foreground/30 hover:text-foreground/50"
+                  data-testid="create-project-card"
+                  onClick={handleCreate}
+                  type="button"
+                >
+                  <Plus className="h-8 w-8" />
+                </button>
               </motion.div>
-            </SortableContext>
-          </DndContext>
+            ) : null}
+          </motion.div>
         </div>
       </div>
     </PageTransition>
