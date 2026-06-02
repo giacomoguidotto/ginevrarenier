@@ -872,4 +872,36 @@ test.describe("Cross-page editing", () => {
     const count = await fields.count();
     expect(count).toBeGreaterThan(0);
   });
+
+  test("Typing space in availability message does not toggle availability", async ({
+    page,
+  }) => {
+    await enterEditMode(page, "/en/connect");
+
+    const availability = page.getByTestId("availability-toggle");
+    await expect(availability).toBeVisible({ timeout: 15_000 });
+
+    const status = availability.getByTestId("availability-status");
+    const statusBefore = await status.textContent();
+    expect(statusBefore).toBeTruthy();
+
+    const message = availability.locator(".editable-field").first();
+    await expect(message).toBeVisible({ timeout: 15_000 });
+    const textBefore = await message.evaluate((el) => el.textContent ?? "");
+
+    await message.click();
+    await message.evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    });
+    await page.keyboard.press("Space");
+
+    await expect(status).toHaveText(statusBefore ?? "");
+    const textAfter = await message.evaluate((el) => el.textContent ?? "");
+    expect(textAfter.length).toBeGreaterThan(textBefore.length);
+  });
 });

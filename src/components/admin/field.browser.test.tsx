@@ -284,6 +284,83 @@ describe("Field locale switching", () => {
   });
 });
 
+describe("Field edit event isolation", () => {
+  function ParentControlHarness({
+    onBeforeInput,
+    onClick,
+    onInput,
+    onKeyDown,
+    onKeyUp,
+  }: {
+    onBeforeInput: () => void;
+    onClick: () => void;
+    onInput: () => void;
+    onKeyDown: () => void;
+    onKeyUp: () => void;
+  }) {
+    return (
+      <Providers>
+        <EditModeToggle />
+        <button
+          data-testid="parent-control"
+          onBeforeInput={onBeforeInput}
+          onClick={onClick}
+          onInput={onInput}
+          onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
+          type="button"
+        >
+          <div data-testid="field-wrapper">
+            <Field as="span" name="title" />
+          </div>
+        </button>
+      </Providers>
+    );
+  }
+
+  it("does not propagate editing events to parent controls", async () => {
+    const parentBeforeInput = vi.fn();
+    const parentClick = vi.fn();
+    const parentInput = vi.fn();
+    const parentKeyDown = vi.fn();
+    const parentKeyUp = vi.fn();
+    const { container, getByTestId } = render(
+      <ParentControlHarness
+        onBeforeInput={parentBeforeInput}
+        onClick={parentClick}
+        onInput={parentInput}
+        onKeyDown={parentKeyDown}
+        onKeyUp={parentKeyUp}
+      />
+    );
+
+    await act(() => getByTestId("toggle").click());
+
+    const field = getFieldEl(container);
+    await act(() => {
+      field.textContent = "Edited EN ";
+      fireEvent.keyDown(field, { code: "Space", key: " " });
+      fireEvent.keyUp(field, { code: "Space", key: " " });
+      field.dispatchEvent(
+        new InputEvent("beforeinput", {
+          bubbles: true,
+          data: " ",
+          inputType: "insertText",
+        })
+      );
+      fireEvent.input(field);
+      fireEvent.click(field);
+    });
+
+    expect(parentBeforeInput).not.toHaveBeenCalled();
+    expect(parentClick).not.toHaveBeenCalled();
+    expect(parentInput).not.toHaveBeenCalled();
+    expect(parentKeyDown).not.toHaveBeenCalled();
+    expect(parentKeyUp).not.toHaveBeenCalled();
+    expect(bufferStore.current?.read("hero", "title", "en")).toBe("Edited EN ");
+  });
+});
+
 function ChromeEnableTrigger() {
   const { enable } = useChromeEnabler();
   return (

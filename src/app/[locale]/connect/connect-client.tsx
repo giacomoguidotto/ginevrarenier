@@ -467,10 +467,7 @@ function ConnectAvailability() {
   const convexAvailable = data?.available?.en;
   const isAvailable = (draftAvailable ?? convexAvailable ?? "true") === "true";
 
-  const handleToggle = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest(".editable-field")) {
-      return;
-    }
+  const toggleAvailability = () => {
     const newValue = isAvailable ? "false" : "true";
     for (const l of locales) {
       write(sectionName, "available", l, newValue);
@@ -505,7 +502,12 @@ function ConnectAvailability() {
         <p className="text-foreground">{description}</p>
         <div className="mt-4 flex items-center gap-2">
           <span className={`h-2 w-2 rounded-full ${dotColor}`} />
-          <span className={`text-sm ${textColor}`}>{status}</span>
+          <span
+            className={`text-sm ${textColor}`}
+            data-testid="availability-status"
+          >
+            {status}
+          </span>
         </div>
       </div>
     );
@@ -515,32 +517,44 @@ function ConnectAvailability() {
   const toggleColor = isAvailable ? "text-green-500" : "text-red-500";
 
   return (
-    <button
-      className="group relative w-full cursor-pointer rounded-lg border border-border bg-card p-6 text-left transition-colors hover:border-muted-foreground/40"
-      onClick={handleToggle}
-      type="button"
+    <div
+      className="group relative w-full rounded-lg"
+      data-testid="availability-toggle"
     >
-      <ToggleIcon
-        className={`absolute top-3 right-3 h-5 w-5 ${toggleColor} opacity-50 transition-opacity group-hover:opacity-100`}
-      />
-      <h3 className="mb-4 text-muted-foreground text-sm uppercase tracking-widest">
-        {t("info.availability.title")}
-      </h3>
-      <Field
-        as="p"
-        className="text-foreground"
-        key={descriptionFieldName}
-        name={descriptionFieldName}
-      />
-      <div className="mt-4 flex items-center gap-2">
-        <span
-          className={`h-2 w-2 rounded-full ${dotColor} transition-colors`}
+      <button
+        aria-label={`${t("info.availability.title")}: ${status}`}
+        aria-pressed={isAvailable}
+        className="absolute inset-0 cursor-pointer rounded-lg border border-border bg-card text-left transition-colors hover:border-muted-foreground/40"
+        onClick={toggleAvailability}
+        type="button"
+      >
+        <ToggleIcon
+          className={`absolute top-3 right-3 h-5 w-5 ${toggleColor} opacity-50 transition-opacity group-hover:opacity-100`}
         />
-        <span className={`text-sm ${textColor} transition-colors`}>
-          {status}
-        </span>
+      </button>
+      <div className="relative z-10 p-6">
+        <h3 className="pointer-events-none mb-4 text-muted-foreground text-sm uppercase tracking-widest">
+          {t("info.availability.title")}
+        </h3>
+        <Field
+          as="p"
+          className="pointer-events-auto text-foreground"
+          key={descriptionFieldName}
+          name={descriptionFieldName}
+        />
+        <div className="pointer-events-none mt-4 flex items-center gap-2">
+          <span
+            className={`h-2 w-2 rounded-full ${dotColor} transition-colors`}
+          />
+          <span
+            className={`text-sm ${textColor} transition-colors`}
+            data-testid="availability-status"
+          >
+            {status}
+          </span>
+        </div>
       </div>
-    </button>
+    </div>
   );
 }
 

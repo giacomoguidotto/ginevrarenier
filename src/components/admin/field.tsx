@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import type { RefObject } from "react";
+import type { RefObject, SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Locale } from "@/i18n/config";
@@ -159,6 +159,20 @@ export function Field({
     }
   };
 
+  const stopEditableEvent = (e: SyntheticEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleEditableClick = (e: SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleEditableInput = (e: SyntheticEvent) => {
+    e.stopPropagation();
+    handleInput();
+  };
+
   const handleFocus = () => setFocused(true);
   const handleBlur = () => {
     handleInput();
@@ -205,12 +219,19 @@ export function Field({
       <Tag
         className={editable ? "editable-field" : undefined}
         contentEditable={editable ? ("plaintext-only" as const) : undefined}
+        onBeforeInput={editable ? stopEditableEvent : undefined}
         onBlur={editable ? handleBlur : undefined}
-        onClick={
-          editable ? (e: React.MouseEvent) => e.preventDefault() : undefined
-        }
+        onClick={editable ? handleEditableClick : undefined}
+        onCompositionEnd={editable ? stopEditableEvent : undefined}
+        onCompositionStart={editable ? stopEditableEvent : undefined}
+        onCompositionUpdate={editable ? stopEditableEvent : undefined}
+        onCut={editable ? stopEditableEvent : undefined}
         onFocus={editable ? handleFocus : undefined}
-        onInput={editable ? handleInput : undefined}
+        onInput={editable ? handleEditableInput : undefined}
+        onKeyDown={editable ? stopEditableEvent : undefined}
+        onKeyUp={editable ? stopEditableEvent : undefined}
+        onMouseDown={editable ? stopEditableEvent : undefined}
+        onPaste={editable ? stopEditableEvent : undefined}
         ref={elRef as React.RefObject<never>}
         style={
           editable
