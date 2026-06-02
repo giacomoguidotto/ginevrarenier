@@ -2,38 +2,61 @@ import { track } from "@vercel/analytics/server";
 import { api } from "convex/_generated/api";
 import { fetchMutation } from "convex/nextjs";
 import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Subscription Confirmed | Ginevra Renier",
-  robots: { index: false },
-};
+import {
+  type ConfirmStatus,
+  confirmCopy,
+  resolveConfirmLocale,
+} from "./confirm-copy";
 
 interface Props {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ locale?: string; token?: string }>;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const { locale } = await searchParams;
+  const copy = confirmCopy[resolveConfirmLocale(null, locale)];
+
+  return {
+    title: `${copy.metadataTitle} | Ginevra Renier`,
+    robots: { index: false },
+  };
 }
 
 export default async function ConfirmPage({ searchParams }: Props) {
-  const { token } = await searchParams;
+  const { locale: requestedLocale, token } = await searchParams;
 
   if (!token) {
-    return <ConfirmLayout status="error" />;
+    return (
+      <ConfirmLayout
+        locale={resolveConfirmLocale(null, requestedLocale)}
+        status="error"
+      />
+    );
   }
 
   const result = await fetchMutation(api.subscribers.confirm, { token });
+  const resultLocale = "locale" in result ? result.locale : null;
+  const locale = resolveConfirmLocale(resultLocale, requestedLocale);
 
   if (result.status === "confirmed") {
     await track("subscription_confirmed");
   }
 
-  return <ConfirmLayout status={result.status} />;
+  return <ConfirmLayout locale={locale} status={result.status} />;
 }
 
 function ConfirmLayout({
+  locale,
   status,
 }: {
-  status: "confirmed" | "already_confirmed" | "invalid_token" | "error";
+  locale: keyof typeof confirmCopy;
+  status: ConfirmStatus;
 }) {
   const success = status === "confirmed" || status === "already_confirmed";
+  const copy = confirmCopy[locale];
+  const content = success ? copy.success : copy.error;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f4f1ec] px-6 dark:bg-[#080808]">
@@ -45,21 +68,19 @@ function ConfirmLayout({
         {success ? (
           <>
             <h1 className="mb-4 font-light text-[#1a1816] text-xl dark:text-[#ede8e0]">
-              You&rsquo;re in.
+              {content.title}
             </h1>
             <p className="text-[#3a3530] text-[15px] leading-relaxed dark:text-[#c8c3bb]">
-              Thank you for confirming your subscription. I&rsquo;ll keep you
-              posted on new projects, exhibitions, and stories from the studio.
+              {content.body}
             </p>
           </>
         ) : (
           <>
             <h1 className="mb-4 font-light text-[#1a1816] text-xl dark:text-[#ede8e0]">
-              Something went wrong.
+              {content.title}
             </h1>
             <p className="text-[#3a3530] text-[15px] leading-relaxed dark:text-[#c8c3bb]">
-              This confirmation link is invalid or has already been used. If you
-              believe this is an error, please try subscribing again.
+              {content.body}
             </p>
           </>
         )}

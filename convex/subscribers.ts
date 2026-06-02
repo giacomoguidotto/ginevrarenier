@@ -7,6 +7,10 @@ import { captureException } from "./lib/sentry";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function normalizeLocale(locale: string): "en" | "it" {
+  return locale === "it" ? "it" : "en";
+}
+
 function generateToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -81,8 +85,10 @@ export const confirm = mutation({
       return { status: "invalid_token" as const };
     }
 
+    const locale = normalizeLocale(subscriber.locale);
+
     if (subscriber.status === "confirmed") {
-      return { status: "already_confirmed" as const };
+      return { status: "already_confirmed" as const, locale };
     }
 
     await ctx.db.patch(subscriber._id, {
@@ -90,7 +96,7 @@ export const confirm = mutation({
       confirmedAt: Date.now(),
     });
 
-    return { status: "confirmed" as const };
+    return { status: "confirmed" as const, locale };
   },
 });
 
@@ -133,10 +139,15 @@ export const sendConfirmation = internalAction({
     }
 
     const siteUrl = process.env.SITE_URL ?? "https://ginevrarenier.com";
-    const confirmUrl = `${siteUrl}/confirm?token=${subscriber.confirmationToken}`;
-    const locale = subscriber.locale === "it" ? "it" : "en";
+    const locale = normalizeLocale(subscriber.locale);
+    const confirmUrl = new URL("/confirm", siteUrl);
+    confirmUrl.searchParams.set("token", subscriber.confirmationToken);
+    confirmUrl.searchParams.set("locale", locale);
 
-    const html = await renderConfirmationEmail({ confirmUrl, locale });
+    const html = await renderConfirmationEmail({
+      confirmUrl: confirmUrl.toString(),
+      locale,
+    });
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     try {

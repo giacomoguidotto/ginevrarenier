@@ -206,7 +206,7 @@ describe("subscribers.confirm", () => {
 
     const result = await t.mutation(api.subscribers.confirm, { token });
 
-    expect(result).toMatchObject({ status: "confirmed" });
+    expect(result).toMatchObject({ status: "confirmed", locale: "en" });
 
     const subscriber = await t.run(async (ctx) => {
       const rows = await ctx.db.query("subscribers").take(1);
@@ -227,6 +227,25 @@ describe("subscribers.confirm", () => {
     expect(result).toMatchObject({ status: "invalid_token" });
   });
 
+  it("returns the stored subscriber locale when confirming", async () => {
+    const t = convexTest(schema, modules);
+
+    const token = "test-italian-token";
+    await t.run(async (ctx) => {
+      await ctx.db.insert("subscribers", {
+        email: "visitor@example.com",
+        locale: "it",
+        status: "pending",
+        consentTimestamp: 1000,
+        confirmationToken: token,
+      });
+    });
+
+    const result = await t.mutation(api.subscribers.confirm, { token });
+
+    expect(result).toMatchObject({ status: "confirmed", locale: "it" });
+  });
+
   it("returns already_confirmed when confirming twice", async () => {
     const t = convexTest(schema, modules);
 
@@ -244,7 +263,10 @@ describe("subscribers.confirm", () => {
 
     const result = await t.mutation(api.subscribers.confirm, { token });
 
-    expect(result).toMatchObject({ status: "already_confirmed" });
+    expect(result).toMatchObject({
+      status: "already_confirmed",
+      locale: "en",
+    });
   });
 });
 
@@ -274,6 +296,7 @@ describe("subscribers.sendConfirmation", () => {
     expect(call.to).toEqual(["visitor@example.com"]);
     expect(call.subject).toBe("Conferma la tua iscrizione");
     expect(call.html).toContain("https://ginevrarenier.com/confirm?token=");
+    expect(call.html).toContain("locale=it");
 
     vi.useRealTimers();
   });
