@@ -4,13 +4,17 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { useLocale } from "next-intl";
+import { useEditMode } from "@/components/admin/edit-mode-context";
 import type { Locale } from "@/i18n/config";
 
 /**
  * Hook to get a localized field value from a bilingual object.
  */
 export function useLocalized() {
-  const locale = useLocale() as Locale;
+  const pageLocale = useLocale() as Locale;
+  const { editingLocale, isEditMode } = useEditMode();
+  const locale = isEditMode ? editingLocale : pageLocale;
+
   return function localized(field: { en: string; it: string } | undefined) {
     if (!field) {
       return "";
