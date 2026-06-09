@@ -12,9 +12,18 @@ vi.mock("next-intl", () => ({
   useLocale: () => "en",
 }));
 
+vi.mock("convex/react", () => ({
+  useConvexAuth: () => ({
+    isAuthenticated: true,
+    isLoading: false,
+    isRefreshing: false,
+  }),
+}));
+
 // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
 const saveMock = vi.fn(async () => {});
 const discardMock = vi.fn();
+const keepDraftMock = vi.fn();
 let mockHasChanges = false;
 
 vi.mock("./draft-buffer-context", () => ({
@@ -30,6 +39,7 @@ vi.mock("./draft-buffer-context", () => ({
     hasChanges: mockHasChanges,
     save: saveMock,
     discard: discardMock,
+    keepDraft: keepDraftMock,
     changeSummary: () => ({
       autoTranslations: [],
       createdEntities: [],
@@ -63,6 +73,7 @@ beforeEach(() => {
   mockHasChanges = false;
   saveMock.mockClear();
   discardMock.mockClear();
+  keepDraftMock.mockClear();
 });
 afterEach(cleanup);
 

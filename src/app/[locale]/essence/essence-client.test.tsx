@@ -57,8 +57,13 @@ let mockAchievements: Record<string, unknown>[] = [];
 let mockIsEditMode = false;
 
 vi.mock("convex/react", () => ({
-  useQuery: () => mockAchievements,
+  useConvexAuth: () => ({
+    isAuthenticated: true,
+    isLoading: false,
+    isRefreshing: false,
+  }),
   useMutation: () => vi.fn(),
+  useQuery: () => mockAchievements,
 }));
 
 vi.mock("@/components/admin/edit-mode-context", () => ({

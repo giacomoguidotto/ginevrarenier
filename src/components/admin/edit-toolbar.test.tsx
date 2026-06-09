@@ -24,6 +24,14 @@ const sentryMocks = vi.hoisted(() => ({
   ),
 }));
 
+const convexAuthState = vi.hoisted(() => ({
+  current: {
+    isAuthenticated: true,
+    isLoading: false,
+    isRefreshing: false,
+  },
+}));
+
 vi.mock("@clerk/nextjs", () => ({
   useClerk: () => ({ signOut: vi.fn() }),
 }));
@@ -33,6 +41,10 @@ vi.mock("next-intl", () => ({
 }));
 
 vi.mock("@sentry/nextjs", () => sentryMocks);
+
+vi.mock("convex/react", () => ({
+  useConvexAuth: () => convexAuthState.current,
+}));
 
 vi.mock("./unsaved-changes-guard", () => ({
   useExitGuard: () => ({ requestExit: vi.fn() }),
@@ -76,6 +88,11 @@ const emptySummary = () => ({
 
 beforeEach(() => {
   localStorage.clear();
+  convexAuthState.current = {
+    isAuthenticated: true,
+    isLoading: false,
+    isRefreshing: false,
+  };
   sentryMocks.captureException.mockClear();
   sentryMocks.startSpan.mockClear();
   sentryMocks.withScope.mockClear();
@@ -96,6 +113,7 @@ describe("Locale toggle staleness dot", () => {
           changeSummary={emptySummary}
           hasChanges={true}
           onDiscard={vi.fn()}
+          onKeepDraft={vi.fn()}
           onSave={vi.fn()}
           staleFields={staleFields}
         />
@@ -116,6 +134,7 @@ describe("Locale toggle staleness dot", () => {
           changeSummary={emptySummary}
           hasChanges={true}
           onDiscard={vi.fn()}
+          onKeepDraft={vi.fn()}
           onSave={vi.fn()}
           staleFields={[]}
         />
@@ -136,6 +155,7 @@ describe("Locale toggle staleness dot", () => {
           changeSummary={emptySummary}
           hasChanges={true}
           onDiscard={vi.fn()}
+          onKeepDraft={vi.fn()}
           onSave={vi.fn()}
           staleFields={[]}
         />
@@ -158,6 +178,7 @@ describe("Locale toggle staleness dot", () => {
           changeSummary={emptySummary}
           hasChanges={true}
           onDiscard={vi.fn()}
+          onKeepDraft={vi.fn()}
           onSave={vi.fn()}
           staleFields={staleFields}
         />
@@ -214,6 +235,7 @@ describe("Save dialog staleness warning", () => {
           changeSummary={summaryWithEdits}
           hasChanges={true}
           onDiscard={vi.fn()}
+          onKeepDraft={vi.fn()}
           onSave={vi.fn()}
           staleFields={staleFields}
         />
@@ -228,9 +250,115 @@ describe("Save dialog staleness warning", () => {
 });
 
 describe("Save failure handling", () => {
+  it("waits for Convex auth refresh before saving", async () => {
+    vi.useFakeTimers();
+    try {
+      convexAuthState.current = {
+        isAuthenticated: true,
+        isLoading: false,
+        isRefreshing: true,
+      };
+      const onSave = vi.fn(async () => undefined);
+      const onKeepDraft = vi.fn();
+
+      const view = render(
+        <Providers>
+          <EditModeToggle />
+          <EditToolbar
+            changeSummary={emptySummary}
+            hasChanges={true}
+            onDiscard={vi.fn()}
+            onKeepDraft={onKeepDraft}
+            onSave={onSave}
+            staleFields={[]}
+          />
+        </Providers>
+      );
+
+      await view.getByTestId("toggle").click();
+      await screen.getByText("Save").click();
+      await screen.getAllByText("Save").at(-1)?.click();
+
+      expect(onSave).not.toHaveBeenCalled();
+
+      convexAuthState.current = {
+        isAuthenticated: true,
+        isLoading: false,
+        isRefreshing: false,
+      };
+      view.rerender(
+        <Providers>
+          <EditModeToggle />
+          <EditToolbar
+            changeSummary={emptySummary}
+            hasChanges={true}
+            onDiscard={vi.fn()}
+            onKeepDraft={onKeepDraft}
+            onSave={onSave}
+            staleFields={[]}
+          />
+        </Providers>
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+        await Promise.resolve();
+      });
+
+      expect(onSave).toHaveBeenCalledTimes(1);
+      expect(onKeepDraft).not.toHaveBeenCalled();
+      expect(sentryMocks.captureException).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not call save while Convex auth is expired", async () => {
+    convexAuthState.current = {
+      isAuthenticated: false,
+      isLoading: false,
+      isRefreshing: false,
+    };
+    const onSave = vi.fn();
+    const onKeepDraft = vi.fn();
+
+    const { getByTestId } = render(
+      <Providers>
+        <EditModeToggle />
+        <EditToolbar
+          changeSummary={emptySummary}
+          hasChanges={true}
+          onDiscard={vi.fn()}
+          onKeepDraft={onKeepDraft}
+          onSave={onSave}
+          staleFields={[]}
+        />
+      </Providers>
+    );
+
+    await getByTestId("toggle").click();
+    await screen.getByText("Save").click();
+    await screen.getAllByText("Save").at(-1)?.click();
+
+    const notification = await screen.findByRole("alert");
+    expect(notification.textContent).toContain("Session expired");
+    expect(notification.textContent).toContain(
+      "Your admin session expired. Sign in again, then retry this action."
+    );
+    expect(onSave).not.toHaveBeenCalled();
+    expect(onKeepDraft).toHaveBeenCalledTimes(1);
+    expect(sentryMocks.captureException).not.toHaveBeenCalled();
+    expect(
+      screen.getByLabelText("Save changes").querySelector(".animate-spin")
+    ).toBeNull();
+  });
+
   it("reports failed saves, clears loading, and shows an admin notification", async () => {
     const saveError = new Error(
       "[CONVEX M(siteContent:upsert)] [Request ID: 8273b38efffc5630] Server Error"
+    );
+    sentryMocks.captureException.mockReturnValue(
+      "85940925d9c64d88b8fa66e4ca0fa016"
     );
     let rejectSave: (error: Error) => void = (initializationError) => {
       throw new Error(
@@ -243,6 +371,7 @@ describe("Save failure handling", () => {
           rejectSave = reject;
         })
     );
+    const onKeepDraft = vi.fn();
 
     const { getByTestId } = render(
       <Providers>
@@ -251,6 +380,7 @@ describe("Save failure handling", () => {
           changeSummary={emptySummary}
           hasChanges={true}
           onDiscard={vi.fn()}
+          onKeepDraft={onKeepDraft}
           onSave={onSave}
           staleFields={[]}
         />
@@ -276,9 +406,13 @@ describe("Save failure handling", () => {
       "The support team has been notified."
     );
     expect(notification.textContent).toContain("8273b38efffc5630");
+    expect(notification.textContent).toContain(
+      "85940925d9c64d88b8fa66e4ca0fa016"
+    );
     expect(
       screen.getByLabelText("Save changes").querySelector(".animate-spin")
     ).toBeNull();
+    expect(onKeepDraft).toHaveBeenCalledTimes(1);
     expect(sentryMocks.captureException).toHaveBeenCalledWith(saveError);
   });
 });

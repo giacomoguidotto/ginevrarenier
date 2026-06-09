@@ -17,6 +17,7 @@ interface AdminNotification {
   id: string;
   message: string;
   requestId?: string;
+  sentryEventId?: string;
   title: string;
   tone: AdminNotificationTone;
 }
@@ -24,6 +25,7 @@ interface AdminNotification {
 interface AdminNotificationInput {
   message: string;
   requestId?: string;
+  sentryEventId?: string;
   title: string;
   tone?: AdminNotificationTone;
 }
@@ -108,10 +110,23 @@ export function AdminNotificationProvider({
                   <p className="mt-1 text-muted-foreground text-sm leading-snug">
                     {notification.message}
                   </p>
-                  {notification.requestId ? (
-                    <p className="mt-2 truncate font-mono text-[11px] text-muted-foreground/70">
-                      Request {notification.requestId}
-                    </p>
+                  {notification.requestId || notification.sentryEventId ? (
+                    <dl className="mt-2 space-y-1 font-mono text-[11px] text-muted-foreground/70 leading-tight">
+                      {notification.requestId ? (
+                        <div className="flex min-w-0 gap-1.5">
+                          <dt className="shrink-0">Convex</dt>
+                          <dd className="truncate">{notification.requestId}</dd>
+                        </div>
+                      ) : null}
+                      {notification.sentryEventId ? (
+                        <div className="flex min-w-0 gap-1.5">
+                          <dt className="shrink-0">Sentry</dt>
+                          <dd className="truncate">
+                            {notification.sentryEventId}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </dl>
                   ) : null}
                 </div>
                 <button

@@ -37,7 +37,7 @@ export function useExitGuard() {
 }
 
 export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
-  const { hasChanges, save, discard } = useDraftBufferState();
+  const { hasChanges, save, discard, keepDraft } = useDraftBufferState();
   const { exitEditMode } = useEditMode();
   const runAdminOperation = useAdminOperation();
   const [showDialog, setShowDialog] = useState(false);
@@ -66,6 +66,7 @@ export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
       save
     );
     if (!result.ok) {
+      keepDraft();
       return;
     }
     setShowDialog(false);
@@ -84,8 +85,17 @@ export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
       discard
     );
     if (!result.ok) {
+      keepDraft();
       return;
     }
+    setShowDialog(false);
+    exitEditMode();
+    pendingCallbackRef.current?.();
+    pendingCallbackRef.current = undefined;
+  };
+
+  const handleKeepDraft = () => {
+    keepDraft();
     setShowDialog(false);
     exitEditMode();
     pendingCallbackRef.current?.();
@@ -112,6 +122,9 @@ export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
           <DialogFooter className="gap-2">
             <Button onClick={handleStay} variant="outline">
               Stay
+            </Button>
+            <Button onClick={handleKeepDraft} variant="secondary">
+              Keep draft
             </Button>
             <Button onClick={handleDiscard} variant="ghost">
               Discard

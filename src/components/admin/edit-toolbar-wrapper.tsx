@@ -10,7 +10,8 @@ const stubTranslate = async (text: string, _from: string, to: string) =>
   `[${to}] ${text}`;
 
 export function EditToolbarWrapper() {
-  const { changeSummary, hasChanges, save, discard } = useDraftBufferState();
+  const { changeSummary, hasChanges, save, discard, keepDraft } =
+    useDraftBufferState();
   const ops = useDraftBufferOps();
   const staleFields = useStaleFields();
   const { editingLocale } = useEditMode();
@@ -30,6 +31,7 @@ export function EditToolbarWrapper() {
       hasChanges={hasChanges}
       onAutoTranslate={handleAutoTranslate}
       onDiscard={discard}
+      onKeepDraft={keepDraft}
       onSave={save}
       staleFieldCountForLocale={staleFieldsForLocale.length}
       staleFields={staleFields}

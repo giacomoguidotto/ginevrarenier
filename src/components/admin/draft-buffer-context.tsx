@@ -45,11 +45,6 @@ function loadPersistedState(): PersistedState | null {
     return null;
   }
   try {
-    const editActive = localStorage.getItem("edit-mode-active") === "true";
-    if (!editActive) {
-      localStorage.removeItem(PERSIST_KEY);
-      return null;
-    }
     const raw = localStorage.getItem(PERSIST_KEY);
     if (!raw) {
       return null;
@@ -131,6 +126,7 @@ interface DraftBufferState {
   changeSummary: () => ChangeSummary;
   discard: () => void | Promise<void>;
   hasChanges: boolean;
+  keepDraft: () => void;
   save: () => Promise<void>;
 }
 
@@ -189,6 +185,7 @@ const StateContext = createContext<DraftBufferState>({
     textEdits: [],
   }),
   hasChanges: false,
+  keepDraft: noop,
   save: () => Promise.resolve(),
   discard: noop,
 });
@@ -347,23 +344,40 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     ]
   );
 
+  const persistDraftNow = useCallback(() => {
+    if (persistTimerRef.current) {
+      clearTimeout(persistTimerRef.current);
+      persistTimerRef.current = undefined;
+    }
+    try {
+      const state: PersistedState = {
+        buffer: bufferRef.current.serialize(),
+        imageAssets: imageAssetsRef.current.trackedAssets(),
+        pendingDeletionAssets: imageAssetsRef.current.pendingDeletionAssets(),
+      };
+      localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
+    } catch {
+      // quota exceeded or storage unavailable
+    }
+  }, []);
+
+  const clearPersistedDraft = useCallback(() => {
+    if (persistTimerRef.current) {
+      clearTimeout(persistTimerRef.current);
+      persistTimerRef.current = undefined;
+    }
+    clearPersistedState();
+  }, []);
+
   const schedulePersist = useCallback(() => {
     if (persistTimerRef.current) {
       clearTimeout(persistTimerRef.current);
     }
     persistTimerRef.current = setTimeout(() => {
-      try {
-        const state: PersistedState = {
-          buffer: bufferRef.current.serialize(),
-          imageAssets: imageAssetsRef.current.trackedAssets(),
-          pendingDeletionAssets: imageAssetsRef.current.pendingDeletionAssets(),
-        };
-        localStorage.setItem(PERSIST_KEY, JSON.stringify(state));
-      } catch {
-        // quota exceeded or storage unavailable
-      }
+      persistTimerRef.current = undefined;
+      persistDraftNow();
     }, PERSIST_DEBOUNCE_MS);
-  }, []);
+  }, [persistDraftNow]);
 
   useEffect(
     () => () => {
@@ -690,8 +704,23 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setHasChanges(false);
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
-    clearPersistedState();
-  }, [saveSections, entityMutations, removeEntity, saveSelectionOverrides]);
+    clearPersistedDraft();
+  }, [
+    saveSections,
+    entityMutations,
+    removeEntity,
+    saveSelectionOverrides,
+    clearPersistedDraft,
+  ]);
+
+  const keepDraft = useCallback(() => {
+    persistDraftNow();
+    setHasChanges(
+      bufferRef.current.hasChanges() ||
+        imageAssetsRef.current.trackedAssets().length > 0 ||
+        imageAssetsRef.current.pendingDeletionAssets().length > 0
+    );
+  }, [persistDraftNow]);
 
   const discard = useCallback(async () => {
     await imageAssetsRef.current.cleanup();
@@ -705,8 +734,8 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     setHasChanges(false);
     setEditVersion((v) => v + 1);
     setResetSignal((v) => v + 1);
-    clearPersistedState();
-  }, [removeEntity]);
+    clearPersistedDraft();
+  }, [removeEntity, clearPersistedDraft]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: editVersion forces fresh read from buffer ref so React Compiler cannot cache stale return values
   const changeSummary = useCallback((): ChangeSummary => {
@@ -830,10 +859,11 @@ export function DraftBufferProvider({ children }: { children: ReactNode }) {
     () => ({
       changeSummary,
       hasChanges,
+      keepDraft,
       save,
       discard,
     }),
-    [changeSummary, hasChanges, save, discard]
+    [changeSummary, hasChanges, keepDraft, save, discard]
   );
 
   return (

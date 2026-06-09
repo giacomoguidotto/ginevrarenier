@@ -328,8 +328,24 @@ function HasChangesProbe() {
   return <span data-testid="has-changes">{String(hasChanges)}</span>;
 }
 
+function KeepDraftProbe() {
+  const { keepDraft } = useDraftBufferState();
+  const { write } = useDraftBufferOps();
+  return (
+    <button
+      data-testid="keep-draft"
+      onClick={() => {
+        write("hero", "title", "en", "Kept draft");
+        keepDraft();
+      }}
+      type="button"
+    >
+      Keep
+    </button>
+  );
+}
+
 function persistBuffer(buffer: Record<string, unknown>) {
-  localStorage.setItem("edit-mode-active", "true");
   localStorage.setItem(
     "draft-buffer-state",
     JSON.stringify({ buffer, imageAssets: [] })
@@ -381,5 +397,35 @@ describe("DraftBuffer — version gating on localStorage hydration", () => {
     );
 
     expect(getByTestId("has-changes").textContent).toBe("true");
+  });
+
+  it("accepts a current draft even when edit mode is not active", () => {
+    localStorage.removeItem("edit-mode-active");
+    persistBuffer({ ...bufferWithEdits, version: DRAFT_BUFFER_VERSION });
+
+    const { getByTestId } = render(
+      <Providers>
+        <HasChangesProbe />
+      </Providers>
+    );
+
+    expect(getByTestId("has-changes").textContent).toBe("true");
+  });
+
+  it("flushes kept drafts immediately", () => {
+    const { getByTestId } = render(
+      <Providers>
+        <KeepDraftProbe />
+      </Providers>
+    );
+
+    act(() => {
+      getByTestId("keep-draft").click();
+    });
+
+    const persisted = JSON.parse(
+      localStorage.getItem("draft-buffer-state") ?? "{}"
+    );
+    expect(persisted.buffer.store).toEqual([["hero\0title\0en", "Kept draft"]]);
   });
 });

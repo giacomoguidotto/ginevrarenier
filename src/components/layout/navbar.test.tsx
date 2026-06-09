@@ -114,8 +114,9 @@ vi.mock("@/components/admin/draft-buffer-context", () => ({
       textEdits: [],
     }),
     hasChanges: false,
-    save: vi.fn(),
     discard: vi.fn(),
+    keepDraft: vi.fn(),
+    save: vi.fn(),
   }),
 }));
 

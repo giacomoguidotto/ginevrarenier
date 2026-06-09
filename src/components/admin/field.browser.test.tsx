@@ -158,6 +158,8 @@ vi.mock("./draft-buffer-context", () => {
       save: async () => {},
       // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
       discard: () => {},
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: noop stub
+      keepDraft: () => {},
     }),
     useEditVersion: () => 0,
   };

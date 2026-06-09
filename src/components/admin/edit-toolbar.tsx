@@ -109,6 +109,7 @@ interface EditToolbarProps {
   hasChanges: boolean;
   onAutoTranslate: () => void;
   onDiscard: () => void | Promise<void>;
+  onKeepDraft: () => void;
   onSave: () => void | Promise<void>;
   staleFieldCountForLocale: number;
   staleFields: StaleField[];
@@ -156,6 +157,7 @@ export function EditToolbar({
   onAutoTranslate,
   onSave,
   onDiscard,
+  onKeepDraft,
 }: EditToolbarProps) {
   const { isEditMode, editingLocale, setEditingLocale } = useEditMode();
   const { signOut } = useClerk();
@@ -244,7 +246,7 @@ export function EditToolbar({
     setLoading("save");
     setConfirmDialog(null);
     try {
-      await runAdminOperation(
+      const result = await runAdminOperation(
         {
           errorTitle: "Save failed",
           name: "draft-buffer.save",
@@ -252,16 +254,19 @@ export function EditToolbar({
         },
         () => onSave()
       );
+      if (!result.ok) {
+        onKeepDraft();
+      }
     } finally {
       setLoading(null);
     }
-  }, [onSave, runAdminOperation]);
+  }, [onKeepDraft, onSave, runAdminOperation]);
 
   const confirmDiscard = useCallback(async () => {
     setLoading("discard");
     setConfirmDialog(null);
     try {
-      await runAdminOperation(
+      const result = await runAdminOperation(
         {
           errorTitle: "Discard failed",
           name: "draft-buffer.discard",
@@ -269,10 +274,13 @@ export function EditToolbar({
         },
         () => onDiscard()
       );
+      if (!result.ok) {
+        onKeepDraft();
+      }
     } finally {
       setLoading(null);
     }
-  }, [onDiscard, runAdminOperation]);
+  }, [onDiscard, onKeepDraft, runAdminOperation]);
 
   const counts = staleCountByLocale(staleFields);
   const enStale = (counts.get("en") ?? 0) > 0;

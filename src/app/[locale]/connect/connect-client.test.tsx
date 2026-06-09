@@ -56,6 +56,11 @@ let mockIsEditMode = false;
 
 vi.mock("convex/react", () => ({
   useAction: () => vi.fn(),
+  useConvexAuth: () => ({
+    isAuthenticated: true,
+    isLoading: false,
+    isRefreshing: false,
+  }),
   useMutation: () => vi.fn(),
 }));
 

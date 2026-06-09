@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useConvexAuth } from "convex/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Pencil } from "lucide-react";
 import {
@@ -12,9 +13,10 @@ import { useEditMode } from "./edit-mode-context";
 
 export function EditFab() {
   const { isSignedIn } = useAuth();
+  const { isAuthenticated, isLoading, isRefreshing } = useConvexAuth();
   const { isEditMode, toggleEditMode } = useEditMode();
 
-  if (isSignedIn !== true) {
+  if (isSignedIn !== true || isLoading || isRefreshing || !isAuthenticated) {
     return null;
   }
 
