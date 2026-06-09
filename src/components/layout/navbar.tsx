@@ -246,7 +246,7 @@ export function Navbar() {
                 height={32}
                 priority
                 src="/images/logo-light.svg"
-                width={33}
+                width={32}
               />
               <Image
                 alt=""
@@ -254,7 +254,7 @@ export function Navbar() {
                 height={32}
                 priority
                 src="/images/logo-dark.svg"
-                width={33}
+                width={32}
               />
               <span className="font-light text-xl uppercase tracking-widest">
                 Ginevra Renier
