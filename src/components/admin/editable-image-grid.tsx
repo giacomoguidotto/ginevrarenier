@@ -39,6 +39,7 @@ import {
 } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
 import { usePageBoundary } from "./page-boundary";
+import { useAdminOperation } from "./use-admin-operation";
 
 type ProjectImage = Doc<"projectImages">;
 
@@ -219,6 +220,7 @@ export function EditableImageGrid({
   const { upload, trackPendingDeletion, cancelPendingDeletion } =
     useImageAssets();
   useEditVersion();
+  const runAdminOperation = useAdminOperation();
 
   const addImage = useMutation(api.projectImages.add);
 
@@ -314,22 +316,34 @@ export function EditableImageGrid({
     async (files: FileList) => {
       setUploading(true);
       try {
-        for (const file of files) {
-          const result = await upload(file, cloudinaryFolder(projectSlug));
-          const imageId = await addImage({
-            projectId,
-            url: result.url,
-            cloudinaryPublicId: result.publicId,
-          });
-          trackCreation("photo", imageId);
+        await runAdminOperation(
+          {
+            attributes: {
+              "convex.function": "projectImages.add",
+              fileCount: files.length,
+              projectId,
+            },
+            errorTitle: "Gallery upload failed",
+            name: "projectImages.upload",
+            op: "admin.image.upload",
+          },
+          async () => {
+            for (const file of files) {
+              const result = await upload(file, cloudinaryFolder(projectSlug));
+              const imageId = await addImage({
+                projectId,
+                url: result.url,
+                cloudinaryPublicId: result.publicId,
+              });
+              trackCreation("photo", imageId);
 
-          const currentReorder = getReorderList("photo");
-          if (currentReorder) {
-            setReorderList("photo", [...currentReorder, imageId]);
+              const currentReorder = getReorderList("photo");
+              if (currentReorder) {
+                setReorderList("photo", [...currentReorder, imageId]);
+              }
+            }
           }
-        }
-      } catch (err) {
-        console.error("[editable-image-grid] Image upload failed:", err);
+        );
       } finally {
         setUploading(false);
       }
@@ -342,6 +356,7 @@ export function EditableImageGrid({
       trackCreation,
       getReorderList,
       setReorderList,
+      runAdminOperation,
     ]
   );
 

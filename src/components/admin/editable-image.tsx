@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useImageAssets } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
+import { useAdminOperation } from "./use-admin-operation";
 
 interface EditableImageProps {
   alt: string;
@@ -43,6 +44,7 @@ export function EditableImage({
 }: EditableImageProps) {
   const { isEditMode } = useEditMode();
   const { upload } = useImageAssets();
+  const runAdminOperation = useAdminOperation();
   const [uploading, setUploading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,11 +52,24 @@ export function EditableImage({
   const handleUpload = useCallback(
     async (file: File) => {
       setUploading(true);
-      const result = await upload(file, folder);
-      onUpload(result.url, result.publicId);
-      setUploading(false);
+      try {
+        await runAdminOperation(
+          {
+            attributes: { folder },
+            errorTitle: "Image upload failed",
+            name: "image.upload",
+            op: "admin.image.upload",
+          },
+          async () => {
+            const result = await upload(file, folder);
+            onUpload(result.url, result.publicId);
+          }
+        );
+      } finally {
+        setUploading(false);
+      }
     },
-    [folder, onUpload, upload]
+    [folder, onUpload, runAdminOperation, upload]
   );
 
   return (

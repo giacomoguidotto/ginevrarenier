@@ -33,6 +33,7 @@ import {
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section, useSection } from "@/components/admin/section";
+import { useAdminOperation } from "@/components/admin/use-admin-operation";
 import { VisionEmptyState } from "@/components/empty-states/vision-empty-state";
 import { ProjectCard } from "@/components/gallery/project-card";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -138,6 +139,7 @@ export function VisionClient({
   const { trackCreation, setReorderList, getReorderList } = useDraftBufferOps();
   useEditVersion();
   const createProject = useMutation(api.projects.create);
+  const runAdminOperation = useAdminOperation();
 
   const reorderList = getReorderList("project");
   const displayProjects = reorderList
@@ -174,39 +176,49 @@ export function VisionClient({
   );
 
   const handleCreate = useCallback(async () => {
-    const titles = [
-      "Solstice",
-      "Penumbra",
-      "Aperture",
-      "Meridian",
-      "Parallax",
-      "Umbra",
-      "Zenith",
-      "Cascade",
-      "Reverie",
-      "Prism",
-      "Vestige",
-      "Cadence",
-      "Eclipse",
-      "Gossamer",
-      "Nebula",
-      "Patina",
-      "Silhouette",
-      "Trestle",
-      "Vignette",
-      "Aurora",
-      "Chiaroscuro",
-      "Sfumato",
-      "Contrapposto",
-      "Velatura",
-      "Nocturne",
-    ];
-    const title = titles[Math.floor(Math.random() * titles.length)];
-    const id = await createProject({
-      title: { en: title, it: title },
-    });
-    trackCreation("project", id);
-  }, [createProject, trackCreation]);
+    await runAdminOperation(
+      {
+        attributes: { "convex.function": "projects.create" },
+        errorTitle: "Project creation failed",
+        name: "projects.create",
+        op: "admin.convex.mutation",
+      },
+      async () => {
+        const titles = [
+          "Solstice",
+          "Penumbra",
+          "Aperture",
+          "Meridian",
+          "Parallax",
+          "Umbra",
+          "Zenith",
+          "Cascade",
+          "Reverie",
+          "Prism",
+          "Vestige",
+          "Cadence",
+          "Eclipse",
+          "Gossamer",
+          "Nebula",
+          "Patina",
+          "Silhouette",
+          "Trestle",
+          "Vignette",
+          "Aurora",
+          "Chiaroscuro",
+          "Sfumato",
+          "Contrapposto",
+          "Velatura",
+          "Nocturne",
+        ];
+        const title = titles[Math.floor(Math.random() * titles.length)];
+        const id = await createProject({
+          title: { en: title, it: title },
+        });
+        trackCreation("project", id);
+      }
+    );
+  }, [createProject, runAdminOperation, trackCreation]);
 
   return (
     <PageTransition>

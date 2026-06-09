@@ -43,6 +43,7 @@ import {
 } from "./save-confirmation";
 import { staleCountByLocale } from "./staleness-queries";
 import { useExitGuard } from "./unsaved-changes-guard";
+import { useAdminOperation } from "./use-admin-operation";
 
 const STORAGE_KEY = "edit-toolbar-position";
 
@@ -159,6 +160,7 @@ export function EditToolbar({
   const { isEditMode, editingLocale, setEditingLocale } = useEditMode();
   const { signOut } = useClerk();
   const { requestExit } = useExitGuard();
+  const runAdminOperation = useAdminOperation();
 
   const [loading, setLoading] = useState<"save" | "discard" | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<"save" | "discard" | null>(
@@ -237,6 +239,40 @@ export function EditToolbar({
   const switchLocale = useCallback(() => {
     setEditingLocale(editingLocale === "en" ? "it" : "en");
   }, [editingLocale, setEditingLocale]);
+
+  const confirmSave = useCallback(async () => {
+    setLoading("save");
+    setConfirmDialog(null);
+    try {
+      await runAdminOperation(
+        {
+          errorTitle: "Save failed",
+          name: "draft-buffer.save",
+          op: "admin.draft_buffer.save",
+        },
+        () => onSave()
+      );
+    } finally {
+      setLoading(null);
+    }
+  }, [onSave, runAdminOperation]);
+
+  const confirmDiscard = useCallback(async () => {
+    setLoading("discard");
+    setConfirmDialog(null);
+    try {
+      await runAdminOperation(
+        {
+          errorTitle: "Discard failed",
+          name: "draft-buffer.discard",
+          op: "admin.draft_buffer.discard",
+        },
+        () => onDiscard()
+      );
+    } finally {
+      setLoading(null);
+    }
+  }, [onDiscard, runAdminOperation]);
 
   const counts = staleCountByLocale(staleFields);
   const enStale = (counts.get("en") ?? 0) > 0;
@@ -386,12 +422,7 @@ export function EditToolbar({
             changeSummary={changeSummary}
             loading={loading === "save"}
             onCancel={() => setConfirmDialog(null)}
-            onConfirm={async () => {
-              setLoading("save");
-              setConfirmDialog(null);
-              await onSave();
-              setLoading(null);
-            }}
+            onConfirm={confirmSave}
             open={confirmDialog === "save"}
           />
 
@@ -399,12 +430,7 @@ export function EditToolbar({
             changeSummary={changeSummary}
             loading={loading === "discard"}
             onCancel={() => setConfirmDialog(null)}
-            onConfirm={async () => {
-              setLoading("discard");
-              setConfirmDialog(null);
-              await onDiscard();
-              setLoading(null);
-            }}
+            onConfirm={confirmDiscard}
             open={confirmDialog === "discard"}
           />
         </motion.div>

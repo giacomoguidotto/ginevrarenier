@@ -24,6 +24,7 @@ import { EditableImage } from "@/components/admin/editable-image";
 import { Field } from "@/components/admin/field";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
+import { useAdminOperation } from "@/components/admin/use-admin-operation";
 import { PageTransition } from "@/components/layout/page-transition";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Link } from "@/i18n/routing";
@@ -255,19 +256,30 @@ function useAchievements() {
   const { trackCreation, trackDeletion, isPendingDeletion, isSessionCreated } =
     useDraftBufferOps();
   const createAchievement = useMutation(api.achievements.create);
+  const runAdminOperation = useAdminOperation();
 
   const [localCreations, setLocalCreations] = useState<string[]>([]);
 
   const handleAdd = useCallback(async () => {
-    const year = new Date().getFullYear();
-    const id = await createAchievement({
-      startYear: year,
-      title: { en: "", it: "" },
-      description: { en: "", it: "" },
-    });
-    trackCreation("achievement", id);
-    setLocalCreations((prev) => [...prev, id]);
-  }, [createAchievement, trackCreation]);
+    await runAdminOperation(
+      {
+        attributes: { "convex.function": "achievements.create" },
+        errorTitle: "Achievement creation failed",
+        name: "achievements.create",
+        op: "admin.convex.mutation",
+      },
+      async () => {
+        const year = new Date().getFullYear();
+        const id = await createAchievement({
+          startYear: year,
+          title: { en: "", it: "" },
+          description: { en: "", it: "" },
+        });
+        trackCreation("achievement", id);
+        setLocalCreations((prev) => [...prev, id]);
+      }
+    );
+  }, [createAchievement, runAdminOperation, trackCreation]);
 
   const handleDelete = useCallback(
     (id: string) => {

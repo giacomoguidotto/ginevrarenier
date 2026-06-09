@@ -19,6 +19,7 @@ import {
 import { useEditMode } from "@/components/admin/edit-mode-context";
 import { Field } from "@/components/admin/field";
 import { Section, useSection } from "@/components/admin/section";
+import { useAdminOperation } from "@/components/admin/use-admin-operation";
 import { PostCard } from "@/components/blog/post-card";
 import { ReflectionsEmptyState } from "@/components/empty-states/reflections-empty-state";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -66,41 +67,52 @@ export function ReflectionsClient({
 
   const { trackCreation } = useDraftBufferOps();
   const createPost = useMutation(api.blogPosts.create);
+  const runAdminOperation = useAdminOperation();
 
   const handleCreate = useCallback(async () => {
-    const titles = [
-      "Reverie",
-      "Threshold",
-      "Coda",
-      "Interlude",
-      "Parenthesis",
-      "Caesura",
-      "Marginalia",
-      "Palimpsest",
-      "Fugue",
-      "Ellipsis",
-      "Postlude",
-      "Lacuna",
-      "Tessera",
-      "Sotto Voce",
-      "Filigree",
-      "Interstice",
-      "Resonance",
-      "Apocrypha",
-      "Etude",
-      "Fermata",
-      "Rubato",
-      "Sforzando",
-      "Glissando",
-      "Ostinato",
-      "Clair-Obscur",
-    ];
-    const title = titles[Math.floor(Math.random() * titles.length)];
-    const id = await createPost({
-      title: { en: title, it: title },
-    });
-    trackCreation("post", id);
-  }, [createPost, trackCreation]);
+    await runAdminOperation(
+      {
+        attributes: { "convex.function": "blogPosts.create" },
+        errorTitle: "Post creation failed",
+        name: "blogPosts.create",
+        op: "admin.convex.mutation",
+      },
+      async () => {
+        const titles = [
+          "Reverie",
+          "Threshold",
+          "Coda",
+          "Interlude",
+          "Parenthesis",
+          "Caesura",
+          "Marginalia",
+          "Palimpsest",
+          "Fugue",
+          "Ellipsis",
+          "Postlude",
+          "Lacuna",
+          "Tessera",
+          "Sotto Voce",
+          "Filigree",
+          "Interstice",
+          "Resonance",
+          "Apocrypha",
+          "Etude",
+          "Fermata",
+          "Rubato",
+          "Sforzando",
+          "Glissando",
+          "Ostinato",
+          "Clair-Obscur",
+        ];
+        const title = titles[Math.floor(Math.random() * titles.length)];
+        const id = await createPost({
+          title: { en: title, it: title },
+        });
+        trackCreation("post", id);
+      }
+    );
+  }, [createPost, runAdminOperation, trackCreation]);
 
   return (
     <PageTransition>

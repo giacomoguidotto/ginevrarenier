@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { useDraftBufferState } from "./draft-buffer-context";
 import { useEditMode } from "./edit-mode-context";
+import { useAdminOperation } from "./use-admin-operation";
 
 interface ExitGuard {
   requestExit: (onExit?: () => void) => void;
@@ -38,6 +39,7 @@ export function useExitGuard() {
 export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
   const { hasChanges, save, discard } = useDraftBufferState();
   const { exitEditMode } = useEditMode();
+  const runAdminOperation = useAdminOperation();
   const [showDialog, setShowDialog] = useState(false);
   const pendingCallbackRef = useRef<(() => void) | undefined>(undefined);
 
@@ -55,15 +57,35 @@ export function UnsavedChangesGuard({ children }: { children: ReactNode }) {
   );
 
   const handleSave = async () => {
-    await save();
+    const result = await runAdminOperation(
+      {
+        errorTitle: "Save failed",
+        name: "draft-buffer.save-and-exit",
+        op: "admin.draft_buffer.save",
+      },
+      save
+    );
+    if (!result.ok) {
+      return;
+    }
     setShowDialog(false);
     exitEditMode();
     pendingCallbackRef.current?.();
     pendingCallbackRef.current = undefined;
   };
 
-  const handleDiscard = () => {
-    discard();
+  const handleDiscard = async () => {
+    const result = await runAdminOperation(
+      {
+        errorTitle: "Discard failed",
+        name: "draft-buffer.discard-and-exit",
+        op: "admin.draft_buffer.discard",
+      },
+      discard
+    );
+    if (!result.ok) {
+      return;
+    }
     setShowDialog(false);
     exitEditMode();
     pendingCallbackRef.current?.();

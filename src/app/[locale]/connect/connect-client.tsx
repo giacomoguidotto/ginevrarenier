@@ -56,6 +56,7 @@ import { Field } from "@/components/admin/field";
 import { FieldChrome } from "@/components/admin/field-chrome";
 import { usePageBoundaryRegistration } from "@/components/admin/page-boundary";
 import { Section, useSection } from "@/components/admin/section";
+import { useAdminOperation } from "@/components/admin/use-admin-operation";
 import { PageTransition } from "@/components/layout/page-transition";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
@@ -578,6 +579,7 @@ function SocialSection({
   useEditVersion();
 
   const createSocialLink = useMutation(api.socialLinks.create);
+  const runAdminOperation = useAdminOperation();
 
   const reorderList = getReorderList("social-link");
 
@@ -625,13 +627,23 @@ function SocialSection({
   );
 
   const handleCreate = useCallback(async () => {
-    const defaultPlatform = allowedPlatforms[0] ?? "website";
-    const id = await createSocialLink({
-      platform: defaultPlatform,
-      handle: "",
-    });
-    trackCreation("social-link", id);
-  }, [createSocialLink, trackCreation, allowedPlatforms]);
+    await runAdminOperation(
+      {
+        attributes: { "convex.function": "socialLinks.create" },
+        errorTitle: "Social link creation failed",
+        name: "socialLinks.create",
+        op: "admin.convex.mutation",
+      },
+      async () => {
+        const defaultPlatform = allowedPlatforms[0] ?? "website";
+        const id = await createSocialLink({
+          platform: defaultPlatform,
+          handle: "",
+        });
+        trackCreation("social-link", id);
+      }
+    );
+  }, [allowedPlatforms, createSocialLink, runAdminOperation, trackCreation]);
 
   const content = (
     <div className="space-y-4">

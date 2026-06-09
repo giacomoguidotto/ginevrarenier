@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { AdminNotificationProvider } from "@/components/admin/admin-notifications";
 import { DraftBufferProvider } from "@/components/admin/draft-buffer-context";
 import { EditFab } from "@/components/admin/edit-fab";
 import { EditModeProvider } from "@/components/admin/edit-mode-context";
@@ -140,23 +141,25 @@ export default async function LocaleLayout({ children, params }: Props) {
           <TooltipProvider>
             <EditModeProvider>
               <DraftBufferProvider>
-                <WebSiteJsonLd locale={locale as Locale} />
-                <PersonJsonLd
-                  locale={locale as Locale}
-                  socialUrls={socialUrls}
-                />
-                <div className="flex min-h-screen flex-col">
-                  <Navbar />
-                  <main className="flex-1">{children}</main>
-                  <Footer />
-                </div>
-                <LocaleToast />
-                <Analytics />
-                <SpeedInsights />
-                <UnsavedChangesGuard>
-                  <EditFab />
-                  <EditToolbarWrapper />
-                </UnsavedChangesGuard>
+                <AdminNotificationProvider>
+                  <WebSiteJsonLd locale={locale as Locale} />
+                  <PersonJsonLd
+                    locale={locale as Locale}
+                    socialUrls={socialUrls}
+                  />
+                  <div className="flex min-h-screen flex-col">
+                    <Navbar />
+                    <main className="flex-1">{children}</main>
+                    <Footer />
+                  </div>
+                  <LocaleToast />
+                  <Analytics />
+                  <SpeedInsights />
+                  <UnsavedChangesGuard>
+                    <EditFab />
+                    <EditToolbarWrapper />
+                  </UnsavedChangesGuard>
+                </AdminNotificationProvider>
               </DraftBufferProvider>
             </EditModeProvider>
           </TooltipProvider>
