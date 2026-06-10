@@ -1,5 +1,7 @@
 # Gate admin queries on Convex auth readiness
 
+Status: Accepted
+
 Client-side calls to `adminQuery`-wrapped functions must be skipped until `useConvexAuth().isAuthenticated` is true, not just until the triggering UI state (e.g., `isEditMode`) is true. The Clerk-to-Convex token handshake is async: Clerk restores its session from cookies, calls `getToken({ template: "convex" })`, and delivers the JWT to the Convex client. Any Convex query that fires before this handshake completes will see `ctx.auth.getUserIdentity() === null` on the server and hit the `adminQuery` unauthorized throw (ADR-0004).
 
 Admin operations that call `adminMutation` functions must also account for Convex auth readiness. A persisted edit session can outlive the Clerk/Convex token, so a user can resume an old browser session and click Save or Discard while Convex is unauthenticated or refreshing. Transient refreshes should be allowed to complete. A truly expired session must preserve the local draft instead of forcing a save/discard decision that cannot succeed.

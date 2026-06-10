@@ -1,5 +1,8 @@
 # Unified Draft Buffer commit semantics for all Field edits
 
+Status: Accepted
+Current rule: everything in edit mode is buffered before backend commit
+
 Field operated in two implicit modes: entity mode (with `value` prop) wrote immediately via direct Convex mutations; section mode (without `value` prop) wrote to the Draft Buffer, flushed on save. The mode was inferred from prop presence with no type-level distinction. This violated the Edit Session contract — discarding a session did not revert entity field edits — and created a copy-paste trap where moving a Field between contexts silently changed its commit timing.
 
 ## Decision

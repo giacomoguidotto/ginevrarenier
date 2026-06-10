@@ -1,5 +1,7 @@
 # SEO Infrastructure
 
+Status: Accepted
+
 The site had no sitemap, robots.txt, structured data, or dynamic metadata for individual projects and blog posts. Search engines could crawl the site but had limited ability to understand its content, surface rich results, or index images.
 
 ## Decision

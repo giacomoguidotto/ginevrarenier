@@ -1,5 +1,7 @@
 # Inline read functions in the Draft Buffer ops memo
 
+Status: Accepted
+
 Draft Buffer read functions (`isPendingDeletion`, `getPublishOverride`, `isSessionCreated`, `getReorderList`, `read`, `editedLocales`, `sectionChanges`) were wrapped in `useCallback(fn, [])`. The functions read from a mutable ref (`bufferRef.current`) so they always returned fresh data in theory. In practice, React Compiler (or equivalent automatic memoization in React 19 / Next.js 16) cached the call-site return values: when both the function reference and its arguments were unchanged between renders, the runtime skipped re-executing the function body entirely. Write operations bumped `editVersion` and triggered re-renders, but consumers called the same stable function reference with the same arguments, so the cached (stale) result was returned. The UI never reflected deletions, publish toggles, or other buffer mutations.
 
 ## Decision

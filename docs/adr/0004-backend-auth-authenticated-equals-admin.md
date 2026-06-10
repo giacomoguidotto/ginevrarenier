@@ -1,5 +1,7 @@
 # Backend auth: authenticated identity equals admin
 
+Status: Accepted
+
 All Convex mutations and admin-only queries are gated behind custom function builders (`adminMutation`, `adminQuery`) that call `ctx.auth.getUserIdentity()` and throw if identity is absent. No subject-ID or email check is performed — if a caller holds a valid Clerk JWT, they are the admin. This relies on Clerk sign-ups being disabled at the dashboard level, making the Clerk tenant the single access-control boundary.
 
 ## Considered Options

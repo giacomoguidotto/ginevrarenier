@@ -1,5 +1,7 @@
 # Social Link Platform Registry with Derived Fields
 
+Status: Accepted
+
 The `socialLinks` table stored four free-text string columns — `platform`, `label`, `value`, `href` — all independently editable. The edit UI rendered a card-based form exposing all four fields, causing layout shift (CLS) relative to the view-mode layout and requiring the artist to manually keep label, value, and href consistent with the chosen platform. Adding a new platform meant knowing the correct URL format and typing it by hand.
 
 ## Decision

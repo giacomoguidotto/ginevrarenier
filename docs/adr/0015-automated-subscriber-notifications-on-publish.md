@@ -1,5 +1,7 @@
 # Automated Subscriber Notifications on Publish
 
+Status: Accepted
+
 The site had no mechanism to retain visitors after they leave. The inquiry form on `/connect` serves one-off contact but offers no ongoing relationship. Once a visitor leaves, there is no channel to surface new work to them.
 
 ## Decision

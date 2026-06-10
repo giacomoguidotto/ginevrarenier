@@ -1,10 +1,13 @@
 # Entity Descriptor Registry
 
-The Draft Buffer save flow, confirmation dialog, and Session-Created Entity discard all routed entity operations through hardcoded if/else chains keyed on entity-type string literals (`"project"`, `"post"`). Adding a new entity type required updating every branch in save routing, publish-override dispatch, removal compensation, and UI formatting. The branches were scattered across `save-routing.ts`, `edit-toolbar.tsx`, and `draft-buffer-context.tsx`.
+Status: Accepted
+Extends: ADR-0005 and ADR-0007
+
+The Draft Buffer save flow, confirmation dialog, and Session-Created Entity discard originally routed entity operations through hardcoded if/else chains keyed on entity-type string literals (`"project"`, `"post"`). Adding a new Entity type required updating every branch in save routing, publish-override dispatch, removal compensation, and UI formatting. The branches were scattered across `save-routing.ts`, `edit-toolbar.tsx`, and `draft-buffer-context.tsx`.
 
 ## Decision
 
-Introduce an **Entity Descriptor** — a static data structure per entity type that declares its capabilities and backend references — and a **registry** that maps entity-type strings to descriptors.
+Introduce an **Entity Descriptor** — a static data structure per Entity type that declares its capabilities and backend references — and a **registry** that maps entity-type strings to descriptors. Every Entity implementation that participates in edit mode must go through the Draft Buffer and descriptor/routing model; do not add ad hoc immediate-commit branches for new Entity types.
 
 ```typescript
 interface EntityDescriptor {
@@ -30,7 +33,7 @@ interface EntityDescriptor {
 
 ## Key design choices
 
-**Registry over type union:** A `Map<string, EntityDescriptor>` is open for extension — adding a new entity type means adding one entry to the registry and one entry to the mutation map. A discriminated union requires updating every switch/if-else that matches on it.
+**Registry over type union:** A `Map<string, EntityDescriptor>` is open for extension — adding a new Entity type means adding one entry to the registry and one entry to the mutation map. A discriminated union requires updating every switch/if-else that matches on it.
 
 **formatRef on the descriptor:** Each descriptor owns its label-resolution strategy. The default implementation checks the section-label map and falls back to the descriptor's static label. Future entity types with different labeling conventions (e.g., parent-qualified labels) can override this.
 
@@ -40,4 +43,4 @@ interface EntityDescriptor {
 
 - `SectionRoute` changes from a 3-variant union to a 2-variant union. The old `{ kind: "project" }` and `{ kind: "post" }` variants collapse into `{ kind: "entity"; descriptor; id }`. Existing `save-routing.test.ts` assertions are updated accordingly.
 - `formatEntityType` and `formatEntityRef` are removed from `edit-toolbar.tsx` and re-implemented in `entity-descriptors.ts` using the registry, with a humanized fallback for unregistered types.
-- The old `save-routing.ts` retains `buildEntityUpdates` and `mergeSiteContent` (pure data-transformation functions unrelated to entity dispatch).
+- The old `save-routing.ts` retains `buildEntityUpdates` and `mergeSiteContent` (pure data-transformation functions unrelated to entity dispatch). Entity-specific update-building belongs in descriptors when the generic helper is not precise enough.

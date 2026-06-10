@@ -1,5 +1,7 @@
 # Observability Stack
 
+Status: Accepted
+
 The site started with passive Vercel Web Analytics, Vercel Speed Insights, and a narrow Sentry plan for unhandled frontend/API errors plus a few silent Convex email actions. That plan no longer matches the admin editing system: failed saves need graceful UX, Sentry correlation, and alert priority without spending beyond free tiers.
 
 ## Decision

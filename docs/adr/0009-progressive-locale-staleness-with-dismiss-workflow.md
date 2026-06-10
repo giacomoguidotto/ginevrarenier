@@ -1,5 +1,7 @@
 # Progressive locale staleness with dismiss workflow
 
+Status: Accepted
+
 The current stale-locale detection is unreliable: structural operations (entity creation, deletion, publish overrides, reorder) pollute the locale change signal, and flat per-field amber dots don't guide the artist to where attention is needed. We're redesigning locale change tracking around three principles: staleness scoped to text edits only, progressive disclosure through a three-tier hierarchy (locale toggle → page boundary → per-field), and a dismiss workflow that lets the artist acknowledge stale fields without editing them.
 
 ## Considered options

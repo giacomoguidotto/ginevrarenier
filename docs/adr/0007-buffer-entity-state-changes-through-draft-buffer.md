@@ -1,10 +1,13 @@
 # Buffer all entity state changes through the Draft Buffer
 
+Status: Accepted
+Extends: ADR-0005
+
 Publish and reorder fired Convex mutations immediately, bypassing the Draft Buffer. Text edits, Pending Deletions, and Session-Created Entities already routed through the Draft Buffer (ADR-0005). This split meant discarding a session could not revert a publish or a reorder — the Edit Session contract ("discard reverts everything") was partially broken. It also prevented a coherent change summary: the confirmation dialog could not show publish or reorder changes alongside text edits.
 
 ## Decision
 
-All entity state changes — publish/unpublish and reorder — route through the Draft Buffer. The Draft Buffer gains two new data structures:
+All edit-mode entity state changes route through the Draft Buffer. Publish/unpublish and reorder are the first explicit state changes covered here; later entity features must follow the same rule unless a future ADR explicitly supersedes it. The Draft Buffer gains two new data structures:
 
 **Publish Overrides** (`Map<entityKey, boolean>`): Records the intended publish state for entities whose visibility was toggled during the session. Absent entries mean "no change." On save, each override dispatches a `projects.update` or `blogPosts.update` mutation with the `published` field. On discard, cleared.
 

@@ -1,10 +1,13 @@
 # Per-field Chrome SVGs replacing global SVG overlay
 
+Status: Accepted
+Supersedes: ADR-0001 Chrome rendering consequence
+
 ADR-0001 established Chrome as a global SVG portal overlay reading Field geometry via ResizeObserver. This worked for the initial feature but proved fragile as the editing system grew: deferred field animations, dynamic entity creation/removal, drag-and-drop reordering, and route navigation each required dedicated synchronization mechanisms (visibility gating, dismount epochs, registry pub-sub, scroll/resize listeners). Six of twelve Chrome-related commits were edge-case fixes for geometry desynchronization.
 
 ## Decision
 
-Chrome SVGs move inside each Field component, absolutely positioned within a wrapper div (or portaled to the `containerRef` element when provided). The global overlay, registry, pub-sub, ResizeObserver, and dismount epoch are eliminated.
+Chrome SVGs move inside each Field component, absolutely positioned within a wrapper div (or portaled to the `containerRef` element when provided). This is the current rule: per-field Chrome is more flexible, scales with the Field model, and moves with the DOM instead of breaking away from it. The global overlay, registry, pub-sub, ResizeObserver, and dismount epoch are eliminated.
 
 A `ChromeEnablerProvider` (boolean context with an idempotent `enable()` callback) gates Chrome rendering until the host animation completes. One provider per independently-animating group of Fields. On initial page load, `onAnimationComplete` fires `enable()`, and Chrome entrance-animates visibly. For dynamically added Fields (provider already enabled), Chrome mounts immediately but is masked by the parent's Framer Motion animation: the Field appears with Chrome already present.
 

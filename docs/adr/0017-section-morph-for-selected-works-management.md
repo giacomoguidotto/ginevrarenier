@@ -1,5 +1,8 @@
 # Section Morph for Selected Works Management
 
+Status: Accepted
+Extends: ADR-0007 and ADR-0011
+
 The admin needs to manage which Projects appear as Selected Works on the home page, and in what order. This requires a UI that combines two operations: toggling selection membership and reordering.
 
 ## Decision
@@ -10,7 +13,9 @@ The Selected Works carousel section on the home page transforms in-place into a 
 
 In edit mode, a grid icon appears in the section header alongside the existing scroll arrows. Clicking it morphs the horizontal carousel into a grid showing all Projects (selected and unselected). The scroll arrows disappear and the grid icon becomes a close icon. Closing morphs back to the carousel. Opening and closing the grid is purely a UI state change — all selection and reorder changes are buffered in the Draft Buffer and committed only when the Edit Session is saved.
 
-Inside the grid, all projects are draggable regardless of selection state. Tapping a project toggles its selection (Selection Override in the Draft Buffer). Selected projects are visually distinct: full saturation and an elevated effect (border glow on dark theme). Unselected projects appear desaturated. A project's order value in the selectedWorks table equals its position index in the grid, so dragging inherently reorders.
+Selected Work is another Entity implementation, so it follows the same Entity rules: edit-mode changes go through the Draft Buffer, routing goes through descriptors/mutation maps, and there is no immediate-commit special path.
+
+Inside the grid, all projects are draggable regardless of selection state. Tapping a project toggles its selection (Selection Override in the Draft Buffer). Selected projects are visually distinct: full saturation and an elevated effect (border glow on dark theme). A project's order value in the selectedWorks table equals its position index in the grid, so dragging inherently reorders. Unselected projects appear desaturated.
 
 ### Alternatives considered
 

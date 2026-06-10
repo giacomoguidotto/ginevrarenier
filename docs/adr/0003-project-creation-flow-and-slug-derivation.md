@@ -1,5 +1,8 @@
 # Simplified project creation flow with slug derivation from title
 
+Status: Accepted
+Amended by: ADR-0005 for slug commit timing and ADR-0007 for publish commit timing
+
 The current project creation flow requires the user to type a slug manually in an inline modal, then stay on the vision grid. The slug is a technical concept that shouldn't face the user. We're replacing this with one-click creation (random evocative title, focused for editing), automatic slug derivation from the EN title, and a reactive uniqueness guard surfaced through Chrome variants.
 
 ## Considered Options
@@ -16,7 +19,7 @@ The current project creation flow requires the user to type a slug manually in a
 
 **Immutable slug:** Slug set once from the initial title, never updates. Simple, no routing issues, but slug and title drift apart over time.
 
-**Slug updates + redirect (chosen):** Slug re-derives from EN title on every blur. On the project page, the component resolves the slug to a project ID on initial load, then switches to a `getById` subscription. When the slug changes via mutation, `router.replace` updates the URL. The ID-based subscription prevents the 404 flash that would occur if the component relied on `getBySlug` throughout.
+**Slug updates + redirect (chosen):** Slug re-derives from the EN title, but the current edit-mode rule is that the slug is buffered with the title and committed on save (ADR-0005), not mutated immediately on blur. On the project page, the component resolves the slug to a project ID on initial load, then switches to a `getById` subscription. When the saved slug changes, `router.replace` updates the URL. The ID-based subscription prevents the 404 flash that would occur if the component relied on `getBySlug` throughout.
 
 **ID-based URLs:** Use `/vision/{id}` instead of `/vision/{slug}`. Avoids all slug issues but produces ugly URLs. Rejected.
 
@@ -52,6 +55,8 @@ Currently publish/unpublish is hidden in a right-click context menu. Moving to e
 - **On the project page:** Prominent publish button in the header when the project is unpublished.
 
 The context menu retains publish/unpublish as a secondary path for quick toggling.
+
+Current edit-mode rule: publish/unpublish writes a Publish Override to the Draft Buffer and commits only on save (ADR-0007). It must not call a backend mutation immediately.
 
 ### "Draft" badge terminology
 
