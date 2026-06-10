@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sentryMocks = vi.hoisted(() => ({
   captureException: vi.fn(),
+  setContext: vi.fn(),
+  setTag: vi.fn(),
   startSpan: vi.fn(
     async (_options: unknown, callback: () => Promise<unknown> | unknown) =>
       callback()
@@ -18,8 +20,8 @@ const sentryMocks = vi.hoisted(() => ({
       }) => void
     ) =>
       callback({
-        setContext: vi.fn(),
-        setTag: vi.fn(),
+        setContext: sentryMocks.setContext,
+        setTag: sentryMocks.setTag,
       })
   ),
 }));
@@ -94,6 +96,8 @@ beforeEach(() => {
     isRefreshing: false,
   };
   sentryMocks.captureException.mockClear();
+  sentryMocks.setContext.mockClear();
+  sentryMocks.setTag.mockClear();
   sentryMocks.startSpan.mockClear();
   sentryMocks.withScope.mockClear();
 });
@@ -414,5 +418,16 @@ describe("Save failure handling", () => {
     ).toBeNull();
     expect(onKeepDraft).toHaveBeenCalledTimes(1);
     expect(sentryMocks.captureException).toHaveBeenCalledWith(saveError);
+    expect(sentryMocks.setTag).toHaveBeenCalledWith(
+      "admin.failure_kind",
+      "unexpected_admin_failure"
+    );
+    expect(sentryMocks.setContext).toHaveBeenCalledWith(
+      "admin_failure",
+      expect.objectContaining({
+        kind: "unexpected_admin_failure",
+        reportToSentry: true,
+      })
+    );
   });
 });

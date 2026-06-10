@@ -1,12 +1,17 @@
 "use client";
 
-import { captureException, startSpan, withScope } from "@sentry/nextjs";
 import { useConvexAuth } from "convex/react";
+import { Effect } from "effect";
 import type { RefObject } from "react";
 import { useCallback, useEffect, useRef } from "react";
+import { classifyExpectedAuthDenial } from "./admin-failures";
 import { useAdminNotifications } from "./admin-notifications";
-
-type SpanAttribute = boolean | number | string;
+import {
+  type AdminOperationResult,
+  type ConvexAuthSnapshot,
+  runAdminOperationResultEffect,
+  type SpanAttribute,
+} from "./admin-operation-runtime";
 
 interface AdminOperationOptions {
   attributes?: Record<string, SpanAttribute | undefined>;
@@ -16,20 +21,10 @@ interface AdminOperationOptions {
   op?: string;
 }
 
-type AdminOperationResult<T> =
-  | { ok: true; value: T }
-  | { error: unknown; ok: false; requestId?: string; sentryEventId?: string };
 type NotifyAdmin = ReturnType<typeof useAdminNotifications>["notify"];
 
-const CONVEX_REQUEST_ID_RE = /\[Request ID: ([^\]]+)\]/;
 const AUTH_READY_WAIT_MS = 5000;
 const AUTH_READY_POLL_MS = 100;
-
-interface ConvexAuthSnapshot {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  isRefreshing: boolean;
-}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -66,17 +61,6 @@ function compactAttributes(attributes: AdminOperationOptions["attributes"]) {
       (entry): entry is [string, SpanAttribute] => entry[1] !== undefined
     )
   );
-}
-
-function errorText(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-}
-
-export function extractConvexRequestId(error: unknown) {
-  return errorText(error).match(CONVEX_REQUEST_ID_RE)?.[1];
 }
 
 export function useAdminOperation() {
@@ -116,11 +100,10 @@ export function useAdminOperation() {
             notify
           );
         }
-        const error = new Error(
-          wasResolving
-            ? "Convex auth is reconnecting"
-            : "Convex auth is not authenticated"
+        const classification = classifyExpectedAuthDenial(
+          wasResolving ? "auth_reconnecting" : "auth_expired"
         );
+        const error = new Error(classification.message);
         notify({
           message: wasResolving
             ? "Your admin session is reconnecting. Try again in a moment."
@@ -128,7 +111,7 @@ export function useAdminOperation() {
           title: wasResolving ? "Session reconnecting" : "Session expired",
           tone: "error",
         });
-        return { error, ok: false };
+        return { error, failureKind: classification.kind, ok: false };
       }
 
       return await runAdminOperationAfterAuth(
@@ -152,49 +135,18 @@ async function runAdminOperationAfterAuth<T>(
   authRef: RefObject<ConvexAuthSnapshot>,
   notify: NotifyAdmin
 ): Promise<AdminOperationResult<T>> {
-  try {
-    const value = await startSpan(
-      {
+  return await Effect.runPromise(
+    runAdminOperationResultEffect<T>({
+      auth: authRef.current,
+      notify,
+      operation,
+      options: {
         attributes,
+        errorMessage: options.errorMessage,
+        errorTitle: options.errorTitle,
         name: options.name,
         op,
       },
-      operation
-    );
-    return { ok: true, value };
-  } catch (error) {
-    const requestId = extractConvexRequestId(error);
-    const auth = authRef.current;
-    const sentryEventId = withScope((scope) => {
-      scope.setTag("area", "admin");
-      scope.setTag("admin.operation", options.name);
-      scope.setTag("admin.operation.op", op);
-      if (requestId) {
-        scope.setTag("convex.request_id", requestId);
-      }
-      scope.setContext("admin_operation", {
-        attributes,
-        message: errorText(error),
-        name: options.name,
-        op,
-        requestId,
-      });
-      scope.setContext("convex_auth", {
-        isAuthenticated: auth.isAuthenticated,
-        isLoading: auth.isLoading,
-        isRefreshing: auth.isRefreshing,
-      });
-      return captureException(error);
-    });
-
-    notify({
-      message: options.errorMessage ?? "The support team has been notified.",
-      requestId,
-      sentryEventId,
-      title: options.errorTitle ?? "Something went wrong",
-      tone: "error",
-    });
-
-    return { error, ok: false, requestId, sentryEventId };
-  }
+    })
+  );
 }
