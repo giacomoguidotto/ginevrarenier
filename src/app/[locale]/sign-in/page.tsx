@@ -15,11 +15,11 @@ export default async function SignInPage({ params }: Props) {
         appearance={{
           variables: {
             colorBackground: "var(--background)",
+            colorForeground: "var(--foreground)",
             colorPrimary: "var(--primary)",
-            colorText: "var(--foreground)",
-            colorTextSecondary: "var(--muted-foreground)",
-            colorInputBackground: "var(--card)",
-            colorInputText: "var(--foreground)",
+            colorMutedForeground: "var(--muted-foreground)",
+            colorInput: "var(--card)",
+            colorInputForeground: "var(--foreground)",
             colorNeutral: "var(--foreground)",
             borderRadius: "0.5rem",
             fontFamily: "var(--font-geist-sans)",
