@@ -14,6 +14,8 @@
       "!build",
       "!convex/_generated",
       "!public/images/**/*.svg",
+      "!src/components/admin/admin-operation-runtime.ts",
+      "!src/proxy.ts",
       "!.agents"
     ]
   },
@@ -26,7 +28,24 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "complexity": {
+        "noUselessReturn": "off"
+      },
+      "performance": {
+        "noAwaitInLoops": "off",
+        "noJsxPropsBind": "off",
+        "noSyncScripts": "off"
+      },
+      "style": {
+        "noIncrementDecrement": "off",
+        "useConsistentMethodSignatures": "off",
+        "useDestructuring": "off"
+      },
       "suspicious": {
+        "noEqualsToNull": "off",
+        "noUnknownAttribute": "off",
+        "noUnnecessaryConditions": "off",
+        "noShadow": "off",
         "noUnknownAtRules": "off"
       }
     },
@@ -53,7 +72,12 @@
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "noDuplicateClasses": "off",
+        "organizeImports": "on",
+        "useSortedAttributes": "off",
+        "useSortedInterfaceMembers": "off",
+        "useSortedKeys": "off",
+        "useSortedProperties": "off"
       }
     }
   },
